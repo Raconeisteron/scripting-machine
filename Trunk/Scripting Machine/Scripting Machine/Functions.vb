@@ -67,8 +67,8 @@ Module Functions
 
 #Region "Delegates"
 
-    Delegate Sub AddProgressBarValue(ByVal value As Integer)
-    Delegate Sub ChangeLabelText(ByVal text As String)
+    Delegate Sub AddProgressBarValue(ByVal value As Integer, ByVal source As Splash)
+    Delegate Sub ChangeLabelText(ByVal text As String, ByVal source As Splash)
 
 #End Region
 
@@ -290,7 +290,7 @@ Module Functions
 #Region "Files"
 
     Public Sub LoadIncludes(Optional ByVal omit As Boolean = False)
-        If Not omit Then Splash.Label1.Invoke(sLabel, New Object() {"Loading includes..."})
+        If Not omit Then Splash.Label1.Invoke(sLabel, New Object() {"Loading includes...", Splash})
         Main.TreeView1.Nodes.Clear()
         Dim Path As String, FolderCount As Integer, FileCount As Integer, FolderFileCount As Integer, _
             Name As String, Reader As StreamReader, Line As String
@@ -387,7 +387,7 @@ Module Functions
                 func.Params(i) = Trim(func.Params(i))
             Next
         Next
-        If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {10})
+        If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {10, Splash})
     End Sub
 
 #End Region
@@ -492,7 +492,7 @@ Module Functions
 #Region "Types"
 
     Private Sub FillTypes()
-        Splash.Label1.Invoke(sLabel, New Object() {"Loading constant lists..."})
+        Splash.Label1.Invoke(sLabel, New Object() {"Loading constant lists...", Splash})
         With Lists
             .DialogTypes = New List(Of String)
             .PreCompiler = New List(Of String)
@@ -595,7 +595,7 @@ Module Functions
                 .Add("seek_end")
             End With
         End With
-        Splash.ProgressBar1.Invoke(sProgress, New Object() {4})
+        Splash.ProgressBar1.Invoke(sProgress, New Object() {4, Splash})
     End Sub
 
 #End Region
@@ -603,7 +603,7 @@ Module Functions
 #Region "Options"
 
     Private Sub FillOptions()
-        Splash.Label1.Invoke(sLabel, New Object() {"Loading fonts..."})
+        Splash.Label1.Invoke(sLabel, New Object() {"Loading fonts...", Splash})
         Dim Fonts As New System.Drawing.Text.InstalledFontCollection
         With Options
             For Each F In Fonts.Families
@@ -631,7 +631,7 @@ Module Functions
             .ComboBox1.SelectedIndex = 0
             .ComboBox2.SelectedIndex = 0
         End With
-        Splash.ProgressBar1.Invoke(sProgress, New Object() {5})
+        Splash.ProgressBar1.Invoke(sProgress, New Object() {5, Splash})
     End Sub
 
 #End Region
@@ -640,7 +640,7 @@ Module Functions
 
     Private Sub FillSkins(Optional ByVal omit As Boolean = False)
         If Not omit Then
-            Splash.Label1.Invoke(sLabel, New Object() {"Loading skins.."})
+            Splash.Label1.Invoke(sLabel, New Object() {"Loading skins..", Splash})
             Skins(0).ID = 0
             Skins(0).Name = "Carl CJ"
             Skins(0).Gender = GenderType.Male
@@ -1893,7 +1893,9 @@ Module Functions
                 .Nodes(3).Nodes.Add(Skin.ID)
                 Main.ComboBox1.Items.Add(Skin.ID)
                 Main.ComboBox1.Text = 0
-                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1})
+                If Not omit Then
+                    Splash.ProgressBar1.Invoke(sProgress, New Object() {1, Splash})
+                End If
             Next
         End With
     End Sub
@@ -1904,7 +1906,7 @@ Module Functions
 
     Private Sub FillVehicles(Optional ByVal omit As Boolean = False)
         If Not omit Then
-            Splash.Label1.Invoke(sLabel, New Object() {"Loading vehicles..."})
+            Splash.Label1.Invoke(sLabel, New Object() {"Loading vehicles...", Splash})
             Vehicles(0).ID = 400
             Vehicles(0).Name = "Landstalker"
             Vehicles(0).Type = VehicleType.Off_Road
@@ -3267,7 +3269,7 @@ Module Functions
                 End Select
                 Tools.TreeView2.Nodes(15).Nodes.Add(vehicle.ID)
                 Tools.TreeView3.Nodes(15).Nodes.Add(vehicle.Name)
-                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1})
+                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1, Splash})
             End If
         Next
     End Sub
@@ -3278,7 +3280,7 @@ Module Functions
 
     Private Sub FillSounds(Optional ByVal omit As Boolean = False)
         If Not omit Then
-            Splash.Label1.Invoke(sLabel, New Object() {"Loading sounds..."})
+            Splash.Label1.Invoke(sLabel, New Object() {"Loading sounds...", Splash})
             Sounds.Add("SOUND_DISABLE_HELI_AUDIO", 1000)
             Sounds.Add("SOUND_ENABLE_HELI_AUDIO", 1001)
             Sounds.Add("SOUND_CEILING_VENT_LAND", 1002)
@@ -10354,7 +10356,7 @@ Module Functions
         Tools.TreeView4.Nodes.Clear()
         For Each value As String In Sounds.Keys
             Tools.TreeView4.Nodes.Add(value)
-            If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1})
+            If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1, Splash})
         Next
     End Sub
 
@@ -10365,7 +10367,7 @@ Module Functions
     Private Sub FillAnims(Optional ByVal omit As Boolean = False)
         On Error Resume Next
         If Not omit Then
-            Splash.Label1.Invoke(sLabel, New Object() {"Loading anims..."})
+            Splash.Label1.Invoke(sLabel, New Object() {"Loading anims...", Splash})
             Anims(0)._Lib = "AIRPORT"
             Anims(0).Name = "thrw_barl_thrw"
             Anims(1)._Lib = "Attractors"
@@ -13834,7 +13836,7 @@ Module Functions
                         End If
                     Next
                 End If
-                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1})
+                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1, Splash})
             End If
         Next
     End Sub
@@ -13845,7 +13847,7 @@ Module Functions
 
     Private Sub FillWeapons(Optional ByVal omit As Boolean = False)
         If Not omit Then
-            Splash.Label1.Invoke(sLabel, New Object() {"Loading weapons..."})
+            Splash.Label1.Invoke(sLabel, New Object() {"Loading weapons...", Splash})
             Weapons(0).ID = 0
             Weapons(0).Name = "Unarmed"
             Weapons(0).Slot = 0
@@ -14109,7 +14111,7 @@ Module Functions
                         Tools.TreeView6.Nodes(1).Nodes.Add(weapon.Name)
                 End Select
                 Tools.TreeView6.Nodes(11).Nodes.Add(weapon.Name)
-                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1})
+                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1, Splash})
             End If
         Next
     End Sub
@@ -14120,7 +14122,7 @@ Module Functions
 
     Private Sub FillMapIcons(Optional ByVal omit As Boolean = False)
         If Not omit Then
-            Splash.Label1.Invoke(sLabel, New Object() {"Loading icons..."})
+            Splash.Label1.Invoke(sLabel, New Object() {"Loading icons...", Splash})
             Maps(0).ID = 1
             Maps(0).Name = "White Square"
             Maps(1).ID = 2
@@ -14252,7 +14254,7 @@ Module Functions
         For Each map In Maps
             If map.ID <> 0 Then
                 Tools.TreeView7.Nodes.Add(map.ID)
-                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1})
+                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1, Splash})
             End If
         Next
     End Sub
@@ -14264,7 +14266,7 @@ Module Functions
     Private Sub FillSprites(Optional ByVal omit As Boolean = False)
         On Error Resume Next
         If Not omit Then
-            Splash.Label1.Invoke(sLabel, New Object() {"Loading sprites..."})
+            Splash.Label1.Invoke(sLabel, New Object() {"Loading sprites...", Splash})
             Sprites(0).Name = "intro1"
             Sprites(0).Path = "models\txd"
             Sprites(0).File = "Intro1"
@@ -16417,7 +16419,7 @@ Module Functions
                         End Select
                 End Select
                 Tools.TreeView8.Nodes(2).Nodes.Add(spr.Name)
-                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1})
+                If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {1, Splash})
             End If
         Next
     End Sub
@@ -16431,7 +16433,7 @@ Module Functions
 #Region "Config"
 
     Private Sub LoadConfig()
-        Splash.Label1.Invoke(sLabel, New Object() {"Loading config..."})
+        Splash.Label1.Invoke(sLabel, New Object() {"Loading config...", Splash})
         Dim Path As String, key As Microsoft.Win32.RegistryKey = Microsoft.Win32.Registry.ClassesRoot
         Path = My.Application.Info.DirectoryPath & "\Scripting Machine.cfg"
         With Settings
@@ -16516,7 +16518,7 @@ Module Functions
             Main.TabControl2.Visible = .iTabs
             Main.ToolStrip1.Visible = .ToolBar
         End With
-        Splash.ProgressBar1.Invoke(sProgress, New Object() {10})
+        Splash.ProgressBar1.Invoke(sProgress, New Object() {10, Splash})
     End Sub
 
     Public Sub SaveConfig()
@@ -17759,12 +17761,12 @@ Module Functions
 
 #Region "Delegates Subs"
 
-    Private Sub UpdateProgressBar(ByVal value As Integer)
-        Splash.ProgressBar1.Value += value
+    Private Sub UpdateProgressBar(ByVal value As Integer, ByVal source As Splash)
+        source.ProgressBar1.Value += value
     End Sub
 
-    Private Sub UpdateLabelText(ByVal text As String)
-        Splash.Label1.Text = text
+    Private Sub UpdateLabelText(ByVal text As String, ByVal source As Splash)
+        source.Label1.Text = text
     End Sub
 
 #End Region

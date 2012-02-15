@@ -290,6 +290,7 @@ Module Functions
 #Region "Files"
 
     Public Sub LoadIncludes(Optional ByVal omit As Boolean = False)
+        On Error Resume Next
         If Not omit Then Splash.Label1.Invoke(sLabel, New Object() {"Loading includes...", Splash})
         Main.TreeView1.Nodes.Clear()
         Dim Path As String, FolderCount As Integer, FileCount As Integer, FolderFileCount As Integer, _
@@ -320,8 +321,22 @@ Module Functions
                                 CommentedLine = False
                                 Continue Do
                             End If
-                            If (Line.IndexOf("native") > -1 Or Line.IndexOf("stock") > -1 Or Line.IndexOf("public") > -1) AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
-                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line, Line.IndexOf(" ") + 1, Line.IndexOf("(") - Line.IndexOf(" "))), Name.Replace(":", ""), -1, Split(Trim(Mid(Line, Line.IndexOf("(") + 2, Line.IndexOf(")") - Line.IndexOf("(") - 1)), ","))
+                            Dim pos As Integer = Line.IndexOf("native")
+                            If pos = -1 Then
+                                pos = Line.IndexOf("stock")
+                                If pos = -1 Then pos = Line.IndexOf("public")
+                            End If
+                            If pos > -1 AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
+                                Dim params As New List(Of String)
+                                params.AddRange(Split(Trim(Mid(Line, Line.IndexOf("(") + 2, Line.IndexOf(")") - Line.IndexOf("(") - 1)), ","))
+                                For i = 0 To params.Count - 1
+                                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                        params(i - 1) += "," & params(i)
+                                        params.RemoveAt(i)
+                                        Continue For
+                                    End If
+                                Next
+                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line, Line.IndexOf(" ", pos) + 1, Line.IndexOf("(") - Line.IndexOf(" ", pos))).Replace("Float:", "").Replace("bool:", ""), Name.Replace(":", ""), -1, params.ToArray)
                                 If Not AllFunctions.Contains(func) AndAlso Not AllCallbacks.Contains(func.Name) Then
                                     AllFunctions.Add(func)
                                     If Not TrueNodeContains(Main.TreeView1.Nodes(FolderCount).Nodes(FileCount).Nodes, func.Name) Then Main.TreeView1.Nodes(FolderCount).Nodes(FileCount).Nodes.Add(func.Name)
@@ -365,8 +380,22 @@ Module Functions
                             CommentedLine = False
                             Continue Do
                         End If
-                        If (Line.IndexOf("native") > -1 Or Line.IndexOf("stock") > -1 Or Line.IndexOf("public") > -1) AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
-                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line, Line.IndexOf(" ") + 1, Line.IndexOf("(") - Line.IndexOf(" "))), Name.Replace(":", ""), -1, Split(Trim(Mid(Line, Line.IndexOf("(") + 2, Line.IndexOf(")") - Line.IndexOf("(") - 1)), ","))
+                        Dim pos As Integer = Line.IndexOf("native")
+                        If pos = -1 Then
+                            pos = Line.IndexOf("stock")
+                            If pos = -1 Then pos = Line.IndexOf("public")
+                        End If
+                        If pos > -1 AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
+                            Dim params As New List(Of String)
+                            params.AddRange(Split(Trim(Mid(Line, Line.IndexOf("(") + 2, Line.IndexOf(")") - Line.IndexOf("(") - 1)), ","))
+                            For i = 0 To params.Count - 1
+                                If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                    params(i - 1) += "," & params(i)
+                                    params.RemoveAt(i)
+                                    Continue For
+                                End If
+                            Next
+                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line, Line.IndexOf(" ", pos) + 1, Line.IndexOf("(") - Line.IndexOf(" ", pos))).Replace("Float:", "").Replace("bool:", ""), Name.Replace(":", ""), -1, params.ToArray)
                             If Not AllFunctions.Contains(func) AndAlso Not AllCallbacks.Contains(func.Name) Then
                                 AllFunctions.Add(func)
                                 If Not TrueNodeContains(Main.TreeView1.Nodes(FileCount).Nodes, func.Name) Then Main.TreeView1.Nodes(FileCount).Nodes.Add(func.Name)

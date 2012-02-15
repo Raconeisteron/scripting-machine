@@ -1720,6 +1720,11 @@ Public Class Instance
                                     fLine = Reader.ReadLine()
                                     Continue Do
                                 End If
+                                Dim pos As Integer = fLine.IndexOf("native")
+                                If pos = -1 Then
+                                    pos = fLine.IndexOf("stock")
+                                    If pos = -1 Then pos = fLine.IndexOf("public")
+                                End If
                                 If fLine.IndexOf("#include") > -1 Then
                                     Dim file2 As String, cNode2 As New TreeNode()
                                     If fLine.IndexOf("<") > -1 Then
@@ -1748,7 +1753,12 @@ Public Class Instance
                                                 fLine = Reader2.ReadLine()
                                                 Continue Do
                                             End If
-                                            If (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                            pos = fLine.IndexOf("native")
+                                            If pos = -1 Then
+                                                pos = fLine.IndexOf("stock")
+                                                If pos = -1 Then pos = fLine.IndexOf("public")
+                                            End If
+                                            If pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                                 Dim params As New List(Of String)
                                                 params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                                 For i = 0 To params.Count - 1
@@ -1758,8 +1768,8 @@ Public Class Instance
                                                         Continue For
                                                     End If
                                                 Next
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
-                                                If TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                             ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                                 Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                                 If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
@@ -1799,7 +1809,12 @@ Public Class Instance
                                                 fLine = Reader2.ReadLine()
                                                 Continue Do
                                             End If
-                                            If (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                            pos = fLine.IndexOf("native")
+                                            If pos = -1 Then
+                                                pos = fLine.IndexOf("stock")
+                                                If pos = -1 Then pos = fLine.IndexOf("public")
+                                            End If
+                                            If pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                                 Dim params As New List(Of String)
                                                 params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                                 For i = 0 To params.Count - 1
@@ -1809,7 +1824,7 @@ Public Class Instance
                                                         Continue For
                                                     End If
                                                 Next
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
                                                 If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                             ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                                 Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
@@ -1822,7 +1837,7 @@ Public Class Instance
                                         Errors.Clear()
                                         Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
                                     End If
-                                ElseIf (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                ElseIf pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                     Dim params As New List(Of String)
                                     params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                     For i = 0 To params.Count - 1
@@ -1832,7 +1847,7 @@ Public Class Instance
                                             Continue For
                                         End If
                                     Next
-                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
+                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
                                     If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                 ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                     Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
@@ -1873,6 +1888,11 @@ Public Class Instance
                                     fLine = Reader.ReadLine()
                                     Continue Do
                                 End If
+                                Dim pos As Integer = fLine.IndexOf("native")
+                                If pos = -1 Then
+                                    pos = fLine.IndexOf("stock")
+                                    If pos = -1 Then pos = fLine.IndexOf("public")
+                                End If
                                 If fLine.IndexOf("#include") > -1 Then
                                     Dim file2 As String, cNode2 As New TreeNode()
                                     If fLine.IndexOf("<") > -1 Then
@@ -1901,7 +1921,12 @@ Public Class Instance
                                                 fLine = Reader2.ReadLine()
                                                 Continue Do
                                             End If
-                                            If (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                            pos = fLine.IndexOf("native")
+                                            If pos = -1 Then
+                                                pos = fLine.IndexOf("stock")
+                                                If pos = -1 Then pos = fLine.IndexOf("public")
+                                            End If
+                                            If pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                                 Dim params As New List(Of String)
                                                 params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                                 For i = 0 To params.Count - 1
@@ -1911,7 +1936,7 @@ Public Class Instance
                                                         Continue For
                                                     End If
                                                 Next
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
                                                 If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                             ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                                 Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
@@ -1952,7 +1977,12 @@ Public Class Instance
                                                 fLine = Reader2.ReadLine()
                                                 Continue Do
                                             End If
-                                            If (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                            pos = fLine.IndexOf("native")
+                                            If pos = -1 Then
+                                                pos = fLine.IndexOf("stock")
+                                                If pos = -1 Then pos = fLine.IndexOf("public")
+                                            End If
+                                            If pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                                 Dim params As New List(Of String)
                                                 params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                                 For i = 0 To params.Count - 1
@@ -1962,7 +1992,7 @@ Public Class Instance
                                                         Continue For
                                                     End If
                                                 Next
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
                                                 If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                             ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                                 Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
@@ -1975,7 +2005,7 @@ Public Class Instance
                                         Errors.Clear()
                                         Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
                                     End If
-                                ElseIf (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                ElseIf pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                     Dim params As New List(Of String)
                                     params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                     For i = 0 To params.Count - 1
@@ -1985,7 +2015,7 @@ Public Class Instance
                                             Continue For
                                         End If
                                     Next
-                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
+                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
                                     If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                 ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                     Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
@@ -2027,7 +2057,12 @@ Public Class Instance
                         CommentedLine = False
                         Continue For
                     End If
-                    If (Line.Text.IndexOf("native") > -1 Or Line.Text.IndexOf("stock") > -1 Or Line.Text.IndexOf("public") > -1) AndAlso Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 AndAlso Line.Text.IndexOf("operator") = -1 Then
+                    Dim pos As Integer = Line.Text.IndexOf("native")
+                    If pos = -1 Then
+                        pos = Line.Text.IndexOf("stock")
+                        If pos = -1 Then pos = Line.Text.IndexOf("public")
+                    End If
+                    If pos > -1 AndAlso Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 AndAlso Line.Text.IndexOf("operator") = -1 Then
                         Dim params As New List(Of String)
                         params.AddRange(Split(Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 2, Line.Text.IndexOf(")") - Line.Text.IndexOf("(") - 1)), ","))
                         For i = 0 To params.Count - 1
@@ -2037,10 +2072,10 @@ Public Class Instance
                                 Continue For
                             End If
                         Next
-                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ") + 2, Line.Text.IndexOf("(") - Line.Text.IndexOf(" ") - 1)), "Current:", Line.Number, params.ToArray)
+                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ", pos) + 2, Line.Text.IndexOf("(") - Line.Text.IndexOf(" ", pos) - 1)), Name.Replace(".inc", ":"), -1, params.ToArray)
                         If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                     ElseIf Line.Text.IndexOf("forward") > -1 AndAlso Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 Then
-                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ") + 1, Line.Text.IndexOf("(") - Line.Text.IndexOf(" "))), "Current:", Line.Number, Split(Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 2, Line.Text.IndexOf(")") - Line.Text.IndexOf("(") - 1)), ","))
+                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ") + 1, Line.Text.IndexOf("(") - Line.Text.IndexOf(" "))), Name.Replace(".inc", ":"), -1, Split(Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 2, Line.Text.IndexOf(")") - Line.Text.IndexOf("(") - 1)), ","))
                         If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
                     End If
                 Next
@@ -2373,6 +2408,11 @@ Public Class Instance
                 CommentedLine = False
                 Continue For
             End If
+            Dim spos As Integer = line.Text.IndexOf("native")
+            If spos = -1 Then
+                spos = line.Text.IndexOf("stock")
+                If spos = -1 Then spos = line.Text.IndexOf("public")
+            End If
             If line.Text.IndexOf("#include") > -1 Then
                 Dim file As String
                 If line.Text.IndexOf("<") > -1 Then
@@ -2400,6 +2440,11 @@ Public Class Instance
                             CommentedLine = False
                             fLine = Reader.ReadLine()
                             Continue Do
+                        End If
+                        spos = fLine.IndexOf("native")
+                        If spos = -1 Then
+                            spos = fLine.IndexOf("stock")
+                            If spos = -1 Then spos = fLine.IndexOf("public")
                         End If
                         If fLine.IndexOf("#include") > -1 Then
                             Dim file2 As String, cNode2 As New TreeNode()
@@ -2432,7 +2477,12 @@ Public Class Instance
                                         fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
-                                    If (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    spos = fLine.IndexOf("native")
+                                    If spos = -1 Then
+                                        spos = fLine.IndexOf("stock")
+                                        If spos = -1 Then spos = fLine.IndexOf("public")
+                                    End If
+                                    If spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                         Dim params As New List(Of String)
                                         params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                         For i = 0 To params.Count - 1
@@ -2442,11 +2492,11 @@ Public Class Instance
                                                 Continue For
                                             End If
                                         Next
-                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
-                                        If Not TrueContainsFunction(ACLists.Functions, func) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                     ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                         Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                        If Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Callbacks.Add(func)
+                                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
                                     ElseIf fLine.IndexOf("#define") > -1 Then
                                         If fLine.IndexOf("0x") > -1 Then
                                             Dim col As PawnColor, value As String
@@ -2706,7 +2756,12 @@ Public Class Instance
                                         fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
-                                    If (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    spos = fLine.IndexOf("native")
+                                    If spos = -1 Then
+                                        spos = fLine.IndexOf("stock")
+                                        If spos = -1 Then spos = fLine.IndexOf("public")
+                                    End If
+                                    If spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                         Dim params As New List(Of String)
                                         params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                         For i = 0 To params.Count - 1
@@ -2716,11 +2771,11 @@ Public Class Instance
                                                 Continue For
                                             End If
                                         Next
-                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
-                                        If Not TrueContainsFunction(ACLists.Functions, func) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                     ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                         Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                        If Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Callbacks.Add(func)
+                                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
                                     ElseIf fLine.IndexOf("#define") > -1 Then
                                         If fLine.IndexOf("0x") > -1 Then
                                             Dim col As PawnColor, value As String
@@ -2953,7 +3008,7 @@ Public Class Instance
                                 Errors.Clear()
                                 Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 1))
                             End If
-                        ElseIf (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                        ElseIf spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                             Dim params As New List(Of String)
                             params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                             For i = 0 To params.Count - 1
@@ -2963,11 +3018,11 @@ Public Class Instance
                                     Continue For
                                 End If
                             Next
-                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
-                            If Not TrueContainsFunction(ACLists.Functions, func) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file.Replace(".inc", ":"), -1, params.ToArray)
+                            If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                         ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                             Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                            If Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Callbacks.Add(func)
+                            If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
                         ElseIf fLine.IndexOf("#define") > -1 Then
                             If fLine.IndexOf("0x") > -1 Then
                                 Dim col As PawnColor, value As String
@@ -3227,6 +3282,11 @@ Public Class Instance
                             fLine = Reader.ReadLine()
                             Continue Do
                         End If
+                        spos = fLine.IndexOf("native")
+                        If spos = -1 Then
+                            spos = fLine.IndexOf("stock")
+                            If spos = -1 Then spos = fLine.IndexOf("public")
+                        End If
                         If fLine.IndexOf("#include") > -1 Then
                             Dim file2 As String, cNode2 As New TreeNode()
                             If fLine.IndexOf("<") > -1 Then
@@ -3258,7 +3318,12 @@ Public Class Instance
                                         fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
-                                    If (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    spos = fLine.IndexOf("native")
+                                    If spos = -1 Then
+                                        spos = fLine.IndexOf("stock")
+                                        If spos = -1 Then spos = fLine.IndexOf("public")
+                                    End If
+                                    If spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                         Dim params As New List(Of String)
                                         params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                         For i = 0 To params.Count - 1
@@ -3268,11 +3333,11 @@ Public Class Instance
                                                 Continue For
                                             End If
                                         Next
-                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
-                                        If Not TrueContainsFunction(ACLists.Functions, func) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                     ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                         Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                        If Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Callbacks.Add(func)
+                                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
                                     ElseIf fLine.IndexOf("#define") > -1 Then
                                         If fLine.IndexOf("0x") > -1 Then
                                             Dim col As PawnColor, value As String
@@ -3532,7 +3597,12 @@ Public Class Instance
                                         fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
-                                    If (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    spos = fLine.IndexOf("native")
+                                    If spos = -1 Then
+                                        spos = fLine.IndexOf("stock")
+                                        If spos = -1 Then spos = fLine.IndexOf("public")
+                                    End If
+                                    If spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                         Dim params As New List(Of String)
                                         params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                         For i = 0 To params.Count - 1
@@ -3542,11 +3612,11 @@ Public Class Instance
                                                 Continue For
                                             End If
                                         Next
-                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
-                                        If Not TrueContainsFunction(ACLists.Functions, func) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                                     ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                         Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                        If Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Callbacks.Add(func)
+                                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
                                     ElseIf fLine.IndexOf("#define") > -1 Then
                                         If fLine.IndexOf("0x") > -1 Then
                                             Dim col As PawnColor, value As String
@@ -3779,7 +3849,7 @@ Public Class Instance
                                 Errors.Clear()
                                 Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 1))
                             End If
-                        ElseIf (fLine.IndexOf("native") > -1 Or fLine.IndexOf("stock") > -1 Or fLine.IndexOf("public") > -1) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                        ElseIf spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                             Dim params As New List(Of String)
                             params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                             For i = 0 To params.Count - 1
@@ -3789,11 +3859,11 @@ Public Class Instance
                                     Continue For
                                 End If
                             Next
-                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 2, fLine.IndexOf("(") - fLine.IndexOf(" ") - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
-                            If Not TrueContainsFunction(ACLists.Functions, func) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file.Replace(".inc", ":"), -1, params.ToArray)
+                            If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                         ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                             Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                            If Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Callbacks.Add(func)
+                            If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
                         ElseIf fLine.IndexOf("#define") > -1 Then
                             If fLine.IndexOf("0x") > -1 Then
                                 Dim col As PawnColor, value As String
@@ -4023,9 +4093,9 @@ Public Class Instance
                     Reader.Close()
                 Else
                     Errors.Clear()
-                    Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file & """"}, 0))
+                    Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file & """"}, 1))
                 End If
-            ElseIf (line.Text.IndexOf("native") > -1 Or line.Text.IndexOf("stock") > -1 Or line.Text.IndexOf("public") > -1) AndAlso line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 AndAlso line.Text.IndexOf("operator") = -1 Then
+            ElseIf spos > -1 AndAlso line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 AndAlso line.Text.IndexOf("operator") = -1 Then
                 Dim params As New List(Of String)
                 params.AddRange(Split(Trim(Mid(line.Text, line.Text.IndexOf("(") + 2, line.Text.IndexOf(")") - line.Text.IndexOf("(") - 1)), ","))
                 For i = 0 To params.Count - 1
@@ -4035,11 +4105,11 @@ Public Class Instance
                         Continue For
                     End If
                 Next
-                Dim func As PawnFunction = New PawnFunction(Trim(Mid(line.Text, line.Text.IndexOf(" ") + 2, line.Text.IndexOf("(") - line.Text.IndexOf(" ") - 1)), "Current:", line.Number, params.ToArray)
-                If Not TrueContainsFunction(ACLists.Functions, func) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                Dim func As PawnFunction = New PawnFunction(Trim(Mid(line.Text, line.Text.IndexOf(" ", spos) + 2, line.Text.IndexOf("(") - line.Text.IndexOf(" ", spos) - 1)), Name.Replace(".inc", ":"), -1, params.ToArray)
+                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
             ElseIf line.Text.IndexOf("forward") > -1 AndAlso line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 Then
-                Dim func As PawnFunction = New PawnFunction(Trim(Mid(line.Text, line.Text.IndexOf(" ") + 1, line.Text.IndexOf("(") - line.Text.IndexOf(" "))), "Current:", line.Number, Split(Trim(Mid(line.Text, line.Text.IndexOf("(") + 2, line.Text.IndexOf(")") - line.Text.IndexOf("(") - 1)), ","))
-                If Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Callbacks.Add(func)
+                Dim func As PawnFunction = New PawnFunction(Trim(Mid(line.Text, line.Text.IndexOf(" ") + 1, line.Text.IndexOf("(") - line.Text.IndexOf(" "))), Name.Replace(".inc", ":"), -1, Split(Trim(Mid(line.Text, line.Text.IndexOf("(") + 2, line.Text.IndexOf(")") - line.Text.IndexOf("(") - 1)), ","))
+                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
             ElseIf line.Text.IndexOf("#define") > -1 Then
                 If line.Text.IndexOf("0x") > -1 Then
                     Dim col As PawnColor, value As String

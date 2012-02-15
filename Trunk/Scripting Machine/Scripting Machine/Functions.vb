@@ -14262,6 +14262,7 @@ Module Functions
 #Region "Sprites"
 
     Private Sub FillSprites(Optional ByVal omit As Boolean = False)
+        On Error Resume Next
         If Not omit Then
             Splash.Label1.Invoke(sLabel, New Object() {"Loading sprites..."})
             Sprites(0).Name = "intro1"

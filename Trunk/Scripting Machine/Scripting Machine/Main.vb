@@ -1144,7 +1144,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub Button2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button2.Click
-        LoadIncludes()
+        LoadIncludes(True)
     End Sub
 
     ''' <summary>

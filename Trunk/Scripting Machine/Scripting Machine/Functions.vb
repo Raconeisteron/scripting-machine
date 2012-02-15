@@ -289,8 +289,8 @@ Module Functions
 
 #Region "Files"
 
-    Public Sub LoadIncludes()
-        Splash.Label1.Invoke(sLabel, New Object() {"Loading includes..."})
+    Public Sub LoadIncludes(Optional ByVal omit As Boolean = False)
+        If Not omit Then Splash.Label1.Invoke(sLabel, New Object() {"Loading includes..."})
         Main.TreeView1.Nodes.Clear()
         Dim Path As String, FolderCount As Integer, FileCount As Integer, FolderFileCount As Integer, _
             Name As String, Reader As StreamReader, Line As String
@@ -387,7 +387,7 @@ Module Functions
                 func.Params(i) = Trim(func.Params(i))
             Next
         Next
-        Splash.ProgressBar1.Invoke(sProgress, New Object() {10})
+        If Not omit Then Splash.ProgressBar1.Invoke(sProgress, New Object() {10})
     End Sub
 
 #End Region

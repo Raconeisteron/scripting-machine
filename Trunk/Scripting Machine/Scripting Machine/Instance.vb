@@ -4046,26 +4046,26 @@ Public Class Instance
                     If line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 Then
                         value = Trim(Mid(line.Text, line.Text.IndexOf("(") + 4, 8))
                         If IsHex(value) Then
-                            col = New PawnColor(Trim(Mid(line.Text, line.Text.IndexOf("#define") + 9, If(line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) > 0, line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) - line.Text.IndexOf(" ") - 1, line.Text.IndexOf(vbTab.ToString()) - line.Text.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), line.Number)
+                            col = New PawnColor(Trim(Mid(line.Text, line.Text.IndexOf("#define") + 9, If(line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) > 0, line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) - line.Text.IndexOf(" ") - 1, line.Text.IndexOf(vbTab.ToString()) - line.Text.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
                             If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
                         End If
                     Else
-                        If line.Text.IndexOf("{") > -1 AndAlso line.Text.IndexOf("}") > -1 Then
-                            value = Trim(Mid(line.Text, line.Text.IndexOf("{") + 2, 6))
-                        Else
-                            value = Trim(Mid(line.Text, line.Text.IndexOf("""") + 2, 6))
-                        End If
+                        value = Trim(Mid(line.Text, line.Text.IndexOf("0x") + 3, 8))
                         If IsHex(value) Then
-                            col = New PawnColor(Trim(Mid(line.Text, line.Text.IndexOf("#define") + 9, If(line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) > 0, line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) - line.Text.IndexOf(" ") - 1, line.Text.IndexOf(vbTab.ToString()) - line.Text.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), line.Number)
+                            col = New PawnColor(Trim(Mid(line.Text, line.Text.IndexOf("#define") + 9, If(line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) > 0, line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) - line.Text.IndexOf(" ") - 1, line.Text.IndexOf(vbTab.ToString()) - line.Text.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
                             If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
                         End If
                     End If
                 Else
                     If line.Text.IndexOf("""") > -1 AndAlso line.Text.IndexOf("""", line.Text.IndexOf("""") + 1) > -1 Then
                         Dim value As String
-                        value = Trim(Mid(line.Text, line.Text.IndexOf("""") + 2, 6))
+                        If line.Text.IndexOf("{") > -1 AndAlso line.Text.IndexOf("}") > -1 Then
+                            value = Trim(Mid(line.Text, line.Text.IndexOf("{") + 2, 6))
+                        Else
+                            value = Trim(Mid(line.Text, line.Text.IndexOf("""") + 2, 6))
+                        End If
                         If IsHex(value) Then
-                            Dim col As New PawnColor(Trim(Mid(line.Text, line.Text.IndexOf("#define") + 9, If(line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) > 0, line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) - line.Text.IndexOf(" ") - 1, line.Text.IndexOf(vbTab.ToString()) - line.Text.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), line.Number)
+                            Dim col As New PawnColor(Trim(Mid(line.Text, line.Text.IndexOf("#define") + 9, If(line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) > 0, line.Text.IndexOf(" ", line.Text.IndexOf(" ") + 2) - line.Text.IndexOf(" ") - 1, line.Text.IndexOf(vbTab.ToString()) - line.Text.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
                             If col.Name.Length > 0 AndAlso Not ACLists.eColors.Contains(col) Then ACLists.eColors.Add(col)
                         End If
                     End If

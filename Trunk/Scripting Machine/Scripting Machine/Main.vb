@@ -663,68 +663,79 @@ Public Class Main
 #Region "Tools"
 
     Private Sub TeleportsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TeleportsToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage6
     End Sub
 
     Private Sub DialogsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles DialogsToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage1
     End Sub
 
     Private Sub AreasToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AreasToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage3
     End Sub
 
     Private Sub ColorPickerToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ColorPickerToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage2
     End Sub
 
     Private Sub ConverterToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ConverterToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage4
     End Sub
 
     Private Sub AnimsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AnimsToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
         Tools.TabControl3.SelectedTab = Tools.TabPage10
     End Sub
 
     Private Sub MapIconsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MapIconsToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
         Tools.TabControl3.SelectedTab = Tools.TabPage14
     End Sub
 
     Private Sub SkinsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SkinsToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
         Tools.TabControl3.SelectedTab = Tools.TabPage7
     End Sub
 
     Private Sub SoundsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SoundsToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
         Tools.TabControl3.SelectedTab = Tools.TabPage9
     End Sub
 
     Private Sub SpritesToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SpritesToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
         Tools.TabControl3.SelectedTab = Tools.TabPage19
-
     End Sub
 
     Private Sub VehiclesToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles VehiclesToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
         Tools.TabControl3.SelectedTab = Tools.TabPage8
     End Sub
 
     Private Sub WeaponsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles WeaponsToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
         Tools.TabControl3.SelectedTab = Tools.TabPage11

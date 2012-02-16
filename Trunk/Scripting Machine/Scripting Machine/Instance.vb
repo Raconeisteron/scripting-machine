@@ -34,7 +34,6 @@ Public Class Instance
     Dim first As Boolean
     Dim WithEvents Tim As New Timers.Timer(1000)
     Dim MarginUpdater As New uMargin(AddressOf UpdateMargin)
-    Dim DataUpdaterEx As New uDataEx(AddressOf UpdateDataEx)
 
 #End Region
 
@@ -43,6 +42,7 @@ Public Class Instance
     Public ACLists As AutoCompleteLists
     Public Errors As New List(Of ListViewItem)
     Public DataUpdater As New uData(AddressOf UpdateData)
+    Public DataUpdaterEx As New uDataEx(AddressOf UpdateDataEx)
 
 #End Region
 
@@ -50,7 +50,7 @@ Public Class Instance
 
 #Region "Enums"
 
-    Private Enum UpdateType
+    Public Enum UpdateType
         Includes
         Functions_Callbacks
         Colors
@@ -87,14 +87,23 @@ Public Class Instance
 
 #Region "Delegates"
 
+#Region "Private"
+
     Private Delegate Function AddTreeNode(ByVal Name As String, ByVal Node As TreeNode) As TreeNode
     Private Delegate Function AddFirstTreeNode(ByVal Name As String, ByVal Tree As TreeView) As TreeNode
     Private Delegate Sub ClearTree(ByVal Tree As TreeView)
     Private Delegate Sub uMargin()
-    Private Delegate Sub uDataEx(ByVal Type As UpdateType, ByVal startline As Integer, ByVal endline As Integer)
-    Public Delegate Sub uData()
     Private Delegate Function SelectedLines(ByVal tControl As Scintilla) As ScintillaNet.LinesCollection
     Private Delegate Sub SetVisible(ByVal tControl As Control, ByVal value As Boolean)
+
+#End Region
+
+#Region "Public"
+
+    Public Delegate Sub uDataEx(ByVal Type As UpdateType, ByVal startline As Integer, ByVal endline As Integer)
+    Public Delegate Sub uData()
+
+#End Region
 
 #End Region
 
@@ -1661,10 +1670,24 @@ Public Class Instance
         End With
     End Sub
 
-    Private Sub UpdateDataEx(ByVal Type As UpdateType, ByVal startline As Integer, ByVal endline As Integer)
+    Private Function GetLineCollection(ByVal tControl As Scintilla) As ScintillaNet.LinesCollection
+        Return tControl.Lines
+    End Function
+
+    Private Sub SetControlVisible(ByVal tControl As Control, ByVal value As Boolean)
+        tControl.Visible = value
+    End Sub
+
+#End Region
+
+#End Region
+
+#Region "Delegates Subs/Functions"
+
+    Public Sub UpdateDataEx(ByVal Type As UpdateType, ByVal startline As Integer, ByVal endline As Integer)
         On Error Resume Next
         Static LastUpdate As Long = -1
-        If LastUpdate <> -1 OrElse (GetTickCount() - LastUpdate) < 30000 Then Exit Sub
+        If LastUpdate <> -1 AndAlso (GetTickCount() - LastUpdate) < 30000 Then Exit Sub
         If ACLists.Functions.Count = 0 Then
             SyntaxHandle.Invoke(DataUpdater)
             LastUpdate = GetTickCount()
@@ -2362,20 +2385,6 @@ Public Class Instance
         SyntaxHandle.Lexing.Keywords(3) = tmpstring
         SyntaxHandle.Lexing.Colorize()
     End Sub
-
-    Private Function GetLineCollection(ByVal tControl As Scintilla) As ScintillaNet.LinesCollection
-        Return tControl.Lines
-    End Function
-
-    Private Sub SetControlVisible(ByVal tControl As Control, ByVal value As Boolean)
-        tControl.Visible = value
-    End Sub
-
-#End Region
-
-#End Region
-
-#Region "Delegates Subs/Functions"
 
     Private Sub UpdateData()
         On Error Resume Next

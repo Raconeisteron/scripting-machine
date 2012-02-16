@@ -905,6 +905,7 @@ Public Class Tools
 
     Private Sub ComboBox1_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ComboBox1.SelectedIndexChanged
         UpdatePreviewer()
+        UpdatePreviewer()
     End Sub
 
     Private Sub TextBox2_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox2.TextChanged
@@ -1067,12 +1068,24 @@ Public Class Tools
                         If col.Name = .SelectedText Then
                             defined = True
                             ccColor = cColor(col.Hex.R, col.Hex.G, col.Hex.B)
-                            TextBox3.Text.Replace(.SelectedText, ccColor)
+                            .Text = .Text.Replace(.SelectedText, ccColor)
+                            If istart < iend Then
+                                istart = .Text.IndexOf("{")
+                            Else
+                                istart = .Text.IndexOf("{", istart + 1)
+                            End If
+                            If istart = -1 Then
+                                Exit Sub
+                            Else
+                                iend = .Text.IndexOf("}", istart)
+                            End If
+                            .SelectionStart = istart + 1
+                            .SelectionLength = iend - istart - 1
                             Exit For
                         End If
                     Next
                     If Not defined Then
-                        Rich.Text = Rich.Text.Replace("}|/\| ", "}")
+                        .Text = .Text.Replace("}|/\| ", "}")
                         Select Case Settings.Language
                             Case Languages.English
                                 MsgBox("The color must be in RGB Hex code or be a embedded defined color.", MsgBoxStyle.Critical, "Error")

@@ -20,6 +20,22 @@ Public Class Options
 
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
         Dim key As Microsoft.Win32.RegistryKey = Microsoft.Win32.Registry.ClassesRoot, pStyle As Drawing.FontStyle
+        Dim tFont As Font
+        Try
+            tFont = New Font(New FontFamily(ComboBox1.Text), ComboBox2.Text, pStyle, GraphicsUnit.Pixel)
+        Catch ex As Exception
+            Select Case Settings.Language
+                Case Languages.English
+                    MsgBox("Invalid font family or size", MsgBoxStyle.Critical, "Error")
+                Case Languages.Español
+                    MsgBox("Fuente o tamaño de letra invalidos", MsgBoxStyle.Critical, "Error")
+                Case Languages.Portuguêse
+                    MsgBox("Fonte Tamanho da fonte ou inválido", MsgBoxStyle.Critical, "Error")
+                Case Else
+                    MsgBox("Schriftgröße verändern Schriftgröße oder ungültig", MsgBoxStyle.Critical, "Fehler")
+            End Select
+            Exit Sub
+        End Try
         With Settings
             If RadioButton1.Checked Then
                 .Language = Languages.English
@@ -33,7 +49,7 @@ Public Class Options
             ChangeLang(.Language)
             If CheckBox1.Checked Then pStyle = FontStyle.Bold
             If CheckBox2.Checked Then pStyle += FontStyle.Italic
-            .cFont = New Font(New FontFamily(ComboBox1.Text), ComboBox2.Text, pStyle, GraphicsUnit.Pixel)
+            .cFont = tFont
             .AreaCreateOutput = TextBox1.Text
             .AreaShowOutput = TextBox2.Text
             .BoundsOutput = TextBox3.Text

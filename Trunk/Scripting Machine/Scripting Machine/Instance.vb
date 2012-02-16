@@ -256,6 +256,7 @@ Public Class Instance
             .AcceptsTab = True
             .MatchBraces = True
             .UndoRedo.IsUndoEnabled = False
+            .Encoding = System.Text.Encoding.UTF8
             With .Margins
                 .Margin0.Width = 18
                 .Margin0.AutoToggleMarkerNumber = True
@@ -1068,7 +1069,7 @@ Public Class Instance
                     CommentedChar = True
                 End If
                 If CommentedChar Then Exit Sub
-                Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction())
+                Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction(False, True))
                 If func.Name.Length = 0 Then : ShowingInfoText = False
                 Else
                     With InfoText
@@ -1545,7 +1546,7 @@ Public Class Instance
                     End If
                 Else
                     If func.IndexOf(")(") = -1 Then
-                        func = func.Remove(func.LastIndexOf(")"), func.IndexOf("(") - 1)
+                        func = func.Remove(func.LastIndexOf(")"), func.IndexOf("(") + 1)
                     Else
                         func = func.Remove(func.IndexOf(")"), func.Length - func.IndexOf(")"))
                     End If

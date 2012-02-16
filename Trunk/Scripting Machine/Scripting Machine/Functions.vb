@@ -302,14 +302,76 @@ Module Functions
                 If Not TrueNodeContains(Main.TreeView1.Nodes, Name) Then Main.TreeView1.Nodes.Add(Name)
                 If Directory.GetFiles(mDir).Length > 0 Then
                     For Each Inc In Directory.GetFiles(mDir)
+                        If Inc.EndsWith(".inc") Then
+                            Dim CommentedLine As Boolean, CommentedSection As Boolean
+                            FolderFileCount = 0
+                            Name = Mid(Inc, Inc.LastIndexOf("\") + 2, Inc.LastIndexOf(".") - Inc.LastIndexOf("\") - 1) & ":"
+                            If Not TrueNodeContains(Main.TreeView1.Nodes(FolderCount).Nodes, Name) Then Main.TreeView1.Nodes(FolderCount).Nodes.Add(Name)
+                            Reader = New StreamReader(Inc)
+                            Line = Reader.ReadLine()
+                            Do Until Line Is Nothing
+                                If Line.StartsWith("//") Then
+                                    CommentedLine = True
+                                ElseIf Line.IndexOf("/*") > -1 AndAlso Line.IndexOf("*/") = -1 Then
+                                    CommentedSection = True
+                                ElseIf Line.IndexOf("*/") > -1 Then
+                                    CommentedSection = False
+                                End If
+                                If CommentedLine Or CommentedSection Then
+                                    Line = Reader.ReadLine()
+                                    CommentedLine = False
+                                    Continue Do
+                                End If
+                                Dim pos As Integer = Line.IndexOf("native")
+                                If pos = -1 Then
+                                    pos = Line.IndexOf("stock")
+                                    If pos = -1 Then pos = Line.IndexOf("public")
+                                End If
+                                If pos > -1 AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
+                                    Dim params As New List(Of String)
+                                    params.AddRange(Split(Trim(Mid(Line, Line.IndexOf("(") + 2, Line.IndexOf(")") - Line.IndexOf("(") - 1)), ","))
+                                    For i = 0 To params.Count - 1
+                                        If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                            params(i - 1) += "," & params(i)
+                                            params.RemoveAt(i)
+                                            Continue For
+                                        End If
+                                    Next
+                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line, Line.IndexOf(" ", pos) + 1, Line.IndexOf("(") - Line.IndexOf(" ", pos))).Replace("Float:", "").Replace("bool:", ""), Name.Replace(":", ""), -1, params.ToArray)
+                                    If Not AllFunctions.Contains(func) AndAlso Not AllCallbacks.Contains(func.Name) Then
+                                        AllFunctions.Add(func)
+                                        If Not TrueNodeContains(Main.TreeView1.Nodes(FolderCount).Nodes(FileCount).Nodes, func.Name) Then Main.TreeView1.Nodes(FolderCount).Nodes(FileCount).Nodes.Add(func.Name)
+                                    End If
+                                ElseIf Line.IndexOf("forward") > -1 AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 Then
+                                    Dim clbk As String = Trim(Mid(Line, Line.IndexOf(" ") + 1, Line.IndexOf("(") - Line.IndexOf(" ")))
+                                    If Not AllCallbacks.Contains(clbk) Then AllCallbacks.Add(clbk)
+                                End If
+                                Line = Reader.ReadLine()
+                            Loop
+                            Reader.Close()
+                            FileCount += 1
+                            FolderFileCount += 1
+                            If FolderFileCount = 0 Then
+                                Main.TreeView1.Nodes.RemoveAt(FolderCount)
+                                FolderCount -= 1
+                            End If
+                        End If
+                    Next
+                    FolderCount += 1
+                End If
+            Next
+            If Directory.GetFiles(Path).Length > 0 Then
+                FileCount = FolderCount
+                For Each Inc In Directory.GetFiles(Path)
+                    If Inc.EndsWith(".inc") Then
                         Dim CommentedLine As Boolean, CommentedSection As Boolean
-                        FolderFileCount = 0
                         Name = Mid(Inc, Inc.LastIndexOf("\") + 2, Inc.LastIndexOf(".") - Inc.LastIndexOf("\") - 1) & ":"
-                        If Not TrueNodeContains(Main.TreeView1.Nodes(FolderCount).Nodes, Name) Then Main.TreeView1.Nodes(FolderCount).Nodes.Add(Name)
+                        If TrueNodeContains(Main.TreeView1.Nodes, Name) Then Exit For
+                        Main.TreeView1.Nodes.Add(Name)
                         Reader = New StreamReader(Inc)
                         Line = Reader.ReadLine()
                         Do Until Line Is Nothing
-                            If Line.StartsWith("//") Then
+                            If Line.IndexOf("//") > -1 Then
                                 CommentedLine = True
                             ElseIf Line.IndexOf("/*") > -1 AndAlso Line.IndexOf("*/") = -1 Then
                                 CommentedSection = True
@@ -339,7 +401,7 @@ Module Functions
                                 Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line, Line.IndexOf(" ", pos) + 1, Line.IndexOf("(") - Line.IndexOf(" ", pos))).Replace("Float:", "").Replace("bool:", ""), Name.Replace(":", ""), -1, params.ToArray)
                                 If Not AllFunctions.Contains(func) AndAlso Not AllCallbacks.Contains(func.Name) Then
                                     AllFunctions.Add(func)
-                                    If Not TrueNodeContains(Main.TreeView1.Nodes(FolderCount).Nodes(FileCount).Nodes, func.Name) Then Main.TreeView1.Nodes(FolderCount).Nodes(FileCount).Nodes.Add(func.Name)
+                                    If Not TrueNodeContains(Main.TreeView1.Nodes(FileCount).Nodes, func.Name) Then Main.TreeView1.Nodes(FileCount).Nodes.Add(func.Name)
                                 End If
                             ElseIf Line.IndexOf("forward") > -1 AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 Then
                                 Dim clbk As String = Trim(Mid(Line, Line.IndexOf(" ") + 1, Line.IndexOf("(") - Line.IndexOf(" ")))
@@ -349,65 +411,7 @@ Module Functions
                         Loop
                         Reader.Close()
                         FileCount += 1
-                        FolderFileCount += 1
-                        If FolderFileCount = 0 Then
-                            Main.TreeView1.Nodes.RemoveAt(FolderCount)
-                            FolderCount -= 1
-                        End If
-                    Next
-                    FolderCount += 1
-                End If
-            Next
-            If Directory.GetFiles(Path).Length > 0 Then
-                FileCount = FolderCount
-                For Each Inc In Directory.GetFiles(Path)
-                    Dim CommentedLine As Boolean, CommentedSection As Boolean
-                    Name = Mid(Inc, Inc.LastIndexOf("\") + 2, Inc.LastIndexOf(".") - Inc.LastIndexOf("\") - 1) & ":"
-                    If TrueNodeContains(Main.TreeView1.Nodes, Name) Then Exit For
-                    Main.TreeView1.Nodes.Add(Name)
-                    Reader = New StreamReader(Inc)
-                    Line = Reader.ReadLine()
-                    Do Until Line Is Nothing
-                        If Line.IndexOf("//") > -1 Then
-                            CommentedLine = True
-                        ElseIf Line.IndexOf("/*") > -1 AndAlso Line.IndexOf("*/") = -1 Then
-                            CommentedSection = True
-                        ElseIf Line.IndexOf("*/") > -1 Then
-                            CommentedSection = False
-                        End If
-                        If CommentedLine Or CommentedSection Then
-                            Line = Reader.ReadLine()
-                            CommentedLine = False
-                            Continue Do
-                        End If
-                        Dim pos As Integer = Line.IndexOf("native")
-                        If pos = -1 Then
-                            pos = Line.IndexOf("stock")
-                            If pos = -1 Then pos = Line.IndexOf("public")
-                        End If
-                        If pos > -1 AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
-                            Dim params As New List(Of String)
-                            params.AddRange(Split(Trim(Mid(Line, Line.IndexOf("(") + 2, Line.IndexOf(")") - Line.IndexOf("(") - 1)), ","))
-                            For i = 0 To params.Count - 1
-                                If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
-                                    params(i - 1) += "," & params(i)
-                                    params.RemoveAt(i)
-                                    Continue For
-                                End If
-                            Next
-                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line, Line.IndexOf(" ", pos) + 1, Line.IndexOf("(") - Line.IndexOf(" ", pos))).Replace("Float:", "").Replace("bool:", ""), Name.Replace(":", ""), -1, params.ToArray)
-                            If Not AllFunctions.Contains(func) AndAlso Not AllCallbacks.Contains(func.Name) Then
-                                AllFunctions.Add(func)
-                                If Not TrueNodeContains(Main.TreeView1.Nodes(FileCount).Nodes, func.Name) Then Main.TreeView1.Nodes(FileCount).Nodes.Add(func.Name)
-                            End If
-                        ElseIf Line.IndexOf("forward") > -1 AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 Then
-                            Dim clbk As String = Trim(Mid(Line, Line.IndexOf(" ") + 1, Line.IndexOf("(") - Line.IndexOf(" ")))
-                            If Not AllCallbacks.Contains(clbk) Then AllCallbacks.Add(clbk)
-                        End If
-                        Line = Reader.ReadLine()
-                    Loop
-                    Reader.Close()
-                    FileCount += 1
+                    End If
                 Next
             End If
         End If

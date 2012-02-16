@@ -368,7 +368,7 @@ Public Class Main
                 Instances.Add(New Instance(name))
                 With Instances(GetInstanceByName(name))
                     TabControl1.SelectedTab = .TabHandle
-                    Dim Reader As New StreamReader(OFD.FileName)
+                    Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.UTF8, True)
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
                     .Name = name
@@ -834,7 +834,7 @@ Public Class Main
                 Instances.Add(New Instance(name))
                 With Instances(GetInstanceByName(name))
                     TabControl1.SelectedTab = .TabHandle
-                    Dim Reader As New StreamReader(OFD.FileName)
+                    Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.UTF8, True)
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
                     .Name = name

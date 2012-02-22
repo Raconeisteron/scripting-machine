@@ -107,6 +107,7 @@ Partial Class Tools
         Me.ComboBox1 = New System.Windows.Forms.ComboBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.TabPage2 = New System.Windows.Forms.TabPage()
+        Me.CheckBox5 = New System.Windows.Forms.CheckBox()
         Me.Button1 = New System.Windows.Forms.Button()
         Me.TextBox10 = New System.Windows.Forms.TextBox()
         Me.Label11 = New System.Windows.Forms.Label()
@@ -293,7 +294,6 @@ Partial Class Tools
         Me.Label90 = New System.Windows.Forms.Label()
         Me.PictureBox11 = New System.Windows.Forms.PictureBox()
         Me.OFD = New System.Windows.Forms.OpenFileDialog()
-        Me.CheckBox5 = New System.Windows.Forms.CheckBox()
         Me.TabControl1.SuspendLayout()
         Me.TabPage6.SuspendLayout()
         Me.GroupBox4.SuspendLayout()
@@ -1069,6 +1069,16 @@ Partial Class Tools
         Me.TabPage2.TabIndex = 1
         Me.TabPage2.Text = "ColorPicker"
         Me.TabPage2.UseVisualStyleBackColor = True
+        '
+        'CheckBox5
+        '
+        Me.CheckBox5.AutoSize = True
+        Me.CheckBox5.Location = New System.Drawing.Point(44, 379)
+        Me.CheckBox5.Name = "CheckBox5"
+        Me.CheckBox5.Size = New System.Drawing.Size(103, 17)
+        Me.CheckBox5.TabIndex = 26
+        Me.CheckBox5.Text = "Embedded color"
+        Me.CheckBox5.UseVisualStyleBackColor = True
         '
         'Button1
         '
@@ -2920,16 +2930,6 @@ Partial Class Tools
         Me.PictureBox11.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.PictureBox11.TabIndex = 6
         Me.PictureBox11.TabStop = False
-        '
-        'CheckBox5
-        '
-        Me.CheckBox5.AutoSize = True
-        Me.CheckBox5.Location = New System.Drawing.Point(44, 379)
-        Me.CheckBox5.Name = "CheckBox5"
-        Me.CheckBox5.Size = New System.Drawing.Size(103, 17)
-        Me.CheckBox5.TabIndex = 26
-        Me.CheckBox5.Text = "Embedded color"
-        Me.CheckBox5.UseVisualStyleBackColor = True
         '
         'Tools
         '

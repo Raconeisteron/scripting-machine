@@ -67,6 +67,13 @@ Namespace My.Resources
             End Get
         End Property
         
+        Friend ReadOnly Property Map_Icons() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("Map_Icons", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
         Friend ReadOnly Property N_A() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("N_A", resourceCulture)
@@ -84,6 +91,34 @@ Namespace My.Resources
         Friend ReadOnly Property sampgui() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("sampgui", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        Friend ReadOnly Property Skins() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("Skins", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        Friend ReadOnly Property Sprites() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("Sprites", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        Friend ReadOnly Property Vehicles() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("Vehicles", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        Friend ReadOnly Property Weapons() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("Weapons", resourceCulture)
                 Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property

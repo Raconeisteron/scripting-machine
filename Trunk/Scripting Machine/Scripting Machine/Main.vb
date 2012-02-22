@@ -493,22 +493,17 @@ Public Class Main
 
     Private Sub CopyToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CopyToolStripMenuItem.Click
         On Error Resume Next
-        Clipboard.SetText(Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.Text)
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Copy()
     End Sub
 
     Private Sub CutToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CutToolStripMenuItem.Click
         On Error Resume Next
-        Clipboard.SetText(Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.Text)
-        Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = ""
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Cut()
     End Sub
 
     Private Sub PasteToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles PasteToolStripMenuItem.Click
         On Error Resume Next
-        Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = Clipboard.GetText()
-    End Sub
-
-    Private Sub DeleteToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles DeleteToolStripMenuItem.Click
-        Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = ""
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Paste()
     End Sub
 
     Private Sub FindToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FindToolStripMenuItem.Click
@@ -1203,10 +1198,10 @@ Public Class Main
             With Instances(TabControl1.SelectedIndex)
                 If .Saved Then
                     ToolStripButton3.Enabled = False
-                    SaveAsToolStripMenuItem.Enabled = False
+                    SaveToolStripMenuItem.Enabled = False
                 Else
                     ToolStripButton3.Enabled = True
-                    SaveAsToolStripMenuItem.Enabled = True
+                    SaveToolStripMenuItem.Enabled = True
                 End If
                 If .SyntaxHandle.UndoRedo.CanUndo Then
                     UndoToolStripMenuItem.Enabled = True

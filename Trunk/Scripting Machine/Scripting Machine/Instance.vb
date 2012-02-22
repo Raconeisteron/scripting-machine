@@ -127,8 +127,12 @@ Public Class Instance
             End Select
             If value Then
                 TabHandle.Text = _Name
+                Main.SaveToolStripMenuItem.Enabled = False
+                Main.ToolStripButton3.Enabled = False
             Else
                 TabHandle.Text = _Name & " *"
+                Main.SaveToolStripMenuItem.Enabled = True
+                Main.ToolStripButton3.Enabled = True
             End If
         End Set
     End Property
@@ -263,7 +267,6 @@ Public Class Instance
             .ConfigurationManager.Language = "pawn"
             .IsBraceMatching = True
             .AcceptsTab = True
-            .MatchBraces = True
             .UndoRedo.IsUndoEnabled = False
             .Encoding = System.Text.Encoding.UTF8
             With .Margins
@@ -1454,17 +1457,42 @@ Public Class Instance
     End Sub
 
     Private Sub SyntaxHandle_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles SyntaxHandle.TextChanged
-        If wait And first Then
-            Saved = True
-            first = False
-            SyntaxHandle.Invoke(MarginUpdater)
-            SyntaxHandle.Invoke(DataUpdater)
-        Else
-            If SyntaxHandle.UndoRedo.IsUndoEnabled = False Then
-                SyntaxHandle.UndoRedo.IsUndoEnabled = True
+        With SyntaxHandle
+            If wait AndAlso first Then
+                Saved = True
+                first = False
+                wait = False
+                .Invoke(MarginUpdater)
+                .Invoke(DataUpdater)
+            Else
+                With .UndoRedo
+                    If Not .IsUndoEnabled Then
+                        If .CanUndo Then
+                            Main.ToolStripButton7.Enabled = True
+                            Main.UndoToolStripMenuItem.Enabled = True
+                        End If
+                    Else
+                        If .CanUndo Then
+                            Main.ToolStripButton7.Enabled = True
+                            Main.UndoToolStripMenuItem.Enabled = True
+                        Else
+                            Main.ToolStripButton7.Enabled = False
+                            Main.UndoToolStripMenuItem.Enabled = False
+                        End If
+                        If .CanRedo Then
+                            Main.ToolStripButton8.Enabled = True
+                            Main.RedoToolStripMenuItem.Enabled = True
+                        Else
+                            Main.ToolStripButton8.Enabled = False
+                            Main.RedoToolStripMenuItem.Enabled = False
+                        End If
+                        SyntaxHandle.UndoRedo.IsUndoEnabled = True
+
+                    End If
+                End With
+                Saved = False
             End If
-            Saved = False
-        End If
+        End With
     End Sub
 
     Private Sub SaveMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
@@ -1522,15 +1550,15 @@ Public Class Instance
                 lastcall = GetTickCount()
                 Return ""
             End If
-            Dim tmp As Integer = func.IndexOf("""")
-            If tmp > -1 Then
-                tmp = func.IndexOf("""", tmp + 1)
-                If tmp > -1 Then
-                    While tmp > -1
-                        func = func.Remove(func.IndexOf(""""), tmp + 1)
-                        tmp = func.IndexOf("""")
-                        If tmp > -1 Then
-                            tmp = func.IndexOf("""", tmp)
+            Dim tpos As Integer = func.IndexOf("""")
+            If tpos > -1 Then
+                tpos = func.IndexOf("""", tpos + 1)
+                If tpos > -1 Then
+                    While tpos > -1
+                        func = func.Remove(func.IndexOf(""""), tpos - func.IndexOf("""") + 1)
+                        tpos = func.IndexOf("""")
+                        If tpos > -1 Then
+                            tpos = func.IndexOf("""", tpos)
                         Else
                             Exit While
                         End If
@@ -1543,12 +1571,12 @@ Public Class Instance
             If remove AndAlso func.StartsWith("(") Then func = func.Remove(0, 1)
             While func.IndexOf("(") > -1 AndAlso func.IndexOf(")") > -1
                 If func.IndexOf("(", func.IndexOf("(") + 1) > -1 Then
-                    tmp = func.IndexOf(")(")
-                    If tmp = -1 Then
+                    tpos = func.IndexOf(")(")
+                    If tpos = -1 Then
                         func = func.Remove(func.LastIndexOf(")"), func.IndexOf("(", func.LastIndexOf(")") + 1) - func.LastIndexOf(")") + 1)
                     Else
-                        If func.IndexOf("(", tmp + 1) > -1 Then
-                            func = func.Remove(tmp, func.IndexOf("(", tmp + 2) - tmp)
+                        If func.IndexOf("(", tpos + 1) > -1 Then
+                            func = func.Remove(tpos, func.IndexOf("(", tpos + 2) - tpos)
                         Else
                             func = func.Remove(func.IndexOf(")"), func.Length - func.IndexOf(")"))
                         End If

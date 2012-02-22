@@ -14,6 +14,8 @@
 '   You should have received a copy of the GNU General Public License
 '   along with Scripting Machine.  If not, see <http://www.gnu.org/licenses/>.
 
+'Arreglar el cache que funciona como el culo
+
 Imports System.Text.RegularExpressions
 Imports System.Drawing
 Imports System.Math
@@ -33,6 +35,14 @@ Public Class Tools
         Obj
         Veh
         None
+    End Enum
+
+    Private Enum ImageTypes
+        MapIcon
+        Skin
+        Sprite
+        Vehicle
+        Weapon
     End Enum
 
 #End Region
@@ -60,7 +70,6 @@ Public Class Tools
         Public Interior As Integer
     End Structure
 
-    'Si no se usa resttime, eliminar.
     Public Structure VehicleInfo
         Public Model As Integer
         Public X As Single
@@ -69,7 +78,11 @@ Public Class Tools
         Public R As Single
         Public Color1 As Integer
         Public Color2 As Integer
-        Public ResTime As Integer
+    End Structure
+
+    Public Structure CacheImage
+        Public ID As Integer
+        Public Img As Bitmap
     End Structure
 
 #End Region
@@ -3548,6 +3561,8 @@ Public Class Tools
 
 #Region "Info"
 
+#Region "Tabs"
+
 #Region "Skins"
 
 #Region "Display"
@@ -3571,7 +3586,7 @@ Public Class Tools
                 If TreeView1.SelectedNode.Text = Skin.ID Then
                     If tmp Then
                         Try
-                            PictureBox7.Image = Image.FromFile(My.Application.Info.DirectoryPath & "\Resources\Skin_" & Skin.ID & ".png")
+                            PictureBox7.Image = GetImageFromResource(ImageTypes.Skin, Skin.ID)
                         Catch ex As Exception
                             PictureBox7.Image = My.Resources.N_A
                         End Try
@@ -3871,8 +3886,7 @@ Public Class Tools
                 If vehicle.ID = TreeView2.SelectedNode.Text Then
                     If tmp = True Then
                         Try
-                            Dim stmp As String = My.Application.Info.DirectoryPath.ToString.Replace("\", "/") & "/Resources/Vehicle_" & vehicle.ID & ".bmp"
-                            PictureBox8.Image = Image.FromFile(stmp)
+                            PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID - 400)
                         Catch ex As Exception
                             PictureBox8.Image = My.Resources.N_A
                         End Try
@@ -3907,7 +3921,7 @@ Public Class Tools
                     If vehicle.Name = TreeView3.SelectedNode.Text Then
                         If tmp Then
                             Try
-                                PictureBox8.Image = Image.FromFile(My.Application.Info.DirectoryPath & "/Resources/Vehicle_" & vehicle.ID & ".bmp")
+                                PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID - 400)
                             Catch ex As Exception
                                 PictureBox8.Image = My.Resources.N_A
                             End Try
@@ -4177,7 +4191,7 @@ Public Class Tools
             If weapon.Name = TreeView6.SelectedNode.Text Then
                 If tmp Then
                     Try
-                        PictureBox9.Image = Image.FromFile(My.Application.Info.DirectoryPath & "\Resources\Weapon_" & weapon.ID & ".png")
+                        PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID)
                     Catch ex As Exception
                         PictureBox9.Image = My.Resources.N_A
                     End Try
@@ -4245,7 +4259,7 @@ Public Class Tools
             If map.ID = TreeView7.SelectedNode.Text Then
                 If tmp Then
                     Try
-                        PictureBox10.Image = Image.FromFile(My.Application.Info.DirectoryPath & "\Resources\MapIcon_" & map.ID & ".gif")
+                        PictureBox10.Image = GetImageFromResource(ImageTypes.MapIcon, map.ID)
                     Catch ex As Exception
                         PictureBox10.Image = My.Resources.N_A
                     End Try
@@ -4286,19 +4300,20 @@ Public Class Tools
             End Try
         End If
         Dim count As Integer
-        For Each sprite In Sprites
-            If TreeView8.SelectedNode.Text = sprite.Name Then
+        For i = 0 To Sprites.Length - 1
+            If TreeView8.SelectedNode.Text = Sprites(i).Name Then
                 If tmp Then
                     Try
-                        PictureBox11.Image = Image.FromFile(My.Application.Info.DirectoryPath & "\Resources\Sprite_" & count & ".bmp")
+                        'PictureBox11.Image = Image.FromFile(My.Application.Info.DirectoryPath & "\Resources\Sprite_" & count & ".bmp")
+                        PictureBox11.Image = GetImageFromResource(ImageTypes.Sprite, i)
                     Catch ex As Exception
                         PictureBox11.Image = My.Resources.N_A
                     End Try
                 End If
-                TextBox88.Text = sprite.Name
-                TextBox89.Text = sprite.Path
-                TextBox90.Text = sprite.File
-                TextBox91.Text = sprite.Size
+                TextBox88.Text = Sprites(i).Name
+                TextBox89.Text = Sprites(i).Path
+                TextBox90.Text = Sprites(i).File
+                TextBox91.Text = Sprites(i).Size
             End If
             count += 1
         Next
@@ -4570,6 +4585,69 @@ Public Class Tools
     End Sub
 
 #End Region
+
+#End Region
+
+#End Region
+
+#Region "Functions"
+
+    Private Function GetImageFromResource(ByVal type As ImageTypes, ByVal index As Integer) As Image
+        Dim img As Bitmap, g As Graphics, height As Integer
+        Select Case type
+            Case ImageTypes.MapIcon
+                If index < 6 Then
+                    height = 0
+                Else
+                    height = Floor(index / 6)
+                End If
+                img = New Bitmap(16, 16)
+                g = Graphics.FromImage(img)
+                g.DrawImage(My.Resources.Map_Icons, 0, 0, New Rectangle((index Mod 6) * 16, height * 16, 16, 16), GraphicsUnit.Pixel)
+                g.Dispose()
+            Case ImageTypes.Skin
+                If index < 15 Then
+                    height = 0
+                Else
+                    height = Floor(index / 15)
+                End If
+                img = New Bitmap(150, 260)
+                g = Graphics.FromImage(img)
+                g.DrawImage(My.Resources.Skins, 0, 0, New Rectangle((index Mod 15) * 150, height * 260, 150, 260), GraphicsUnit.Pixel)
+                g.Dispose()
+            Case ImageTypes.Sprite
+                If index < 32 Then
+                    height = 0
+                Else
+                    height = Floor(index / 32)
+                End If
+                img = New Bitmap(64, 64)
+                g = Graphics.FromImage(img)
+                g.DrawImage(My.Resources.Sprites, 0, 0, New Rectangle((index Mod 32) * 64, height * 64, 64, 64), GraphicsUnit.Pixel)
+                g.Dispose()
+            Case ImageTypes.Vehicle
+                If index <= 10 Then
+                    height = 0
+                Else
+                    height = Floor(index / 10)
+                End If
+                img = New Bitmap(204, 125)
+                g = Graphics.FromImage(img)
+                g.DrawImage(My.Resources.Vehicles, 0, 0, New Rectangle((index Mod 10) * 204, height * 125, 204, 125), GraphicsUnit.Pixel)
+                g.Dispose()
+            Case Else
+                If index < 10 Then
+                    height = 0
+                Else
+                    height = Floor(index / 10)
+                End If
+                img = New Bitmap(64, 64)
+                g = Graphics.FromImage(img)
+                g.DrawImage(My.Resources.Weapons, 0, 0, New Rectangle((index Mod 10) * 64, height * 64, 64, 64), GraphicsUnit.Pixel)
+                g.Dispose()
+        End Select
+        Return img
+    End Function
 
 #End Region
 

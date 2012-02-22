@@ -4304,7 +4304,6 @@ Public Class Tools
             If TreeView8.SelectedNode.Text = Sprites(i).Name Then
                 If tmp Then
                     Try
-                        'PictureBox11.Image = Image.FromFile(My.Application.Info.DirectoryPath & "\Resources\Sprite_" & count & ".bmp")
                         PictureBox11.Image = GetImageFromResource(ImageTypes.Sprite, i)
                     Catch ex As Exception
                         PictureBox11.Image = My.Resources.N_A

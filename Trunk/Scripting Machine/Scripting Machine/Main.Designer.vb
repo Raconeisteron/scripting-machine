@@ -61,7 +61,6 @@ Partial Class Main
         Me.CopyToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CutToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.PasteToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.DeleteToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator4 = New System.Windows.Forms.ToolStripSeparator()
         Me.FindToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FindNextToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -247,13 +246,14 @@ Partial Class Main
         '
         'EditToolStripMenuItem
         '
-        Me.EditToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.UndoToolStripMenuItem, Me.RedoToolStripMenuItem, Me.ToolStripSeparator3, Me.CopyToolStripMenuItem, Me.CutToolStripMenuItem, Me.PasteToolStripMenuItem, Me.DeleteToolStripMenuItem, Me.ToolStripSeparator4, Me.FindToolStripMenuItem, Me.FindNextToolStripMenuItem, Me.FindPrevToolStripMenuItem, Me.ReplaceToolStripMenuItem, Me.GotoLineToolStripMenuItem, Me.ToolStripSeparator5, Me.SelectAllToolStripMenuItem})
+        Me.EditToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.UndoToolStripMenuItem, Me.RedoToolStripMenuItem, Me.ToolStripSeparator3, Me.CopyToolStripMenuItem, Me.CutToolStripMenuItem, Me.PasteToolStripMenuItem, Me.ToolStripSeparator4, Me.FindToolStripMenuItem, Me.FindNextToolStripMenuItem, Me.FindPrevToolStripMenuItem, Me.ReplaceToolStripMenuItem, Me.GotoLineToolStripMenuItem, Me.ToolStripSeparator5, Me.SelectAllToolStripMenuItem})
         Me.EditToolStripMenuItem.Name = "EditToolStripMenuItem"
         Me.EditToolStripMenuItem.Size = New System.Drawing.Size(37, 20)
         Me.EditToolStripMenuItem.Text = "Edit"
         '
         'UndoToolStripMenuItem
         '
+        Me.UndoToolStripMenuItem.Enabled = False
         Me.UndoToolStripMenuItem.Name = "UndoToolStripMenuItem"
         Me.UndoToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Z), System.Windows.Forms.Keys)
         Me.UndoToolStripMenuItem.Size = New System.Drawing.Size(158, 22)
@@ -261,6 +261,7 @@ Partial Class Main
         '
         'RedoToolStripMenuItem
         '
+        Me.RedoToolStripMenuItem.Enabled = False
         Me.RedoToolStripMenuItem.Name = "RedoToolStripMenuItem"
         Me.RedoToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Y), System.Windows.Forms.Keys)
         Me.RedoToolStripMenuItem.Size = New System.Drawing.Size(158, 22)
@@ -291,12 +292,6 @@ Partial Class Main
         Me.PasteToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.V), System.Windows.Forms.Keys)
         Me.PasteToolStripMenuItem.Size = New System.Drawing.Size(158, 22)
         Me.PasteToolStripMenuItem.Text = "Paste"
-        '
-        'DeleteToolStripMenuItem
-        '
-        Me.DeleteToolStripMenuItem.Name = "DeleteToolStripMenuItem"
-        Me.DeleteToolStripMenuItem.Size = New System.Drawing.Size(158, 22)
-        Me.DeleteToolStripMenuItem.Text = "Delete"
         '
         'ToolStripSeparator4
         '
@@ -361,7 +356,7 @@ Partial Class Main
         '
         Me.BuildToolStripMenuItem1.Name = "BuildToolStripMenuItem1"
         Me.BuildToolStripMenuItem1.ShortcutKeys = System.Windows.Forms.Keys.F5
-        Me.BuildToolStripMenuItem1.Size = New System.Drawing.Size(115, 22)
+        Me.BuildToolStripMenuItem1.Size = New System.Drawing.Size(152, 22)
         Me.BuildToolStripMenuItem1.Text = "Build"
         '
         'OptionsToolStripMenuItem
@@ -578,14 +573,14 @@ Partial Class Main
         Me.TreeView2.Location = New System.Drawing.Point(0, 0)
         Me.TreeView2.Margin = New System.Windows.Forms.Padding(4)
         Me.TreeView2.Name = "TreeView2"
-        Me.TreeView2.Size = New System.Drawing.Size(174, 433)
+        Me.TreeView2.Size = New System.Drawing.Size(174, 435)
         Me.TreeView2.TabIndex = 7
         '
         'Button1
         '
         Me.Button1.Dock = System.Windows.Forms.DockStyle.Bottom
         Me.Button1.Image = Global.Scripting_Machine.My.Resources.Resources.refresh
-        Me.Button1.Location = New System.Drawing.Point(0, 433)
+        Me.Button1.Location = New System.Drawing.Point(0, 435)
         Me.Button1.Margin = New System.Windows.Forms.Padding(4)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(174, 26)
@@ -894,7 +889,7 @@ Partial Class Main
         Me.TextBox1.Multiline = True
         Me.TextBox1.Name = "TextBox1"
         Me.TextBox1.ReadOnly = True
-        Me.TextBox1.Size = New System.Drawing.Size(629, 88)
+        Me.TextBox1.Size = New System.Drawing.Size(629, 90)
         Me.TextBox1.TabIndex = 0
         '
         'TabControl1
@@ -966,7 +961,6 @@ Partial Class Main
     Friend WithEvents CopyToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents CutToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents PasteToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
-    Friend WithEvents DeleteToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator4 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents FindToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents FindNextToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem

@@ -22,7 +22,7 @@ Public NotInheritable Class Splash
         Else
             ApplicationTitle.Text = System.IO.Path.GetFileNameWithoutExtension(My.Application.Info.AssemblyName)
         End If
-        Version.Text = String.Format("Version: {0}.{1}.{2}", My.Application.Info.Version.Major.ToString, My.Application.Info.Version.Minor, My.Application.Info.Version.MajorRevision)
+        Version.Text = String.Format("Version: {0}.{1}.{2}", My.Application.Info.Version.Major.ToString, My.Application.Info.Version.Minor, My.Application.Info.Version.Build)
         Copyright.Text = My.Application.Info.Copyright
     End Sub
 

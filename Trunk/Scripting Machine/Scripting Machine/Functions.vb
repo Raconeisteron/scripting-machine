@@ -16502,7 +16502,8 @@ Module Functions
             If .oPath.Length = 0 Then .oPath = My.Application.Info.DirectoryPath
             If .CompPath.Length = 0 Then .CompPath = My.Application.Info.DirectoryPath & "\pawncc.exe"
             If .cFont Is Nothing Then .cFont = New Font(New FontFamily("Courier New"), 12)
-            If .Assoc Then
+            If My.Settings.FirstTime OrElse .Assoc Then
+                My.Settings.FirstTime = False
                 If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
                 key.CreateSubKey(".pwn").SetValue("", ".pwn", Microsoft.Win32.RegistryValueKind.String)
                 key.CreateSubKey(".pwn\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
@@ -16510,8 +16511,11 @@ Module Functions
                 key.CreateSubKey(".inc").SetValue("", ".inc", Microsoft.Win32.RegistryValueKind.String)
                 key.CreateSubKey(".inc\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
             Else
-                If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
-                If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
+                Try
+                    If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
+                    If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
+                Catch ex As Exception
+                End Try
             End If
             For Each inst As Instance In Instances
                 inst.Font = .cFont

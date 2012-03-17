@@ -356,7 +356,7 @@ Partial Class Main
         '
         Me.BuildToolStripMenuItem1.Name = "BuildToolStripMenuItem1"
         Me.BuildToolStripMenuItem1.ShortcutKeys = System.Windows.Forms.Keys.F5
-        Me.BuildToolStripMenuItem1.Size = New System.Drawing.Size(152, 22)
+        Me.BuildToolStripMenuItem1.Size = New System.Drawing.Size(115, 22)
         Me.BuildToolStripMenuItem1.Text = "Build"
         '
         'OptionsToolStripMenuItem
@@ -884,6 +884,7 @@ Partial Class Main
         'TextBox1
         '
         Me.TextBox1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.TextBox1.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.TextBox1.Location = New System.Drawing.Point(4, 4)
         Me.TextBox1.Margin = New System.Windows.Forms.Padding(4)
         Me.TextBox1.Multiline = True

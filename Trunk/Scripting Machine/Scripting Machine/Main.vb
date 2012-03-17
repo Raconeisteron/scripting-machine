@@ -25,6 +25,7 @@ Public Class Main
         RegisterHotKey(Me.Handle, 9303, MOD_CONTROL, Keys.Space)
         LoadResources()
         SFD.Filter = "Script files|*.pwn;*.inc|Pawn files (.pwn)|*.pwn|Include files (.inc)|*.inc|All files| *.*"
+        SFD.DefaultExt = "pwn"
         OFD.Filter = "Script files|*.pwn;*.inc|Pawn files (.pwn)|*.pwn|Include files (.inc)|*.inc|All files| *.*"
         If Directory.Exists(My.Application.Info.DirectoryPath & "\TMP") Then
             If Directory.GetFiles(My.Application.Info.DirectoryPath & "\TMP").Length > 0 Then
@@ -46,7 +47,7 @@ Public Class Main
                         Instances.Add(New Instance(name))
                         TabControl1.SelectedTab = Instances(GetInstanceByName(name)).TabHandle
                         TabControl1.Select()
-                        Reader = New StreamReader(File)
+                        Reader = New StreamReader(File, System.Text.Encoding.GetEncoding(28591))
                         Instances(GetInstanceByName(name)).SyntaxHandle.Text = Reader.ReadToEnd()
                         Reader.Close()
                         With Instances(GetInstanceByName(name))
@@ -68,7 +69,7 @@ Public Class Main
             Dim name As String
             name = Mid(My.Application.CommandLineArgs(0), My.Application.CommandLineArgs(0).LastIndexOf("\") + 2, My.Application.CommandLineArgs(0).LastIndexOf(".") - My.Application.CommandLineArgs(0).LastIndexOf("\") - 1)
             Instances.Add(New Instance(name))
-            Reader = New StreamReader(My.Application.CommandLineArgs(0))
+            Reader = New StreamReader(My.Application.CommandLineArgs(0), System.Text.Encoding.GetEncoding(28591))
             With Instances(GetInstanceByName(name))
                 .SyntaxHandle.Text = Reader.ReadToEnd()
                 .Path = My.Application.CommandLineArgs(0)
@@ -79,7 +80,7 @@ Public Class Main
         Catch ex As Exception
             If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
                 Instances.Add(New Instance("new script"))
-                Reader = New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn")
+                Reader = New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
                 Instances(GetInstanceByName("new script")).SyntaxHandle.Text = Reader.ReadToEnd()
                 Reader.Close()
             End If
@@ -110,7 +111,7 @@ Public Class Main
                     Case MsgBoxResult.Yes
                         With Inst
                             If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
-                                Dim Writer As New StreamWriter(.Path)
+                                Dim Writer As New StreamWriter(.Path, False, System.Text.Encoding.GetEncoding(28591))
                                 Writer.Write(.SyntaxHandle.Text)
                                 Writer.Close()
                                 .Saved = True
@@ -118,7 +119,7 @@ Public Class Main
                                 SFD.InitialDirectory = Settings.DefaultPath
                                 SFD.ShowDialog()
                                 If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
-                                    Dim Writer As New StreamWriter(SFD.FileName)
+                                    Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                                     Writer.Write(.SyntaxHandle.Text)
                                     Writer.Close()
                                     .Saved = True
@@ -161,7 +162,7 @@ Public Class Main
         Dim Writer As StreamWriter, count As Integer
         For Each item In Instances
             If item.Saved = False Then
-                Writer = New StreamWriter(My.Application.Info.DirectoryPath & "\Temp\" & item.Name & ".pwn")
+                Writer = New StreamWriter(My.Application.Info.DirectoryPath & "\Temp\" & item.Name & ".pwn", False, System.Text.Encoding.GetEncoding(28591))
                 Writer.Write(item.Path & vbNewLine & item.SyntaxHandle.Text)
                 Writer.Close()
                 count += 1
@@ -177,7 +178,7 @@ Public Class Main
                 name = Mid(a, a.LastIndexOf("\") + 2, a.LastIndexOf(".") - a.LastIndexOf("\") - 1)
                 Instances.Add(New Instance(name))
                 index = GetInstanceByName(name)
-                Dim Reader = New StreamReader(a)
+                Dim Reader = New StreamReader(a, System.Text.Encoding.GetEncoding(28591))
                 With Instances(index)
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     .Path = a
@@ -186,6 +187,7 @@ Public Class Main
                 End With
                 TabControl1.SelectedIndex = index
                 Reader.Close()
+                Me.WindowState = FormWindowState.Maximized
             Catch ex As Exception
 
             End Try
@@ -253,7 +255,7 @@ Public Class Main
         End If
         Instances.Add(New Instance(name))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn") Then
-            Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn")
+            Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn", System.Text.Encoding.GetEncoding(28591))
             Dim index As Integer = GetInstanceByName(name)
             Instances(index).SyntaxHandle.Text = Reader.ReadToEnd()
             Reader.Close()
@@ -286,7 +288,7 @@ Public Class Main
         End If
         Instances.Add(New Instance(name))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn") Then
-            Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn")
+            Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn", System.Text.Encoding.GetEncoding(28591))
             Dim index As Integer = GetInstanceByName(name)
             Instances(index).SyntaxHandle.Text = Reader.ReadToEnd()
             Reader.Close()
@@ -320,7 +322,7 @@ Public Class Main
         End If
         Instances.Add(New Instance(name))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
-            Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn")
+            Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
             Dim index As Integer = GetInstanceByName(name)
             Instances(index).SyntaxHandle.Text = Reader.ReadToEnd()
             Reader.Close()
@@ -360,20 +362,21 @@ Public Class Main
 
     Private Sub OpenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles OpenToolStripMenuItem.Click
         OFD.InitialDirectory = Settings.DefaultPath
-        OFD.ShowDialog()
-        If Not OFD.FileName Is Nothing AndAlso OFD.FileName.Length > 0 Then
-            If File.Exists(OFD.FileName) Then
-                Dim name As String
-                name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
-                Instances.Add(New Instance(name))
-                With Instances(GetInstanceByName(name))
-                    TabControl1.SelectedTab = .TabHandle
-                    Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.UTF8, True)
-                    .SyntaxHandle.Text = Reader.ReadToEnd()
-                    Reader.Close()
-                    .Name = name
-                    .Path = OFD.FileName
-                End With
+        If OFD.ShowDialog() = Windows.Forms.DialogResult.OK Then
+            If Not OFD.FileName Is Nothing AndAlso OFD.FileName.Length > 0 Then
+                If File.Exists(OFD.FileName) Then
+                    Dim name As String
+                    name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
+                    Instances.Add(New Instance(name))
+                    With Instances(GetInstanceByName(name))
+                        TabControl1.SelectedTab = .TabHandle
+                        Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591), True)
+                        .SyntaxHandle.Text = Reader.ReadToEnd()
+                        Reader.Close()
+                        .Name = name
+                        .Path = OFD.FileName
+                    End With
+                End If
             End If
         End If
     End Sub
@@ -381,7 +384,7 @@ Public Class Main
     Private Sub SaveToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SaveToolStripMenuItem.Click
         With Instances(TabControl1.SelectedIndex)
             If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
-                Dim Writer As New StreamWriter(.Path)
+                Dim Writer As New StreamWriter(.Path, False, System.Text.Encoding.GetEncoding(28591))
                 Writer.Write(.SyntaxHandle.Text)
                 Writer.Close()
                 .Saved = True
@@ -389,7 +392,7 @@ Public Class Main
                 SFD.InitialDirectory = Settings.DefaultPath
                 SFD.ShowDialog()
                 If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
-                    Dim Writer As New StreamWriter(SFD.FileName)
+                    Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(.SyntaxHandle.Text)
                     Writer.Close()
                     .Saved = True
@@ -404,7 +407,7 @@ Public Class Main
         For Each item As Instance In Instances
             With item
                 If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
-                    Dim Writer As New StreamWriter(.Path)
+                    Dim Writer As New StreamWriter(.Path, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(.SyntaxHandle.Text)
                     Writer.Close()
                     .Saved = True
@@ -412,7 +415,7 @@ Public Class Main
                     SFD.InitialDirectory = Settings.DefaultPath
                     SFD.ShowDialog()
                     If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
-                        Dim Writer As New StreamWriter(SFD.FileName)
+                        Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                         Writer.Write(.SyntaxHandle.Text)
                         Writer.Close()
                         .Saved = True
@@ -428,7 +431,7 @@ Public Class Main
         SFD.InitialDirectory = Settings.DefaultPath
         SFD.ShowDialog()
         If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
-            Dim Writer As New StreamWriter(SFD.FileName)
+            Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
             With Instances(TabControl1.SelectedIndex)
                 Writer.Write(.SyntaxHandle.Text)
                 Writer.Close()
@@ -458,14 +461,14 @@ Public Class Main
                         Continue For
                     Case MsgBoxResult.Yes
                         If Not Inst.Path Is Nothing AndAlso Inst.Path.Length > 0 Then
-                            Dim Writer As New StreamWriter(SFD.FileName)
+                            Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                             Writer.Write(Inst.SyntaxHandle.Text)
                             Writer.Close()
                             Inst.Saved = True
                         Else
                             SFD.InitialDirectory = Settings.DefaultPath
                             SFD.ShowDialog()
-                            Dim Writer As New StreamWriter(SFD.FileName)
+                            Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                             Writer.Write(Inst.SyntaxHandle.Text)
                             Writer.Close()
                             Inst.Saved = True
@@ -538,7 +541,7 @@ Public Class Main
         With Instances(TabControl1.SelectedIndex)
             If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
                 If .Ext <> ".inc" Then
-                    Dim Writer As New StreamWriter(.Path)
+                    Dim Writer As New StreamWriter(.Path, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(.SyntaxHandle.Text)
                     Writer.Close()
                     .Saved = True
@@ -559,7 +562,7 @@ Public Class Main
                 SFD.InitialDirectory = Settings.DefaultPath
                 SFD.ShowDialog()
                 If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
-                    Dim Writer As New StreamWriter(SFD.FileName)
+                    Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(Instances(TabControl1.SelectedIndex).SyntaxHandle.Text)
                     Writer.Close()
                     .Saved = True
@@ -607,13 +610,6 @@ Public Class Main
         Dim errs As String(), tmp As String()
         errs = Split(err, vbNewLine)
         With Instances(TabControl1.SelectedIndex)
-            For Each line As ScintillaNet.Line In .SyntaxHandle.Lines
-                Try
-                    line.DeleteAllMarkers()
-                Catch ex As Exception
-
-                End Try
-            Next
             .Errors.Clear()
             For Each er As String In errs
                 If er.Length > 0 Then
@@ -626,7 +622,7 @@ Public Class Main
                 End If
             Next
             If Settings.OETab Then
-                TextBox1.Text = "Output from " & .Name & ":" & vbNewLine & out
+                TextBox1.Text = "Output from """ & .Name & """ finished at: " & If(Date.Now.Hour < 10, "0" & Date.Now.Hour, Date.Now.Hour) & ":" & If(Date.Now.Minute < 10, "0" & Date.Now.Minute, Date.Now.Minute) & ":" & Date.Now.Second & vbNewLine & out
                 TextBox1.SelectionStart = TextBox1.Text.Length
                 TextBox1.SelectionLength = 0
                 ListView1.Items.Clear()
@@ -805,7 +801,7 @@ Public Class Main
         End If
         Instances.Add(New Instance(name))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
-            Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn")
+            Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
             Dim index As Integer = GetInstanceByName(name)
             Instances(index).SyntaxHandle.Text = Reader.ReadToEnd()
             Reader.Close()
@@ -832,20 +828,21 @@ Public Class Main
     ''' <remarks></remarks>
     Private Sub ToolStripButton2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton2.Click
         OFD.InitialDirectory = Settings.DefaultPath
-        OFD.ShowDialog()
-        If Not OFD.FileName Is Nothing AndAlso OFD.FileName.Length > 0 Then
-            If File.Exists(OFD.FileName) Then
-                Dim name As String
-                name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
-                Instances.Add(New Instance(name))
-                With Instances(GetInstanceByName(name))
-                    TabControl1.SelectedTab = .TabHandle
-                    Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.UTF8, True)
-                    .SyntaxHandle.Text = Reader.ReadToEnd()
-                    Reader.Close()
-                    .Name = name
-                    .Path = OFD.FileName
-                End With
+        If OFD.ShowDialog() = Windows.Forms.DialogResult.OK Then
+            If Not OFD.FileName Is Nothing AndAlso OFD.FileName.Length > 0 Then
+                If File.Exists(OFD.FileName) Then
+                    Dim name As String
+                    name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
+                    Instances.Add(New Instance(name))
+                    With Instances(GetInstanceByName(name))
+                        TabControl1.SelectedTab = .TabHandle
+                        Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591))
+                        .SyntaxHandle.Text = Reader.ReadToEnd()
+                        Reader.Close()
+                        .Name = name
+                        .Path = OFD.FileName
+                    End With
+                End If
             End If
         End If
     End Sub
@@ -859,7 +856,7 @@ Public Class Main
     Private Sub ToolStripButton3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton3.Click
         With Instances(TabControl1.SelectedIndex)
             If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
-                Dim Writer As New StreamWriter(.Path)
+                Dim Writer As New StreamWriter(.Path, False, System.Text.Encoding.GetEncoding(28591))
                 Writer.Write(.SyntaxHandle.Text)
                 Writer.Close()
                 .Saved = True
@@ -867,7 +864,7 @@ Public Class Main
                 SFD.InitialDirectory = Settings.DefaultPath
                 SFD.ShowDialog()
                 If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
-                    Dim Writer As New StreamWriter(SFD.FileName)
+                    Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(.SyntaxHandle.Text)
                     Writer.Close()
                     .Saved = True
@@ -959,7 +956,7 @@ Public Class Main
         With Instances(TabControl1.SelectedIndex)
             If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
                 If .Ext <> ".inc" Then
-                    Dim Writer As New StreamWriter(.Path)
+                    Dim Writer As New StreamWriter(.Path, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(.SyntaxHandle.Text)
                     Writer.Close()
                     .Saved = True
@@ -980,7 +977,7 @@ Public Class Main
                 SFD.InitialDirectory = Settings.DefaultPath
                 SFD.ShowDialog()
                 If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
-                    Dim Writer As New StreamWriter(SFD.FileName)
+                    Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(Instances(TabControl1.SelectedIndex).SyntaxHandle.Text)
                     Writer.Close()
                     .Saved = True
@@ -1040,7 +1037,7 @@ Public Class Main
                 End If
             Next
             If Settings.OETab Then
-                TextBox1.Text = "Output from " & .Name & ":" & vbNewLine & out
+                TextBox1.Text = "Output from """ & .Name & """ finished at: " & If(Date.Now.Hour < 10, "0" & Date.Now.Hour, Date.Now.Hour) & ":" & If(Date.Now.Minute < 10, "0" & Date.Now.Minute, Date.Now.Minute) & ":" & Date.Now.Second & vbNewLine & out
                 TextBox1.SelectionStart = TextBox1.Text.Length
                 TextBox1.SelectionLength = 0
                 ListView1.Items.Clear()
@@ -1231,7 +1228,7 @@ Public Class Main
         If Instances.Count = 0 Then
             Instances.Add(New Instance("new script"))
             If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
-                Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn")
+                Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
                 Instances(0).SyntaxHandle.Text = Reader.ReadToEnd()
                 Reader.Close()
             End If
@@ -1259,7 +1256,7 @@ Public Class Main
         If Instances.Count = 0 Then
             Instances.Add(New Instance("new script"))
             If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
-                Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn")
+                Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
                 Instances(GetInstanceByName("new script")).SyntaxHandle.Text = Reader.ReadToEnd()
                 Reader.Close()
             End If

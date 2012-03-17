@@ -4259,7 +4259,7 @@ Public Class Tools
             If map.ID = TreeView7.SelectedNode.Text Then
                 If tmp Then
                     Try
-                        PictureBox10.Image = GetImageFromResource(ImageTypes.MapIcon, map.ID)
+                        PictureBox10.Image = GetImageFromResource(ImageTypes.MapIcon, map.ID - 1)
                     Catch ex As Exception
                         PictureBox10.Image = My.Resources.N_A
                     End Try

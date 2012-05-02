@@ -1,0 +1,46 @@
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\bin\Release\Scripting Machine.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\bin\Release\Scripting Machine.pdb
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\bin\Release\Scripting Machine.xml
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\ResolveAssemblyReference.cache
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting_Machine.Creds.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting_Machine.eColor.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting_Machine.Main.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting_Machine.Resources.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting_Machine.Previewer.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting_Machine.Splash.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting_Machine.Srch.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting Machine.vbproj.GenerateResource.Cache
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting Machine.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting Machine.xml
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Scripting Machine\obj\Release\Scripting Machine.pdb
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting Machine.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting Machine.xml
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting Machine.pdb
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\bin\Release\Scripting Machine.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\bin\Release\Scripting Machine.pdb
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\bin\Release\Scripting Machine.xml
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\ResolveAssemblyReference.cache
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting_Machine.Creds.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting_Machine.eColor.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting_Machine.Main.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting_Machine.Resources.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting_Machine.Previewer.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting_Machine.Splash.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting_Machine.Srch.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0\Scripting Machine\obj\Release\Scripting Machine.vbproj.GenerateResource.Cache
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting Machine.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting Machine.xml
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting Machine.pdb
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\bin\Release\Scripting Machine.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\bin\Release\Scripting Machine.pdb
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\bin\Release\Scripting Machine.xml
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\ResolveAssemblyReference.cache
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting_Machine.Creds.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting_Machine.eColor.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting_Machine.Main.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting_Machine.Resources.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting_Machine.Previewer.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting_Machine.Splash.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting_Machine.Srch.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting Machine.vbproj.GenerateResource.Cache
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\1.1\Scripting Machine\obj\Release\Scripting_Machine.AreaE.resources

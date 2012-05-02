@@ -1,0 +1,50 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+ScriptingMachine
+</name>
+</assembly>
+<members>
+<member name="P:Scripting_Machine.My.Resources.Resources.ResourceManager">
+	<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member><member name="P:Scripting_Machine.My.Resources.Resources.Culture">
+	<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member><member name="T:Scripting_Machine.My.Resources.Resources">
+	<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member><member name="F:Scripting_Machine.Main.VehSender">
+	<summary>
+ Changelog
+ </summary>
+ Changelog:
+ Added CMYK and HSL color support
+ Added multiple area selection with exporting format
+ Added color selecting for areas
+ Added 0.3d RC 4-2 MoveObject support
+ Added 0.3d RC 5 Skins
+ Added a cmd proccessor selection for Gates
+ Added Deutsch support
+ Added 0.3d RC 5-3 Sprites
+ Improved usage of memory
+ Fixed dialog preview color bug
+ Added zoom to map
+ Added a color picker for the dialog
+ Added Load Objects from file
+ Fixed a color bug with the dialogs previewer
+ Fixed some script bugs
+ Added zoom feature to areas selecting
+ Added 0.3d RC 7 IsObjectMoving support
+ Added SetPlayerWorldBounds support
+ Added Find Next function to Find 'Button'
+ Improved the time-load of the software
+
+</member>
+</members>
+</doc>

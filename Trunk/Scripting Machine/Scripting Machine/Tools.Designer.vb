@@ -177,8 +177,10 @@ Partial Class Tools
         Me.TextBox22 = New System.Windows.Forms.TextBox()
         Me.Label62 = New System.Windows.Forms.Label()
         Me.TabPage4 = New System.Windows.Forms.TabPage()
-        Me.Button11 = New System.Windows.Forms.Button()
         Me.Panel8 = New System.Windows.Forms.Panel()
+        Me.PictureBox12 = New System.Windows.Forms.PictureBox()
+        Me.TextBox47 = New System.Windows.Forms.TextBox()
+        Me.Label38 = New System.Windows.Forms.Label()
         Me.CheckBox4 = New System.Windows.Forms.CheckBox()
         Me.CheckBox3 = New System.Windows.Forms.CheckBox()
         Me.Label34 = New System.Windows.Forms.Label()
@@ -188,6 +190,7 @@ Partial Class Tools
         Me.TextBox41 = New System.Windows.Forms.TextBox()
         Me.TextBox42 = New System.Windows.Forms.TextBox()
         Me.CheckBox9 = New System.Windows.Forms.CheckBox()
+        Me.Button11 = New System.Windows.Forms.Button()
         Me.Button6 = New System.Windows.Forms.Button()
         Me.Button20 = New System.Windows.Forms.Button()
         Me.RichTextBox3 = New System.Windows.Forms.RichTextBox()
@@ -331,6 +334,7 @@ Partial Class Tools
         CType(Me.TrackBar12, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.TabPage4.SuspendLayout()
         Me.Panel8.SuspendLayout()
+        CType(Me.PictureBox12, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.TabPage5.SuspendLayout()
         Me.TabControl3.SuspendLayout()
         Me.TabPage7.SuspendLayout()
@@ -536,7 +540,7 @@ Partial Class Tools
         Me.Panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.Panel3.Location = New System.Drawing.Point(268, 42)
         Me.Panel3.Name = "Panel3"
-        Me.Panel3.Size = New System.Drawing.Size(22, 23)
+        Me.Panel3.Size = New System.Drawing.Size(23, 23)
         Me.Panel3.TabIndex = 35
         Me.Panel3.Visible = False
         '
@@ -572,7 +576,7 @@ Partial Class Tools
         Me.Panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.Panel4.Location = New System.Drawing.Point(26, 42)
         Me.Panel4.Name = "Panel4"
-        Me.Panel4.Size = New System.Drawing.Size(22, 23)
+        Me.Panel4.Size = New System.Drawing.Size(23, 23)
         Me.Panel4.TabIndex = 31
         '
         'TextBox33
@@ -912,7 +916,7 @@ Partial Class Tools
         Me.Panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.Panel1.Location = New System.Drawing.Point(454, 112)
         Me.Panel1.Name = "Panel1"
-        Me.Panel1.Size = New System.Drawing.Size(22, 23)
+        Me.Panel1.Size = New System.Drawing.Size(23, 23)
         Me.Panel1.TabIndex = 100
         '
         'Button2
@@ -1656,7 +1660,7 @@ Partial Class Tools
         Me.Panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.Panel6.Location = New System.Drawing.Point(75, 137)
         Me.Panel6.Name = "Panel6"
-        Me.Panel6.Size = New System.Drawing.Size(22, 23)
+        Me.Panel6.Size = New System.Drawing.Size(23, 23)
         Me.Panel6.TabIndex = 62
         '
         'Label81
@@ -1785,8 +1789,8 @@ Partial Class Tools
         '
         'TabPage4
         '
-        Me.TabPage4.Controls.Add(Me.Button11)
         Me.TabPage4.Controls.Add(Me.Panel8)
+        Me.TabPage4.Controls.Add(Me.Button11)
         Me.TabPage4.Controls.Add(Me.Button6)
         Me.TabPage4.Controls.Add(Me.Button20)
         Me.TabPage4.Controls.Add(Me.RichTextBox3)
@@ -1804,18 +1808,12 @@ Partial Class Tools
         Me.TabPage4.Text = "Converter"
         Me.TabPage4.UseVisualStyleBackColor = True
         '
-        'Button11
-        '
-        Me.Button11.Location = New System.Drawing.Point(426, 7)
-        Me.Button11.Name = "Button11"
-        Me.Button11.Size = New System.Drawing.Size(235, 23)
-        Me.Button11.TabIndex = 30
-        Me.Button11.Text = "Options"
-        Me.Button11.UseVisualStyleBackColor = True
-        '
         'Panel8
         '
         Me.Panel8.BackColor = System.Drawing.Color.White
+        Me.Panel8.Controls.Add(Me.PictureBox12)
+        Me.Panel8.Controls.Add(Me.TextBox47)
+        Me.Panel8.Controls.Add(Me.Label38)
         Me.Panel8.Controls.Add(Me.CheckBox4)
         Me.Panel8.Controls.Add(Me.CheckBox3)
         Me.Panel8.Controls.Add(Me.Label34)
@@ -1825,11 +1823,39 @@ Partial Class Tools
         Me.Panel8.Controls.Add(Me.TextBox41)
         Me.Panel8.Controls.Add(Me.TextBox42)
         Me.Panel8.Controls.Add(Me.CheckBox9)
-        Me.Panel8.Location = New System.Drawing.Point(426, 29)
+        Me.Panel8.Location = New System.Drawing.Point(424, 29)
         Me.Panel8.Name = "Panel8"
-        Me.Panel8.Size = New System.Drawing.Size(235, 187)
+        Me.Panel8.Size = New System.Drawing.Size(237, 229)
         Me.Panel8.TabIndex = 29
         Me.Panel8.Visible = False
+        '
+        'PictureBox12
+        '
+        Me.PictureBox12.BackColor = System.Drawing.Color.White
+        Me.PictureBox12.Image = Global.Scripting_Machine.My.Resources.Resources.Question_Mark__Up_
+        Me.PictureBox12.InitialImage = Global.Scripting_Machine.My.Resources.Resources.Question_Mark__Up_
+        Me.PictureBox12.Location = New System.Drawing.Point(195, 205)
+        Me.PictureBox12.Name = "PictureBox12"
+        Me.PictureBox12.Size = New System.Drawing.Size(16, 16)
+        Me.PictureBox12.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize
+        Me.PictureBox12.TabIndex = 49
+        Me.PictureBox12.TabStop = False
+        '
+        'TextBox47
+        '
+        Me.TextBox47.Location = New System.Drawing.Point(28, 201)
+        Me.TextBox47.Name = "TextBox47"
+        Me.TextBox47.Size = New System.Drawing.Size(161, 20)
+        Me.TextBox47.TabIndex = 48
+        '
+        'Label38
+        '
+        Me.Label38.AutoSize = True
+        Me.Label38.Location = New System.Drawing.Point(6, 185)
+        Me.Label38.Name = "Label38"
+        Me.Label38.Size = New System.Drawing.Size(106, 13)
+        Me.Label38.TabIndex = 47
+        Me.Label38.Text = "Custom Object Input:"
         '
         'CheckBox4
         '
@@ -1846,9 +1872,9 @@ Partial Class Tools
         Me.CheckBox3.AutoSize = True
         Me.CheckBox3.Location = New System.Drawing.Point(9, 87)
         Me.CheckBox3.Name = "CheckBox3"
-        Me.CheckBox3.Size = New System.Drawing.Size(191, 17)
+        Me.CheckBox3.Size = New System.Drawing.Size(228, 17)
         Me.CheckBox3.TabIndex = 45
-        Me.CheckBox3.Text = "Convert object's interior (if possible)"
+        Me.CheckBox3.Text = "Convert object's interior && world (if possible)"
         Me.CheckBox3.UseVisualStyleBackColor = True
         '
         'Label34
@@ -1865,7 +1891,7 @@ Partial Class Tools
         Me.TextBox43.Enabled = False
         Me.TextBox43.Location = New System.Drawing.Point(28, 156)
         Me.TextBox43.Name = "TextBox43"
-        Me.TextBox43.Size = New System.Drawing.Size(100, 20)
+        Me.TextBox43.Size = New System.Drawing.Size(161, 20)
         Me.TextBox43.TabIndex = 40
         '
         'Label35
@@ -1910,6 +1936,15 @@ Partial Class Tools
         Me.CheckBox9.TabIndex = 38
         Me.CheckBox9.Text = "Fix Object ID"
         Me.CheckBox9.UseVisualStyleBackColor = True
+        '
+        'Button11
+        '
+        Me.Button11.Location = New System.Drawing.Point(424, 7)
+        Me.Button11.Name = "Button11"
+        Me.Button11.Size = New System.Drawing.Size(237, 23)
+        Me.Button11.TabIndex = 30
+        Me.Button11.Text = "Options"
+        Me.Button11.UseVisualStyleBackColor = True
         '
         'Button6
         '
@@ -1970,7 +2005,7 @@ Partial Class Tools
         'ComboBox4
         '
         Me.ComboBox4.FormattingEnabled = True
-        Me.ComboBox4.Location = New System.Drawing.Point(262, 9)
+        Me.ComboBox4.Location = New System.Drawing.Point(260, 9)
         Me.ComboBox4.Name = "ComboBox4"
         Me.ComboBox4.Size = New System.Drawing.Size(158, 21)
         Me.ComboBox4.TabIndex = 14
@@ -1978,7 +2013,7 @@ Partial Class Tools
         'Label33
         '
         Me.Label33.AutoSize = True
-        Me.Label33.Location = New System.Drawing.Point(216, 12)
+        Me.Label33.Location = New System.Drawing.Point(212, 12)
         Me.Label33.Name = "Label33"
         Me.Label33.Size = New System.Drawing.Size(42, 13)
         Me.Label33.TabIndex = 13
@@ -1987,7 +2022,7 @@ Partial Class Tools
         'ComboBox3
         '
         Me.ComboBox3.FormattingEnabled = True
-        Me.ComboBox3.Location = New System.Drawing.Point(52, 9)
+        Me.ComboBox3.Location = New System.Drawing.Point(48, 9)
         Me.ComboBox3.Name = "ComboBox3"
         Me.ComboBox3.Size = New System.Drawing.Size(158, 21)
         Me.ComboBox3.TabIndex = 12
@@ -2995,6 +3030,7 @@ Partial Class Tools
         Me.TabPage4.PerformLayout()
         Me.Panel8.ResumeLayout(False)
         Me.Panel8.PerformLayout()
+        CType(Me.PictureBox12, System.ComponentModel.ISupportInitialize).EndInit()
         Me.TabPage5.ResumeLayout(False)
         Me.TabControl3.ResumeLayout(False)
         Me.TabPage7.ResumeLayout(False)
@@ -3275,4 +3311,7 @@ Partial Class Tools
     Friend WithEvents PictureBox11 As System.Windows.Forms.PictureBox
     Friend WithEvents OFD As System.Windows.Forms.OpenFileDialog
     Friend WithEvents CheckBox5 As System.Windows.Forms.CheckBox
+    Friend WithEvents TextBox47 As System.Windows.Forms.TextBox
+    Friend WithEvents Label38 As System.Windows.Forms.Label
+    Friend WithEvents PictureBox12 As System.Windows.Forms.PictureBox
 End Class

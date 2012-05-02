@@ -71,6 +71,9 @@ Partial Class Options
         Me.TextBox1 = New System.Windows.Forms.TextBox()
         Me.Label66 = New System.Windows.Forms.Label()
         Me.TabPage4 = New System.Windows.Forms.TabPage()
+        Me.RadioButton7 = New System.Windows.Forms.RadioButton()
+        Me.RadioButton6 = New System.Windows.Forms.RadioButton()
+        Me.RadioButton5 = New System.Windows.Forms.RadioButton()
         Me.TextBox5 = New System.Windows.Forms.TextBox()
         Me.TextBox4 = New System.Windows.Forms.TextBox()
         Me.TextBox8 = New System.Windows.Forms.TextBox()
@@ -81,7 +84,50 @@ Partial Class Options
         Me.Label4 = New System.Windows.Forms.Label()
         Me.TextBox6 = New System.Windows.Forms.TextBox()
         Me.Label5 = New System.Windows.Forms.Label()
-        Me.CheckBox3 = New System.Windows.Forms.CheckBox()
+        Me.TabPage6 = New System.Windows.Forms.TabPage()
+        Me.TabControl3 = New System.Windows.Forms.TabControl()
+        Me.TabPage7 = New System.Windows.Forms.TabPage()
+        Me.Panel1 = New System.Windows.Forms.Panel()
+        Me.CheckBox11 = New System.Windows.Forms.CheckBox()
+        Me.CheckBox10 = New System.Windows.Forms.CheckBox()
+        Me.Label10 = New System.Windows.Forms.Label()
+        Me.Label9 = New System.Windows.Forms.Label()
+        Me.Panel2 = New System.Windows.Forms.Panel()
+        Me.TabPage8 = New System.Windows.Forms.TabPage()
+        Me.Panel4 = New System.Windows.Forms.Panel()
+        Me.CheckBox12 = New System.Windows.Forms.CheckBox()
+        Me.CheckBox13 = New System.Windows.Forms.CheckBox()
+        Me.Label11 = New System.Windows.Forms.Label()
+        Me.Label12 = New System.Windows.Forms.Label()
+        Me.Panel3 = New System.Windows.Forms.Panel()
+        Me.TabPage9 = New System.Windows.Forms.TabPage()
+        Me.Panel6 = New System.Windows.Forms.Panel()
+        Me.CheckBox14 = New System.Windows.Forms.CheckBox()
+        Me.CheckBox15 = New System.Windows.Forms.CheckBox()
+        Me.Label13 = New System.Windows.Forms.Label()
+        Me.Label14 = New System.Windows.Forms.Label()
+        Me.Panel5 = New System.Windows.Forms.Panel()
+        Me.TabPage10 = New System.Windows.Forms.TabPage()
+        Me.Panel8 = New System.Windows.Forms.Panel()
+        Me.CheckBox16 = New System.Windows.Forms.CheckBox()
+        Me.CheckBox17 = New System.Windows.Forms.CheckBox()
+        Me.Label15 = New System.Windows.Forms.Label()
+        Me.Label16 = New System.Windows.Forms.Label()
+        Me.Panel7 = New System.Windows.Forms.Panel()
+        Me.TabPage11 = New System.Windows.Forms.TabPage()
+        Me.Panel10 = New System.Windows.Forms.Panel()
+        Me.CheckBox18 = New System.Windows.Forms.CheckBox()
+        Me.CheckBox19 = New System.Windows.Forms.CheckBox()
+        Me.Label17 = New System.Windows.Forms.Label()
+        Me.Label18 = New System.Windows.Forms.Label()
+        Me.Panel9 = New System.Windows.Forms.Panel()
+        Me.TabPage12 = New System.Windows.Forms.TabPage()
+        Me.Panel12 = New System.Windows.Forms.Panel()
+        Me.CheckBox20 = New System.Windows.Forms.CheckBox()
+        Me.CheckBox21 = New System.Windows.Forms.CheckBox()
+        Me.Label19 = New System.Windows.Forms.Label()
+        Me.Label20 = New System.Windows.Forms.Label()
+        Me.Panel11 = New System.Windows.Forms.Panel()
         Me.TabPage5 = New System.Windows.Forms.TabPage()
         Me.TextBox10 = New System.Windows.Forms.TextBox()
         Me.Label8 = New System.Windows.Forms.Label()
@@ -89,6 +135,7 @@ Partial Class Options
         Me.Button4 = New System.Windows.Forms.Button()
         Me.CheckBox6 = New System.Windows.Forms.CheckBox()
         Me.OFD = New System.Windows.Forms.OpenFileDialog()
+        Me.FBD = New System.Windows.Forms.FolderBrowserDialog()
         Me.TabControl1.SuspendLayout()
         Me.TabPage1.SuspendLayout()
         Me.GroupBox7.SuspendLayout()
@@ -98,6 +145,14 @@ Partial Class Options
         Me.TabControl2.SuspendLayout()
         Me.TabPage3.SuspendLayout()
         Me.TabPage4.SuspendLayout()
+        Me.TabPage6.SuspendLayout()
+        Me.TabControl3.SuspendLayout()
+        Me.TabPage7.SuspendLayout()
+        Me.TabPage8.SuspendLayout()
+        Me.TabPage9.SuspendLayout()
+        Me.TabPage10.SuspendLayout()
+        Me.TabPage11.SuspendLayout()
+        Me.TabPage12.SuspendLayout()
         Me.TabPage5.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -364,6 +419,7 @@ Partial Class Options
         '
         Me.TabControl2.Controls.Add(Me.TabPage3)
         Me.TabControl2.Controls.Add(Me.TabPage4)
+        Me.TabControl2.Controls.Add(Me.TabPage6)
         Me.TabControl2.Controls.Add(Me.TabPage5)
         Me.TabControl2.Location = New System.Drawing.Point(6, 6)
         Me.TabControl2.Name = "TabControl2"
@@ -440,6 +496,9 @@ Partial Class Options
         '
         'TabPage4
         '
+        Me.TabPage4.Controls.Add(Me.RadioButton7)
+        Me.TabPage4.Controls.Add(Me.RadioButton6)
+        Me.TabPage4.Controls.Add(Me.RadioButton5)
         Me.TabPage4.Controls.Add(Me.TextBox5)
         Me.TabPage4.Controls.Add(Me.TextBox4)
         Me.TabPage4.Controls.Add(Me.TextBox8)
@@ -450,7 +509,6 @@ Partial Class Options
         Me.TabPage4.Controls.Add(Me.Label4)
         Me.TabPage4.Controls.Add(Me.TextBox6)
         Me.TabPage4.Controls.Add(Me.Label5)
-        Me.TabPage4.Controls.Add(Me.CheckBox3)
         Me.TabPage4.Location = New System.Drawing.Point(4, 22)
         Me.TabPage4.Name = "TabPage4"
         Me.TabPage4.Padding = New System.Windows.Forms.Padding(3)
@@ -459,36 +517,68 @@ Partial Class Options
         Me.TabPage4.Text = "Images"
         Me.TabPage4.UseVisualStyleBackColor = True
         '
+        'RadioButton7
+        '
+        Me.RadioButton7.AutoSize = True
+        Me.RadioButton7.Location = New System.Drawing.Point(290, 11)
+        Me.RadioButton7.Name = "RadioButton7"
+        Me.RadioButton7.Size = New System.Drawing.Size(73, 17)
+        Me.RadioButton7.TabIndex = 44
+        Me.RadioButton7.Text = "From URL"
+        Me.RadioButton7.UseVisualStyleBackColor = True
+        '
+        'RadioButton6
+        '
+        Me.RadioButton6.AutoSize = True
+        Me.RadioButton6.Location = New System.Drawing.Point(162, 11)
+        Me.RadioButton6.Name = "RadioButton6"
+        Me.RadioButton6.Size = New System.Drawing.Size(80, 17)
+        Me.RadioButton6.TabIndex = 43
+        Me.RadioButton6.Text = "From Folder"
+        Me.RadioButton6.UseVisualStyleBackColor = True
+        '
+        'RadioButton5
+        '
+        Me.RadioButton5.AutoSize = True
+        Me.RadioButton5.Checked = True
+        Me.RadioButton5.Location = New System.Drawing.Point(25, 11)
+        Me.RadioButton5.Name = "RadioButton5"
+        Me.RadioButton5.Size = New System.Drawing.Size(96, 17)
+        Me.RadioButton5.TabIndex = 42
+        Me.RadioButton5.TabStop = True
+        Me.RadioButton5.Text = "Default Images"
+        Me.RadioButton5.UseVisualStyleBackColor = True
+        '
         'TextBox5
         '
         Me.TextBox5.Enabled = False
-        Me.TextBox5.Location = New System.Drawing.Point(115, 59)
+        Me.TextBox5.Location = New System.Drawing.Point(89, 64)
         Me.TextBox5.Name = "TextBox5"
-        Me.TextBox5.Size = New System.Drawing.Size(274, 20)
+        Me.TextBox5.Size = New System.Drawing.Size(316, 20)
         Me.TextBox5.TabIndex = 41
         '
         'TextBox4
         '
         Me.TextBox4.Enabled = False
-        Me.TextBox4.Location = New System.Drawing.Point(115, 34)
+        Me.TextBox4.Location = New System.Drawing.Point(89, 38)
         Me.TextBox4.Name = "TextBox4"
-        Me.TextBox4.Size = New System.Drawing.Size(274, 20)
+        Me.TextBox4.Size = New System.Drawing.Size(316, 20)
         Me.TextBox4.TabIndex = 40
         '
         'TextBox8
         '
         Me.TextBox8.Enabled = False
-        Me.TextBox8.Location = New System.Drawing.Point(115, 142)
+        Me.TextBox8.Location = New System.Drawing.Point(89, 142)
         Me.TextBox8.Name = "TextBox8"
-        Me.TextBox8.Size = New System.Drawing.Size(274, 20)
+        Me.TextBox8.Size = New System.Drawing.Size(316, 20)
         Me.TextBox8.TabIndex = 39
         '
         'TextBox7
         '
         Me.TextBox7.Enabled = False
-        Me.TextBox7.Location = New System.Drawing.Point(115, 116)
+        Me.TextBox7.Location = New System.Drawing.Point(90, 116)
         Me.TextBox7.Name = "TextBox7"
-        Me.TextBox7.Size = New System.Drawing.Size(274, 20)
+        Me.TextBox7.Size = New System.Drawing.Size(316, 20)
         Me.TextBox7.TabIndex = 38
         '
         'Label7
@@ -497,9 +587,9 @@ Partial Class Options
         Me.Label7.Enabled = False
         Me.Label7.Location = New System.Drawing.Point(22, 145)
         Me.Label7.Name = "Label7"
-        Me.Label7.Size = New System.Drawing.Size(69, 13)
+        Me.Label7.Size = New System.Drawing.Size(44, 13)
         Me.Label7.TabIndex = 37
-        Me.Label7.Text = "Sprite's URL:"
+        Me.Label7.Text = "Sprite's:"
         '
         'Label6
         '
@@ -507,9 +597,9 @@ Partial Class Options
         Me.Label6.Enabled = False
         Me.Label6.Location = New System.Drawing.Point(22, 119)
         Me.Label6.Name = "Label6"
-        Me.Label6.Size = New System.Drawing.Size(87, 13)
+        Me.Label6.Size = New System.Drawing.Size(62, 13)
         Me.Label6.TabIndex = 36
-        Me.Label6.Text = "Map Icon's URL:"
+        Me.Label6.Text = "Map Icon's:"
         '
         'Label3
         '
@@ -517,9 +607,9 @@ Partial Class Options
         Me.Label3.Enabled = False
         Me.Label3.Location = New System.Drawing.Point(22, 93)
         Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(83, 13)
+        Me.Label3.Size = New System.Drawing.Size(58, 13)
         Me.Label3.TabIndex = 35
-        Me.Label3.Text = "Weapon's URL:"
+        Me.Label3.Text = "Weapon's:"
         '
         'Label4
         '
@@ -527,16 +617,16 @@ Partial Class Options
         Me.Label4.Enabled = False
         Me.Label4.Location = New System.Drawing.Point(22, 67)
         Me.Label4.Name = "Label4"
-        Me.Label4.Size = New System.Drawing.Size(77, 13)
+        Me.Label4.Size = New System.Drawing.Size(52, 13)
         Me.Label4.TabIndex = 34
-        Me.Label4.Text = "Vehicle's URL:"
+        Me.Label4.Text = "Vehicle's:"
         '
         'TextBox6
         '
         Me.TextBox6.Enabled = False
-        Me.TextBox6.Location = New System.Drawing.Point(115, 86)
+        Me.TextBox6.Location = New System.Drawing.Point(89, 90)
         Me.TextBox6.Name = "TextBox6"
-        Me.TextBox6.Size = New System.Drawing.Size(274, 20)
+        Me.TextBox6.Size = New System.Drawing.Size(316, 20)
         Me.TextBox6.TabIndex = 33
         '
         'Label5
@@ -545,21 +635,450 @@ Partial Class Options
         Me.Label5.Enabled = False
         Me.Label5.Location = New System.Drawing.Point(22, 41)
         Me.Label5.Name = "Label5"
-        Me.Label5.Size = New System.Drawing.Size(63, 13)
+        Me.Label5.Size = New System.Drawing.Size(38, 13)
         Me.Label5.TabIndex = 32
-        Me.Label5.Text = "Skin's URL:"
+        Me.Label5.Text = "Skin's:"
         '
-        'CheckBox3
+        'TabPage6
         '
-        Me.CheckBox3.AutoSize = True
-        Me.CheckBox3.Checked = True
-        Me.CheckBox3.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.CheckBox3.Location = New System.Drawing.Point(17, 11)
-        Me.CheckBox3.Name = "CheckBox3"
-        Me.CheckBox3.Size = New System.Drawing.Size(116, 17)
-        Me.CheckBox3.TabIndex = 14
-        Me.CheckBox3.Text = "Use default images"
-        Me.CheckBox3.UseVisualStyleBackColor = True
+        Me.TabPage6.Controls.Add(Me.TabControl3)
+        Me.TabPage6.Location = New System.Drawing.Point(4, 22)
+        Me.TabPage6.Name = "TabPage6"
+        Me.TabPage6.Size = New System.Drawing.Size(411, 190)
+        Me.TabPage6.TabIndex = 3
+        Me.TabPage6.Text = "Highlight"
+        Me.TabPage6.UseVisualStyleBackColor = True
+        '
+        'TabControl3
+        '
+        Me.TabControl3.Controls.Add(Me.TabPage7)
+        Me.TabControl3.Controls.Add(Me.TabPage8)
+        Me.TabControl3.Controls.Add(Me.TabPage9)
+        Me.TabControl3.Controls.Add(Me.TabPage10)
+        Me.TabControl3.Controls.Add(Me.TabPage11)
+        Me.TabControl3.Controls.Add(Me.TabPage12)
+        Me.TabControl3.Location = New System.Drawing.Point(3, 3)
+        Me.TabControl3.Multiline = True
+        Me.TabControl3.Name = "TabControl3"
+        Me.TabControl3.SelectedIndex = 0
+        Me.TabControl3.Size = New System.Drawing.Size(405, 184)
+        Me.TabControl3.TabIndex = 0
+        '
+        'TabPage7
+        '
+        Me.TabPage7.Controls.Add(Me.Panel1)
+        Me.TabPage7.Controls.Add(Me.CheckBox11)
+        Me.TabPage7.Controls.Add(Me.CheckBox10)
+        Me.TabPage7.Controls.Add(Me.Label10)
+        Me.TabPage7.Controls.Add(Me.Label9)
+        Me.TabPage7.Controls.Add(Me.Panel2)
+        Me.TabPage7.Location = New System.Drawing.Point(4, 22)
+        Me.TabPage7.Name = "TabPage7"
+        Me.TabPage7.Padding = New System.Windows.Forms.Padding(3)
+        Me.TabPage7.Size = New System.Drawing.Size(397, 158)
+        Me.TabPage7.TabIndex = 0
+        Me.TabPage7.Text = "Numbers"
+        Me.TabPage7.UseVisualStyleBackColor = True
+        '
+        'Panel1
+        '
+        Me.Panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel1.Location = New System.Drawing.Point(81, 6)
+        Me.Panel1.Name = "Panel1"
+        Me.Panel1.Size = New System.Drawing.Size(23, 23)
+        Me.Panel1.TabIndex = 3
+        '
+        'CheckBox11
+        '
+        Me.CheckBox11.AutoSize = True
+        Me.CheckBox11.Location = New System.Drawing.Point(20, 88)
+        Me.CheckBox11.Name = "CheckBox11"
+        Me.CheckBox11.Size = New System.Drawing.Size(48, 17)
+        Me.CheckBox11.TabIndex = 6
+        Me.CheckBox11.Text = "Italic"
+        Me.CheckBox11.UseVisualStyleBackColor = True
+        '
+        'CheckBox10
+        '
+        Me.CheckBox10.AutoSize = True
+        Me.CheckBox10.Location = New System.Drawing.Point(20, 65)
+        Me.CheckBox10.Name = "CheckBox10"
+        Me.CheckBox10.Size = New System.Drawing.Size(47, 17)
+        Me.CheckBox10.TabIndex = 5
+        Me.CheckBox10.Text = "Bold"
+        Me.CheckBox10.UseVisualStyleBackColor = True
+        '
+        'Label10
+        '
+        Me.Label10.AutoSize = True
+        Me.Label10.Location = New System.Drawing.Point(17, 40)
+        Me.Label10.Name = "Label10"
+        Me.Label10.Size = New System.Drawing.Size(58, 13)
+        Me.Label10.TabIndex = 4
+        Me.Label10.Text = "Backcolor:"
+        '
+        'Label9
+        '
+        Me.Label9.AutoSize = True
+        Me.Label9.Location = New System.Drawing.Point(17, 11)
+        Me.Label9.Name = "Label9"
+        Me.Label9.Size = New System.Drawing.Size(65, 13)
+        Me.Label9.TabIndex = 4
+        Me.Label9.Text = "Hintergrund:"
+        '
+        'Panel2
+        '
+        Me.Panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel2.Location = New System.Drawing.Point(81, 35)
+        Me.Panel2.Name = "Panel2"
+        Me.Panel2.Size = New System.Drawing.Size(23, 23)
+        Me.Panel2.TabIndex = 3
+        '
+        'TabPage8
+        '
+        Me.TabPage8.Controls.Add(Me.Panel4)
+        Me.TabPage8.Controls.Add(Me.CheckBox12)
+        Me.TabPage8.Controls.Add(Me.CheckBox13)
+        Me.TabPage8.Controls.Add(Me.Label11)
+        Me.TabPage8.Controls.Add(Me.Label12)
+        Me.TabPage8.Controls.Add(Me.Panel3)
+        Me.TabPage8.Location = New System.Drawing.Point(4, 22)
+        Me.TabPage8.Name = "TabPage8"
+        Me.TabPage8.Padding = New System.Windows.Forms.Padding(3)
+        Me.TabPage8.Size = New System.Drawing.Size(397, 158)
+        Me.TabPage8.TabIndex = 1
+        Me.TabPage8.Text = "Strings"
+        Me.TabPage8.UseVisualStyleBackColor = True
+        '
+        'Panel4
+        '
+        Me.Panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel4.Location = New System.Drawing.Point(81, 6)
+        Me.Panel4.Name = "Panel4"
+        Me.Panel4.Size = New System.Drawing.Size(23, 23)
+        Me.Panel4.TabIndex = 8
+        '
+        'CheckBox12
+        '
+        Me.CheckBox12.AutoSize = True
+        Me.CheckBox12.Location = New System.Drawing.Point(20, 88)
+        Me.CheckBox12.Name = "CheckBox12"
+        Me.CheckBox12.Size = New System.Drawing.Size(48, 17)
+        Me.CheckBox12.TabIndex = 12
+        Me.CheckBox12.Text = "Italic"
+        Me.CheckBox12.UseVisualStyleBackColor = True
+        '
+        'CheckBox13
+        '
+        Me.CheckBox13.AutoSize = True
+        Me.CheckBox13.Location = New System.Drawing.Point(20, 65)
+        Me.CheckBox13.Name = "CheckBox13"
+        Me.CheckBox13.Size = New System.Drawing.Size(47, 17)
+        Me.CheckBox13.TabIndex = 11
+        Me.CheckBox13.Text = "Bold"
+        Me.CheckBox13.UseVisualStyleBackColor = True
+        '
+        'Label11
+        '
+        Me.Label11.AutoSize = True
+        Me.Label11.Location = New System.Drawing.Point(17, 40)
+        Me.Label11.Name = "Label11"
+        Me.Label11.Size = New System.Drawing.Size(58, 13)
+        Me.Label11.TabIndex = 10
+        Me.Label11.Text = "Backcolor:"
+        '
+        'Label12
+        '
+        Me.Label12.AutoSize = True
+        Me.Label12.Location = New System.Drawing.Point(17, 11)
+        Me.Label12.Name = "Label12"
+        Me.Label12.Size = New System.Drawing.Size(54, 13)
+        Me.Label12.TabIndex = 9
+        Me.Label12.Text = "Forecolor:"
+        '
+        'Panel3
+        '
+        Me.Panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel3.Location = New System.Drawing.Point(81, 35)
+        Me.Panel3.Name = "Panel3"
+        Me.Panel3.Size = New System.Drawing.Size(23, 23)
+        Me.Panel3.TabIndex = 7
+        '
+        'TabPage9
+        '
+        Me.TabPage9.Controls.Add(Me.Panel6)
+        Me.TabPage9.Controls.Add(Me.CheckBox14)
+        Me.TabPage9.Controls.Add(Me.CheckBox15)
+        Me.TabPage9.Controls.Add(Me.Label13)
+        Me.TabPage9.Controls.Add(Me.Label14)
+        Me.TabPage9.Controls.Add(Me.Panel5)
+        Me.TabPage9.Location = New System.Drawing.Point(4, 22)
+        Me.TabPage9.Name = "TabPage9"
+        Me.TabPage9.Size = New System.Drawing.Size(397, 158)
+        Me.TabPage9.TabIndex = 2
+        Me.TabPage9.Text = "Strings2"
+        Me.TabPage9.UseVisualStyleBackColor = True
+        '
+        'Panel6
+        '
+        Me.Panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel6.Location = New System.Drawing.Point(81, 6)
+        Me.Panel6.Name = "Panel6"
+        Me.Panel6.Size = New System.Drawing.Size(23, 23)
+        Me.Panel6.TabIndex = 8
+        '
+        'CheckBox14
+        '
+        Me.CheckBox14.AutoSize = True
+        Me.CheckBox14.Location = New System.Drawing.Point(20, 88)
+        Me.CheckBox14.Name = "CheckBox14"
+        Me.CheckBox14.Size = New System.Drawing.Size(48, 17)
+        Me.CheckBox14.TabIndex = 12
+        Me.CheckBox14.Text = "Italic"
+        Me.CheckBox14.UseVisualStyleBackColor = True
+        '
+        'CheckBox15
+        '
+        Me.CheckBox15.AutoSize = True
+        Me.CheckBox15.Location = New System.Drawing.Point(20, 65)
+        Me.CheckBox15.Name = "CheckBox15"
+        Me.CheckBox15.Size = New System.Drawing.Size(47, 17)
+        Me.CheckBox15.TabIndex = 11
+        Me.CheckBox15.Text = "Bold"
+        Me.CheckBox15.UseVisualStyleBackColor = True
+        '
+        'Label13
+        '
+        Me.Label13.AutoSize = True
+        Me.Label13.Location = New System.Drawing.Point(17, 40)
+        Me.Label13.Name = "Label13"
+        Me.Label13.Size = New System.Drawing.Size(58, 13)
+        Me.Label13.TabIndex = 10
+        Me.Label13.Text = "Backcolor:"
+        '
+        'Label14
+        '
+        Me.Label14.AutoSize = True
+        Me.Label14.Location = New System.Drawing.Point(17, 11)
+        Me.Label14.Name = "Label14"
+        Me.Label14.Size = New System.Drawing.Size(54, 13)
+        Me.Label14.TabIndex = 9
+        Me.Label14.Text = "Forecolor:"
+        '
+        'Panel5
+        '
+        Me.Panel5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel5.Location = New System.Drawing.Point(81, 35)
+        Me.Panel5.Name = "Panel5"
+        Me.Panel5.Size = New System.Drawing.Size(23, 23)
+        Me.Panel5.TabIndex = 7
+        '
+        'TabPage10
+        '
+        Me.TabPage10.Controls.Add(Me.Panel8)
+        Me.TabPage10.Controls.Add(Me.CheckBox16)
+        Me.TabPage10.Controls.Add(Me.CheckBox17)
+        Me.TabPage10.Controls.Add(Me.Label15)
+        Me.TabPage10.Controls.Add(Me.Label16)
+        Me.TabPage10.Controls.Add(Me.Panel7)
+        Me.TabPage10.Location = New System.Drawing.Point(4, 22)
+        Me.TabPage10.Name = "TabPage10"
+        Me.TabPage10.Size = New System.Drawing.Size(397, 158)
+        Me.TabPage10.TabIndex = 3
+        Me.TabPage10.Text = "Operators"
+        Me.TabPage10.UseVisualStyleBackColor = True
+        '
+        'Panel8
+        '
+        Me.Panel8.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel8.Location = New System.Drawing.Point(81, 6)
+        Me.Panel8.Name = "Panel8"
+        Me.Panel8.Size = New System.Drawing.Size(23, 23)
+        Me.Panel8.TabIndex = 8
+        '
+        'CheckBox16
+        '
+        Me.CheckBox16.AutoSize = True
+        Me.CheckBox16.Location = New System.Drawing.Point(20, 88)
+        Me.CheckBox16.Name = "CheckBox16"
+        Me.CheckBox16.Size = New System.Drawing.Size(48, 17)
+        Me.CheckBox16.TabIndex = 12
+        Me.CheckBox16.Text = "Italic"
+        Me.CheckBox16.UseVisualStyleBackColor = True
+        '
+        'CheckBox17
+        '
+        Me.CheckBox17.AutoSize = True
+        Me.CheckBox17.Location = New System.Drawing.Point(20, 65)
+        Me.CheckBox17.Name = "CheckBox17"
+        Me.CheckBox17.Size = New System.Drawing.Size(47, 17)
+        Me.CheckBox17.TabIndex = 11
+        Me.CheckBox17.Text = "Bold"
+        Me.CheckBox17.UseVisualStyleBackColor = True
+        '
+        'Label15
+        '
+        Me.Label15.AutoSize = True
+        Me.Label15.Location = New System.Drawing.Point(17, 40)
+        Me.Label15.Name = "Label15"
+        Me.Label15.Size = New System.Drawing.Size(58, 13)
+        Me.Label15.TabIndex = 10
+        Me.Label15.Text = "Backcolor:"
+        '
+        'Label16
+        '
+        Me.Label16.AutoSize = True
+        Me.Label16.Location = New System.Drawing.Point(17, 11)
+        Me.Label16.Name = "Label16"
+        Me.Label16.Size = New System.Drawing.Size(54, 13)
+        Me.Label16.TabIndex = 9
+        Me.Label16.Text = "Forecolor:"
+        '
+        'Panel7
+        '
+        Me.Panel7.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel7.Location = New System.Drawing.Point(81, 35)
+        Me.Panel7.Name = "Panel7"
+        Me.Panel7.Size = New System.Drawing.Size(23, 23)
+        Me.Panel7.TabIndex = 7
+        '
+        'TabPage11
+        '
+        Me.TabPage11.Controls.Add(Me.Panel10)
+        Me.TabPage11.Controls.Add(Me.CheckBox18)
+        Me.TabPage11.Controls.Add(Me.CheckBox19)
+        Me.TabPage11.Controls.Add(Me.Label17)
+        Me.TabPage11.Controls.Add(Me.Label18)
+        Me.TabPage11.Controls.Add(Me.Panel9)
+        Me.TabPage11.Location = New System.Drawing.Point(4, 22)
+        Me.TabPage11.Name = "TabPage11"
+        Me.TabPage11.Size = New System.Drawing.Size(397, 158)
+        Me.TabPage11.TabIndex = 4
+        Me.TabPage11.Text = "Characters"
+        Me.TabPage11.UseVisualStyleBackColor = True
+        '
+        'Panel10
+        '
+        Me.Panel10.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel10.Location = New System.Drawing.Point(81, 6)
+        Me.Panel10.Name = "Panel10"
+        Me.Panel10.Size = New System.Drawing.Size(23, 23)
+        Me.Panel10.TabIndex = 8
+        '
+        'CheckBox18
+        '
+        Me.CheckBox18.AutoSize = True
+        Me.CheckBox18.Location = New System.Drawing.Point(20, 88)
+        Me.CheckBox18.Name = "CheckBox18"
+        Me.CheckBox18.Size = New System.Drawing.Size(48, 17)
+        Me.CheckBox18.TabIndex = 12
+        Me.CheckBox18.Text = "Italic"
+        Me.CheckBox18.UseVisualStyleBackColor = True
+        '
+        'CheckBox19
+        '
+        Me.CheckBox19.AutoSize = True
+        Me.CheckBox19.Location = New System.Drawing.Point(20, 65)
+        Me.CheckBox19.Name = "CheckBox19"
+        Me.CheckBox19.Size = New System.Drawing.Size(47, 17)
+        Me.CheckBox19.TabIndex = 11
+        Me.CheckBox19.Text = "Bold"
+        Me.CheckBox19.UseVisualStyleBackColor = True
+        '
+        'Label17
+        '
+        Me.Label17.AutoSize = True
+        Me.Label17.Location = New System.Drawing.Point(17, 40)
+        Me.Label17.Name = "Label17"
+        Me.Label17.Size = New System.Drawing.Size(58, 13)
+        Me.Label17.TabIndex = 10
+        Me.Label17.Text = "Backcolor:"
+        '
+        'Label18
+        '
+        Me.Label18.AutoSize = True
+        Me.Label18.Location = New System.Drawing.Point(17, 11)
+        Me.Label18.Name = "Label18"
+        Me.Label18.Size = New System.Drawing.Size(54, 13)
+        Me.Label18.TabIndex = 9
+        Me.Label18.Text = "Forecolor:"
+        '
+        'Panel9
+        '
+        Me.Panel9.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel9.Location = New System.Drawing.Point(81, 35)
+        Me.Panel9.Name = "Panel9"
+        Me.Panel9.Size = New System.Drawing.Size(23, 23)
+        Me.Panel9.TabIndex = 7
+        '
+        'TabPage12
+        '
+        Me.TabPage12.Controls.Add(Me.Panel12)
+        Me.TabPage12.Controls.Add(Me.CheckBox20)
+        Me.TabPage12.Controls.Add(Me.CheckBox21)
+        Me.TabPage12.Controls.Add(Me.Label19)
+        Me.TabPage12.Controls.Add(Me.Label20)
+        Me.TabPage12.Controls.Add(Me.Panel11)
+        Me.TabPage12.Location = New System.Drawing.Point(4, 22)
+        Me.TabPage12.Name = "TabPage12"
+        Me.TabPage12.Size = New System.Drawing.Size(397, 158)
+        Me.TabPage12.TabIndex = 5
+        Me.TabPage12.Text = "Class"
+        Me.TabPage12.UseVisualStyleBackColor = True
+        '
+        'Panel12
+        '
+        Me.Panel12.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel12.Location = New System.Drawing.Point(81, 6)
+        Me.Panel12.Name = "Panel12"
+        Me.Panel12.Size = New System.Drawing.Size(23, 23)
+        Me.Panel12.TabIndex = 8
+        '
+        'CheckBox20
+        '
+        Me.CheckBox20.AutoSize = True
+        Me.CheckBox20.Location = New System.Drawing.Point(20, 88)
+        Me.CheckBox20.Name = "CheckBox20"
+        Me.CheckBox20.Size = New System.Drawing.Size(48, 17)
+        Me.CheckBox20.TabIndex = 12
+        Me.CheckBox20.Text = "Italic"
+        Me.CheckBox20.UseVisualStyleBackColor = True
+        '
+        'CheckBox21
+        '
+        Me.CheckBox21.AutoSize = True
+        Me.CheckBox21.Location = New System.Drawing.Point(20, 65)
+        Me.CheckBox21.Name = "CheckBox21"
+        Me.CheckBox21.Size = New System.Drawing.Size(47, 17)
+        Me.CheckBox21.TabIndex = 11
+        Me.CheckBox21.Text = "Bold"
+        Me.CheckBox21.UseVisualStyleBackColor = True
+        '
+        'Label19
+        '
+        Me.Label19.AutoSize = True
+        Me.Label19.Location = New System.Drawing.Point(17, 40)
+        Me.Label19.Name = "Label19"
+        Me.Label19.Size = New System.Drawing.Size(58, 13)
+        Me.Label19.TabIndex = 10
+        Me.Label19.Text = "Backcolor:"
+        '
+        'Label20
+        '
+        Me.Label20.AutoSize = True
+        Me.Label20.Location = New System.Drawing.Point(17, 11)
+        Me.Label20.Name = "Label20"
+        Me.Label20.Size = New System.Drawing.Size(54, 13)
+        Me.Label20.TabIndex = 9
+        Me.Label20.Text = "Forecolor:"
+        '
+        'Panel11
+        '
+        Me.Panel11.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel11.Location = New System.Drawing.Point(81, 35)
+        Me.Panel11.Name = "Panel11"
+        Me.Panel11.Size = New System.Drawing.Size(23, 23)
+        Me.Panel11.TabIndex = 7
         '
         'TabPage5
         '
@@ -651,6 +1170,20 @@ Partial Class Options
         Me.TabPage3.PerformLayout()
         Me.TabPage4.ResumeLayout(False)
         Me.TabPage4.PerformLayout()
+        Me.TabPage6.ResumeLayout(False)
+        Me.TabControl3.ResumeLayout(False)
+        Me.TabPage7.ResumeLayout(False)
+        Me.TabPage7.PerformLayout()
+        Me.TabPage8.ResumeLayout(False)
+        Me.TabPage8.PerformLayout()
+        Me.TabPage9.ResumeLayout(False)
+        Me.TabPage9.PerformLayout()
+        Me.TabPage10.ResumeLayout(False)
+        Me.TabPage10.PerformLayout()
+        Me.TabPage11.ResumeLayout(False)
+        Me.TabPage11.PerformLayout()
+        Me.TabPage12.ResumeLayout(False)
+        Me.TabPage12.PerformLayout()
         Me.TabPage5.ResumeLayout(False)
         Me.TabPage5.PerformLayout()
         Me.ResumeLayout(False)
@@ -680,7 +1213,6 @@ Partial Class Options
     Friend WithEvents TabControl2 As System.Windows.Forms.TabControl
     Friend WithEvents TabPage3 As System.Windows.Forms.TabPage
     Friend WithEvents TabPage4 As System.Windows.Forms.TabPage
-    Friend WithEvents CheckBox3 As System.Windows.Forms.CheckBox
     Friend WithEvents TextBox3 As System.Windows.Forms.TextBox
     Friend WithEvents Label101 As System.Windows.Forms.Label
     Friend WithEvents TextBox2 As System.Windows.Forms.TextBox
@@ -707,4 +1239,52 @@ Partial Class Options
     Friend WithEvents CheckBox7 As System.Windows.Forms.CheckBox
     Friend WithEvents CheckBox8 As System.Windows.Forms.CheckBox
     Friend WithEvents CheckBox9 As System.Windows.Forms.CheckBox
+    Friend WithEvents TabPage6 As System.Windows.Forms.TabPage
+    Friend WithEvents TabControl3 As System.Windows.Forms.TabControl
+    Friend WithEvents TabPage7 As System.Windows.Forms.TabPage
+    Friend WithEvents CheckBox11 As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBox10 As System.Windows.Forms.CheckBox
+    Friend WithEvents Label10 As System.Windows.Forms.Label
+    Friend WithEvents Label9 As System.Windows.Forms.Label
+    Friend WithEvents Panel2 As System.Windows.Forms.Panel
+    Friend WithEvents Panel1 As System.Windows.Forms.Panel
+    Friend WithEvents TabPage8 As System.Windows.Forms.TabPage
+    Friend WithEvents CheckBox12 As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBox13 As System.Windows.Forms.CheckBox
+    Friend WithEvents Label11 As System.Windows.Forms.Label
+    Friend WithEvents Label12 As System.Windows.Forms.Label
+    Friend WithEvents Panel3 As System.Windows.Forms.Panel
+    Friend WithEvents Panel4 As System.Windows.Forms.Panel
+    Friend WithEvents TabPage9 As System.Windows.Forms.TabPage
+    Friend WithEvents CheckBox14 As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBox15 As System.Windows.Forms.CheckBox
+    Friend WithEvents Label13 As System.Windows.Forms.Label
+    Friend WithEvents Label14 As System.Windows.Forms.Label
+    Friend WithEvents Panel5 As System.Windows.Forms.Panel
+    Friend WithEvents Panel6 As System.Windows.Forms.Panel
+    Friend WithEvents TabPage10 As System.Windows.Forms.TabPage
+    Friend WithEvents CheckBox16 As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBox17 As System.Windows.Forms.CheckBox
+    Friend WithEvents Label15 As System.Windows.Forms.Label
+    Friend WithEvents Label16 As System.Windows.Forms.Label
+    Friend WithEvents Panel7 As System.Windows.Forms.Panel
+    Friend WithEvents Panel8 As System.Windows.Forms.Panel
+    Friend WithEvents TabPage11 As System.Windows.Forms.TabPage
+    Friend WithEvents CheckBox18 As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBox19 As System.Windows.Forms.CheckBox
+    Friend WithEvents Label17 As System.Windows.Forms.Label
+    Friend WithEvents Label18 As System.Windows.Forms.Label
+    Friend WithEvents Panel9 As System.Windows.Forms.Panel
+    Friend WithEvents Panel10 As System.Windows.Forms.Panel
+    Friend WithEvents TabPage12 As System.Windows.Forms.TabPage
+    Friend WithEvents CheckBox20 As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBox21 As System.Windows.Forms.CheckBox
+    Friend WithEvents Label19 As System.Windows.Forms.Label
+    Friend WithEvents Label20 As System.Windows.Forms.Label
+    Friend WithEvents Panel11 As System.Windows.Forms.Panel
+    Friend WithEvents Panel12 As System.Windows.Forms.Panel
+    Friend WithEvents RadioButton7 As System.Windows.Forms.RadioButton
+    Friend WithEvents RadioButton6 As System.Windows.Forms.RadioButton
+    Friend WithEvents RadioButton5 As System.Windows.Forms.RadioButton
+    Friend WithEvents FBD As System.Windows.Forms.FolderBrowserDialog
 End Class

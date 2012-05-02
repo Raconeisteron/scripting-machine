@@ -68,6 +68,7 @@ Public Class Tools
         Public rY As Single
         Public rZ As Single
         Public Interior As Integer
+        Public World As Integer
     End Structure
 
     Public Structure VehicleInfo
@@ -80,9 +81,18 @@ Public Class Tools
         Public Color2 As Integer
     End Structure
 
-    Public Structure CacheImage
-        Public ID As Integer
-        Public Img As Bitmap
+    Public Structure iFormat
+        Public Delimiter As String
+        Public Model As Integer
+        Public X As Integer
+        Public Y As Integer
+        Public Z As Integer
+        Public Rx As Integer
+        Public Ry As Integer
+        Public Rz As Integer
+        Public W As Integer
+        Public I As Integer
+        Public Format As String
     End Structure
 
 #End Region
@@ -107,6 +117,7 @@ Public Class Tools
         ComboBox3.Items.Add("MidoStream ObjectInfo (ObjectInfo Only)")
         ComboBox3.Items.Add("Doble-O ObjectInfo (ObjectInfo Only)")
         ComboBox3.Items.Add("Fallout's Object Streamer (ObjectInfo Only)")
+        ComboBox3.Items.Add("Custom...")
         ComboBox3.SelectedIndex = 2
         ComboBox4.Items.Add("SA:MP")
         ComboBox4.Items.Add("Incognito's Streamer Plugin (ObjectInfo Only)")
@@ -123,6 +134,7 @@ Public Class Tools
         PictureBox4.Image = GetImageFromGui(GuiImage.TextBox)
         PictureBox5.Image = GetImageFromGui(GuiImage.Dot)
         RichTextBox2.ForeColor = Color.FromArgb(255, 160, 160, 160)
+
 
         PictureBox6.Image = My.Resources.Map
         Panel6.BackColor = Settings.C_Area.Hex
@@ -197,8 +209,8 @@ Public Class Tools
         gSender = CC.Msg
         eColor.TrackBar4.Enabled = True
         eColor.TextBox4.Enabled = True
+        eColor.Owner = Me
         eColor.Show()
-        eColor.Focus()
         eColor.Panel1.BackColor = Settings.C_Msg.Hex
     End Sub
 
@@ -206,8 +218,8 @@ Public Class Tools
         gSender = CC.Help
         eColor.TrackBar4.Enabled = True
         eColor.TextBox4.Enabled = True
+        eColor.Owner = Me
         eColor.Show()
-        eColor.Focus()
         eColor.Panel1.BackColor = Settings.C_Help.Hex
     End Sub
 
@@ -838,6 +850,7 @@ Public Class Tools
             End If
             Instances(Main.TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = TextBox40.Text
             Me.Hide()
+            Me.Owner.Refresh()
         End If
     End Sub
 
@@ -910,6 +923,7 @@ Public Class Tools
     Private Sub Button3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button3.Click
         Instances(Main.TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = "ShowPlayerDialog(" & TextBox6.Text & ", " & TextBox1.Text & ", " & ComboBox1.Text & ", """ & TextBox2.Text & """, """ & TextBox3.Text & """, """ & TextBox4.Text & """, """ & TextBox5.Text & """);"
         Me.Hide()
+        Me.Owner.Refresh()
     End Sub
 
 #End Region
@@ -1285,6 +1299,7 @@ Public Class Tools
 
     Private Sub Button2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button2.Click
         gSender = CC.Dialog
+        eColor.Owner = Me
         eColor.Show()
     End Sub
 
@@ -1305,6 +1320,7 @@ Public Class Tools
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
         Instances(Main.TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = TextBox21.Text
         Me.Hide()
+        Me.Owner.Refresh()
     End Sub
 
 #End Region
@@ -1384,9 +1400,9 @@ Public Class Tools
                 If TextBox21.Text.Length > 0 Then
                     TextBox21.TextAlign = HorizontalAlignment.Left
                     If CheckBox5.Checked Then
-                        TextBox21.Text = "#define " & TextBox20.Text & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
+                        TextBox21.Text = "#define " & TextBox20.Text & " " & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
                     Else
-                        TextBox21.Text = "#define " & TextBox20.Text & "(" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
+                        TextBox21.Text = "#define " & TextBox20.Text & " (" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
                     End If
                 Else
                     CheckBox6.Checked = False
@@ -1420,7 +1436,7 @@ Public Class Tools
         If Not ColorSender Then
             Dim nCMYK As CMYK = RGB2CMYK(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value)
             Dim nHSL As HSL = RGB2HSL(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value)
-            If Not CheckBox6.Checked = False Then
+            If Not CheckBox6.Checked Then
                 TextBox21.TextAlign = HorizontalAlignment.Center
                 If CheckBox5.Checked Then
                     TextBox21.Text = cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
@@ -1431,9 +1447,9 @@ Public Class Tools
                 If TextBox21.Text.Length > 0 Then
                     TextBox21.TextAlign = HorizontalAlignment.Left
                     If CheckBox5.Checked Then
-                        TextBox21.Text = "#define " & TextBox20.Text & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
+                        TextBox21.Text = "#define " & TextBox20.Text & " " & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
                     Else
-                        TextBox21.Text = "#define " & TextBox20.Text & "(" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
+                        TextBox21.Text = "#define " & TextBox20.Text & " (" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
                     End If
                 Else
                     CheckBox6.Checked = False
@@ -1478,9 +1494,9 @@ Public Class Tools
                 If TextBox21.Text.Length > 0 Then
                     TextBox21.TextAlign = HorizontalAlignment.Left
                     If CheckBox5.Checked Then
-                        TextBox21.Text = "#define " & TextBox20.Text & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
+                        TextBox21.Text = "#define " & TextBox20.Text & " " & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
                     Else
-                        TextBox21.Text = "#define " & TextBox20.Text & "(" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
+                        TextBox21.Text = "#define " & TextBox20.Text & " (" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
                     End If
                 Else
                     CheckBox6.Checked = False
@@ -1532,9 +1548,9 @@ Public Class Tools
                     If TextBox21.Text.Length > 0 Then
                         TextBox21.TextAlign = HorizontalAlignment.Left
                         If CheckBox5.Checked Then
-                            TextBox21.Text = "#define " & TextBox20.Text & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
+                            TextBox21.Text = "#define " & TextBox20.Text & " " & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
                         Else
-                            TextBox21.Text = "#define " & TextBox20.Text & "(" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
+                            TextBox21.Text = "#define " & TextBox20.Text & " (" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
                         End If
                     Else
                         CheckBox6.Checked = False
@@ -1584,9 +1600,9 @@ Public Class Tools
                     If TextBox21.Text.Length > 0 Then
                         TextBox21.TextAlign = HorizontalAlignment.Left
                         If CheckBox5.Checked Then
-                            TextBox21.Text = "#define " & TextBox20.Text & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
+                            TextBox21.Text = "#define " & TextBox20.Text & " " & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
                         Else
-                            TextBox21.Text = "#define " & TextBox20.Text & "(" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
+                            TextBox21.Text = "#define " & TextBox20.Text & " (" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
                         End If
                     Else
                         CheckBox6.Checked = False
@@ -1636,9 +1652,9 @@ Public Class Tools
                     If TextBox21.Text.Length > 0 Then
                         TextBox21.TextAlign = HorizontalAlignment.Left
                         If CheckBox5.Checked Then
-                            TextBox21.Text = "#define " & TextBox20.Text & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
+                            TextBox21.Text = "#define " & TextBox20.Text & " " & cColor(TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor)
                         Else
-                            TextBox21.Text = "#define " & TextBox20.Text & "(" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
+                            TextBox21.Text = "#define " & TextBox20.Text & " (" & cColor(TrackBar4.Value, TrackBar1.Value, TrackBar2.Value, TrackBar3.Value, Panel5.BackColor) & ")"
                         End If
                     Else
                         CheckBox6.Checked = False
@@ -2531,9 +2547,7 @@ Public Class Tools
                     .minY = e.Location.Y
                     .Lock = True
                 End With
-                If CheckBox8.Checked = False Then
-                    PictureBox6.Image = My.Resources.Map
-                End If
+                If Not CheckBox8.Checked Then PictureBox6.Image = My.Resources.Map
         End Select
     End Sub
 
@@ -2761,6 +2775,7 @@ Public Class Tools
             Instances(Main.TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = Areas
         End If
         Me.Hide()
+        Me.Owner.Refresh()
     End Sub
 
     Private Sub Button16_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button16.Click
@@ -2789,8 +2804,8 @@ Public Class Tools
         gSender = CC.Area
         eColor.TrackBar4.Enabled = True
         eColor.TextBox4.Enabled = True
+        eColor.Owner = Me
         eColor.Show()
-        eColor.Focus()
         eColor.Panel1.BackColor = Settings.C_Area.Hex
         eColor.TextBox1.Text = Settings.C_Area.Hex.R
         eColor.TrackBar1.Value = Settings.C_Area.Hex.R
@@ -2983,7 +2998,8 @@ Public Class Tools
             End If
             Dim pos() As String, _
                 ObjOutput As String, ObjOutPut2 As String = vbNullString, VehOutput As String = vbNullString, _
-                oCount As Integer, vCount As Integer, ObjArray As Boolean, VehArray As Boolean
+                oCount As Integer, vCount As Integer, ObjArray As Boolean, VehArray As Boolean, _
+                ConvertedString As String = vbNullString
             If TextBox41.Text.Length > 0 Then
                 ObjArray = True
                 Select Case ComboBox4.SelectedIndex
@@ -2991,7 +3007,7 @@ Public Class Tools
                         ObjOutput = TextBox41.Text & "[{0}] = CreateObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
                     Case 1
                         If CheckBox3.Checked Then
-                            ObjOutput = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7}, .interiorid = {8});" & vbNewLine
+                            ObjOutput = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});" & vbNewLine
                             ObjOutPut2 = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
                         Else
                             ObjOutput = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
@@ -3016,7 +3032,7 @@ Public Class Tools
                         ObjOutput = "CreateObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
                     Case 1
                         If CheckBox3.Checked Then
-                            ObjOutput = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6}, .interiorid = {7});" & vbNewLine
+                            ObjOutput = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6}, , {8}, {9});" & vbNewLine
                             ObjOutPut2 = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
                         Else
                             ObjOutput = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
@@ -3035,6 +3051,7 @@ Public Class Tools
                         ObjOutput = "CreateObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
                 End Select
             End If
+            ObjOutPut2 = ObjOutput
             If Not CheckBox4.Checked Then
                 If TextBox42.Text.Length > 0 Then
                     VehArray = True
@@ -3060,9 +3077,9 @@ Public Class Tools
                             Dim i As Integer = UBound(pos)
                             pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
                             If ObjArray Then
-                                TextBox26.Text += String.Format(ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             Else
-                                TextBox26.Text += String.Format(ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             End If
                             oCount += 1
                         ElseIf line.IndexOf("AddStaticVehicle(") > -1 AndAlso Not CheckBox4.Checked Then
@@ -3070,9 +3087,9 @@ Public Class Tools
                             Dim i As Integer = UBound(pos)
                             pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
                             If VehArray Then
-                                TextBox26.Text += String.Format("{0}[{1}] = AddStaticVehicle({2}, {3}, {4}, {5}, {6}, {7}, {8});" & vbNewLine, vCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6))
+                                ConvertedString += String.Format("{0}[{1}] = AddStaticVehicle({2}, {3}, {4}, {5}, {6}, {7}, {8});" & vbNewLine, vCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6))
                             Else
-                                TextBox26.Text += String.Format("AddStaticVehicle({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6))
+                                ConvertedString += String.Format("AddStaticVehicle({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6))
                             End If
                             vCount += 1
                         ElseIf line.IndexOf("AddStaticVehicleEx(") > -1 AndAlso Not CheckBox4.Checked Then
@@ -3080,14 +3097,14 @@ Public Class Tools
                             Dim i As Integer = UBound(pos)
                             pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
                             If VehArray Then
-                                TextBox26.Text += String.Format("{0}[{1}] = AddStaticVehicleEx({2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});" & vbNewLine, TextBox42.Text, vCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6), pos(7))
+                                ConvertedString += String.Format("{0}[{1}] = AddStaticVehicleEx({2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});" & vbNewLine, TextBox42.Text, vCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6), pos(7))
                             Else
-                                TextBox26.Text += String.Format("AddStaticVehicleEx({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6), pos(7))
+                                ConvertedString += String.Format("AddStaticVehicleEx({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6), pos(7))
                             End If
                             vCount += 1
                         End If
-
                     Next
+                    TextBox26.Text = ConvertedString
                 Case 1 'MTA Race
                     Try
                         Dim Writer As New StreamWriter(My.Application.Info.DirectoryPath & "\Convert.tmp")
@@ -3170,9 +3187,9 @@ Public Class Tools
                                     Select Case Reader.Name
                                         Case "object"
                                             If ObjArray Then
-                                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
+                                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                                             Else
-                                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
+                                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                                             End If
                                             oCount += 1
                                             type = ConvertType.None
@@ -3180,15 +3197,15 @@ Public Class Tools
                                             If CheckBox4.Checked = False Then
                                                 If VehArray Then
                                                     If CheckBox2.Checked Then
-                                                        TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
+                                                        ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
                                                     Else
-                                                        TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
+                                                        ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
                                                     End If
                                                 Else
                                                     If CheckBox2.Checked Then
-                                                        TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
+                                                        ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
                                                     Else
-                                                        TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
+                                                        ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
                                                     End If
                                                 End If
                                                 vCount += 1
@@ -3198,6 +3215,7 @@ Public Class Tools
                             End Select
                         Loop
                         Reader.Close()
+                        TextBox26.Text = ConvertedString
                         File.Delete(My.Application.Info.DirectoryPath & "\Convert.tmp")
                     Catch ex As Exception
                         File.Delete(My.Application.Info.DirectoryPath & "\Convert.tmp")
@@ -3207,6 +3225,7 @@ Public Class Tools
                     Dim Obj As ObjectInfo, Veh As VehicleInfo
                     For Each Line In RichTextBox3.Lines
                         If Line.IndexOf("<object") > -1 Then
+                            Obj.World = -1
                             Obj.Model = Mid(Line, Line.IndexOf("model=") + 8, Line.IndexOf("""", Line.IndexOf("model=")) - Line.IndexOf("model=") - 3)
                             If CheckBox9.Checked Then
                                 Select Case Obj.Model
@@ -3250,16 +3269,16 @@ Public Class Tools
                                 End Try
                             End If
                             If ObjArray Then
-                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 Then
-                                    TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.Interior)
+                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 OrElse Obj.World <> -1 Then
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                                 Else
-                                    TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                                 End If
                             Else
-                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 Then
-                                    TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.Interior)
+                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 OrElse Obj.World <> -1 Then
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                                 Else
-                                    TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                                 End If
                             End If
                             oCount += 1
@@ -3279,20 +3298,21 @@ Public Class Tools
                             End If
                             If VehArray Then
                                 If CheckBox2.Checked Then
-                                    TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
                                 Else
-                                    TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
                                 End If
                             Else
                                 If CheckBox2.Checked Then
-                                    TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
                                 Else
-                                    TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
                                 End If
                             End If
                             vCount += 1
                         End If
                     Next
+                    TextBox26.Text = ConvertedString
                 Case 3, 4 'Incognito's Streamer Plugin & YSI DynamicObject
                     For Each Line In RichTextBox3.Lines
                         If Line.IndexOf("CreateDynamicObject(") > -1 Then
@@ -3328,13 +3348,14 @@ Public Class Tools
                                 End Select
                             End If
                             If ObjArray Then
-                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             Else
-                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             End If
                             oCount += 1
                         End If
                     Next
+                    TextBox26.Text = ConvertedString
                 Case 5 'xStreamer
                     For Each Line In RichTextBox3.Lines
                         If Line.IndexOf("CreateStreamedObject(") > -1 Then
@@ -3370,13 +3391,14 @@ Public Class Tools
                                 End Select
                             End If
                             If ObjArray Then
-                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             Else
-                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             End If
                             oCount += 1
                         End If
                     Next
+                    TextBox26.Text = ConvertedString
                 Case 6, 7 'MidoStream ObjectInfo & Doble-O ObjectInfo
                     For Each Line In RichTextBox3.Lines
                         If Line.IndexOf("CreateStreamObject(") > -1 Then
@@ -3412,13 +3434,14 @@ Public Class Tools
                                 End Select
                             End If
                             If ObjArray Then
-                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             Else
-                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             End If
                             oCount += 1
                         End If
                     Next
+                    TextBox26.Text = ConvertedString
                 Case 8 'Fallout's Object Streamer
                     For Each Line In RichTextBox3.Lines
                         If Line.IndexOf("F_CreateObject(") > -1 Then
@@ -3454,13 +3477,87 @@ Public Class Tools
                                 End Select
                             End If
                             If ObjArray Then
-                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             Else
-                                TextBox26.Text += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                             End If
                             oCount += 1
                         End If
                     Next
+                    TextBox26.Text += ConvertedString
+                Case 9 'Custom...
+                    If TextBox47.Text.Length = 0 Then
+                        Select Case Settings.Language
+                            Case Languages.English
+                                MsgBox("You must specify a custom input format.", MsgBoxStyle.Critical, "Error")
+                            Case Languages.Español
+                                MsgBox("Debes especificar un formato de entrada.", MsgBoxStyle.Critical, "Error")
+                            Case Languages.Portuguêse
+                                MsgBox("Você deve especificar um formato de entrada personalizado.", MsgBoxStyle.Critical, "Erro")
+                            Case Else
+                                MsgBox("Sie müssen ein benutzerdefiniertes Eingabe-Format. Angeben", MsgBoxStyle.Critical, "Error")
+                        End Select
+                        Exit Sub
+                    End If
+                    Dim cInput As iFormat = FormatAnalizer(TextBox47.Text)
+                    If cInput.Format = "INVALID FORMAT" Then
+                        Select Case Settings.Language
+                            Case Languages.English
+                                MsgBox("Invalid input format.", MsgBoxStyle.Critical, "Error")
+                            Case Languages.Español
+                                MsgBox("Formato de entrada invalido.", MsgBoxStyle.Critical, "Error")
+                            Case Languages.Portuguêse
+                                MsgBox("Formato de entrada inválida.", MsgBoxStyle.Critical, "Erro")
+                            Case Else
+                                MsgBox("Ungültige Eingabe-Format.", MsgBoxStyle.Critical, "Error")
+                        End Select
+                        Exit Sub
+                    End If
+                    For Each Line In RichTextBox3.Lines
+                        Dim M As Match = Regex.Match(Line, cInput.Format)
+                        If M.Success Then
+                            Dim Obj As ObjectInfo, tmp As String() = Split(M.Value, cInput.Delimiter)
+                            Obj.Interior = -1
+                            Obj.World = -1
+                            For i = 0 To UBound(tmp)
+                                Select Case i
+                                    Case cInput.Model
+                                        Obj.Model = Regex.Replace(tmp(i), "[^\d]+", "")
+                                    Case cInput.X
+                                        Obj.X = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                    Case cInput.Y
+                                        Obj.Y = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                    Case cInput.Z
+                                        Obj.Z = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                    Case cInput.Rx
+                                        Obj.rX = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                    Case cInput.Ry
+                                        Obj.rY = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                    Case cInput.Rz
+                                        Obj.rY = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                    Case cInput.I
+                                        Obj.Interior = Regex.Replace(tmp(i), "[^\d]+", "")
+                                    Case cInput.W
+                                        Obj.World = Regex.Replace(tmp(i), "[^\d]+", "")
+                                End Select
+                            Next
+                            If ObjArray Then
+                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 OrElse Obj.World <> -1 Then
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
+                                Else
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
+                                End If
+                            Else
+                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 OrElse Obj.World <> -1 Then
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
+                                Else
+                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
+                                End If
+                            End If
+                            oCount += 1
+                        End If
+                    Next
+                    TextBox26.Text = ConvertedString
             End Select
             Select Case Settings.Language
                 Case Languages.English
@@ -3555,6 +3652,90 @@ Public Class Tools
         End If
     End Sub
 
+    Private Sub PictureBox12_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PictureBox12.MouseDown
+        PictureBox12.Image = My.Resources.Question_Mark__Down_
+    End Sub
+
+    Private Sub PictureBox12_MouseUp(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PictureBox12.MouseUp
+        PictureBox12.Image = My.Resources.Question_Mark__Up_
+    End Sub
+
+#End Region
+
+#Region "Subs/Functions"
+
+    Public Function FormatAnalizer(ByVal format As String) As iFormat
+        Dim input As iFormat
+        'd<.>   =>  Delimiter
+        '{M}        =>  Model
+        '{X}        =>  X coord
+        '{Y}        =>  Y coord
+        '{Z}        =>  Z coord
+        '{W}        =>  Virtual World
+        '{I}        =>  Interior
+        '{Rx}       =>  X rotation
+        '{Ry}       =>  Y rotation
+        '{Rz}       =>  Z rotation
+        '{S}        =>  Stream Distance
+        '{O}        =>  Other
+        '{//}       =>
+        format = format.Replace("(", "\(").Replace(")", "\)")
+        If Regex.Matches(format, "{M}").Count <> 1 OrElse Regex.Matches(format, "{X}").Count <> 1 OrElse Regex.Matches(format, "{Y}").Count <> 1 OrElse Regex.Matches(format, "{Z}").Count <> 1 OrElse Regex.Matches(format, "{Rx}").Count <> 1 OrElse Regex.Matches(format, "{Ry}").Count <> 1 OrElse Regex.Matches(format, "{Rz}").Count <> 1 OrElse Regex.Matches(format, "{W}").Count > 1 OrElse Regex.Matches(format, "{I}").Count > 1 OrElse Regex.Matches(format, "{S}").Count > 1 Then
+            input.Format = "INVALID FORMAT"
+            input.Delimiter = ""
+            input.I = input.Model = input.Rx = input.Ry = input.Rz = input.W = input.X = input.Y = input.Z = 0
+            Return input
+        End If
+        Dim M As Match = Regex.Match(format, "d<.+>")
+        Dim tmp As String = vbNullString
+        If M.Success Then
+            input.Delimiter = Mid(M.Value, M.Value.IndexOf("<") + 2, M.Value.IndexOf(">") - M.Value.IndexOf("<") - 1)
+            tmp = format
+            format = vbNullString
+            For i = 0 To tmp.Length - 1
+                If i < M.Index OrElse i > (M.Index + M.Value.Length - 1) Then
+                    format += tmp(i)
+                End If
+            Next
+            tmp = vbNullString
+        Else
+            input.Delimiter = ","
+        End If
+        tmp = format
+        For Each MM As Match In Regex.Matches(tmp, "{([MXYZWISO]|R[xyz])}")
+            If MM.NextMatch.Success Then
+                tmp = tmp.Replace(MM.Value, MM.Value & input.Delimiter)
+            Else
+                tmp = tmp.Replace(MM.Value, MM.Value)
+            End If
+        Next
+        input.Model = CountEqualStringFromString(StrReverse(tmp), StrReverse(input.Delimiter), tmp.Length - tmp.IndexOf("{M}", StringComparison.InvariantCulture))
+        input.Rx = CountEqualStringFromString(StrReverse(tmp), StrReverse(input.Delimiter), tmp.Length - tmp.IndexOf("{Rx}", StringComparison.InvariantCulture))
+        input.Ry = CountEqualStringFromString(StrReverse(tmp), StrReverse(input.Delimiter), tmp.Length - tmp.IndexOf("{Ry}", StringComparison.InvariantCulture))
+        input.Rz = CountEqualStringFromString(StrReverse(tmp), StrReverse(input.Delimiter), tmp.Length - tmp.IndexOf("{Rz}", StringComparison.InvariantCulture))
+        input.X = CountEqualStringFromString(StrReverse(tmp), StrReverse(input.Delimiter), tmp.Length - tmp.IndexOf("{X}", StringComparison.InvariantCulture))
+        input.Y = CountEqualStringFromString(StrReverse(tmp), StrReverse(input.Delimiter), tmp.Length - tmp.IndexOf("{Y}", StringComparison.InvariantCulture))
+        input.Z = CountEqualStringFromString(StrReverse(tmp), StrReverse(input.Delimiter), tmp.Length - tmp.IndexOf("{Z}", StringComparison.InvariantCulture))
+        input.W = If(tmp.IndexOf("{W}") > -1, CountEqualStringFromString(StrReverse(tmp), StrReverse(input.Delimiter), tmp.Length - tmp.IndexOf("{W}", StringComparison.InvariantCulture)), -9999)
+        input.I = If(tmp.IndexOf("{I}") > -1, CountEqualStringFromString(StrReverse(tmp), StrReverse(input.Delimiter), tmp.Length - tmp.IndexOf("{I}", StringComparison.InvariantCulture)), -9999)
+        input.Format = Regex.Replace(Regex.Replace(Regex.Replace(tmp, "{O}", "[^" & input.Delimiter & "]+"), "{[MWI]}", "-?[\d]+"), "{(R[xyz]|[XYZS])}", "-?[\d\.]+")
+        Return input
+    End Function
+
+#End Region
+
+#Region "Help"
+
+    Private Sub PictureBox12_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles PictureBox12.Click
+        tSender = MsgT.oFormatTuto
+        With MultiF
+            .Show()
+            .Size = New Size(642, 380)
+            .Location = New Point(Me.Location.X + 130, Me.Location.Y + 100)
+            .Opacity = 80
+        End With
+    End Sub
+
 #End Region
 
 #End Region
@@ -3569,28 +3750,33 @@ Public Class Tools
 
     Private Sub TreeView1_AfterSelect(ByVal sender As System.Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles TreeView1.AfterSelect
         If IsNumeric(TreeView1.SelectedNode.Text) Then
-            Dim tmp As Boolean
-            If Settings.Images OrElse Settings.URL_Skin.Length > 0 Then
-                tmp = True
-            Else
-                tmp = False
-            End If
-            If Not tmp Then
-                Try
-                    PictureBox7.Image = LoadImageFromURL(String.Format(Settings.URL_Skin, TreeView1.SelectedNode.Text))
-                Catch ex As Exception
-                    PictureBox7.Image = My.Resources.N_A
-                End Try
-            End If
             For Each Skin In Skins
                 If TreeView1.SelectedNode.Text = Skin.ID Then
-                    If tmp Then
-                        Try
-                            PictureBox7.Image = GetImageFromResource(ImageTypes.Skin, Skin.ID)
-                        Catch ex As Exception
+                    Try
+                        Select Case Settings.Images
+                            Case Imgs.iDefault
+                                PictureBox7.Image = GetImageFromResource(ImageTypes.Skin, Skin.ID)
+                            Case Imgs.iFolder
+                                Dim path As String = String.Format(Settings.URL_Skin, Skin.ID)
+                                If File.Exists(path) Then
+                                    PictureBox7.Image = Image.FromFile(path)
+                                Else
+                                    PictureBox7.Image = My.Resources.N_A
+                                End If
+                            Case Imgs.iURL
+                                PictureBox7.Image = LoadImageFromURL(String.Format(Settings.URL_Skin, Skin.ID))
+                        End Select
+                    Catch ex As Exception
+                        If Settings.Images = Imgs.iDefault Then
                             PictureBox7.Image = My.Resources.N_A
-                        End Try
-                    End If
+                        Else
+                            Try
+                                PictureBox7.Image = GetImageFromResource(ImageTypes.Skin, Skin.ID)
+                            Catch exx As Exception
+                                PictureBox7.Image = My.Resources.N_A
+                            End Try
+                        End If
+                    End Try
                     TextBox69.Text = Skin.Name
                     TextBox70.Text = Skin.Gender.ToString
                     TextBox71.Text = Skin.Gang.ToString
@@ -3617,6 +3803,7 @@ Public Class Tools
             End Try
         End If
         Me.Hide()
+        Me.Owner.Refresh()
     End Sub
 
 #End Region
@@ -3869,28 +4056,33 @@ Public Class Tools
 
     Private Sub TreeView2_AfterSelect(ByVal sender As System.Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles TreeView2.AfterSelect
         If IsNumeric(TreeView2.SelectedNode.Text) Then
-            Dim tmp As Boolean
-            If Settings.Images OrElse Settings.URL_Veh.Length > 0 Then
-                tmp = True
-            Else
-                tmp = False
-            End If
-            If Not tmp Then
-                Try
-                    PictureBox8.Image = LoadImageFromURL(String.Format(Settings.URL_Veh, TreeView2.SelectedNode.Text))
-                Catch ex As Exception
-                    PictureBox8.Image = My.Resources.N_A
-                End Try
-            End If
             For Each vehicle In Vehicles
                 If vehicle.ID = TreeView2.SelectedNode.Text Then
-                    If tmp = True Then
-                        Try
-                            PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID - 400)
-                        Catch ex As Exception
+                    Try
+                        Select Case Settings.Images
+                            Case Imgs.iDefault
+                                PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID)
+                            Case Imgs.iFolder
+                                Dim path As String = String.Format(Settings.URL_Veh, vehicle.ID)
+                                If File.Exists(path) Then
+                                    PictureBox8.Image = Image.FromFile(path)
+                                Else
+                                    PictureBox8.Image = My.Resources.N_A
+                                End If
+                            Case Imgs.iURL
+                                PictureBox8.Image = LoadImageFromURL(String.Format(Settings.URL_Veh, vehicle.ID))
+                        End Select
+                    Catch ex As Exception
+                        If Settings.Images = Imgs.iDefault Then
                             PictureBox8.Image = My.Resources.N_A
-                        End Try
-                    End If
+                        Else
+                            Try
+                                PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID)
+                            Catch exx As Exception
+                                PictureBox8.Image = My.Resources.N_A
+                            End Try
+                        End If
+                    End Try
                     TextBox54.Text = vehicle.ID
                     TextBox55.Text = vehicle.Name
                     TextBox56.Text = vehicle.Type.ToString
@@ -3904,28 +4096,33 @@ Public Class Tools
         Select Case TreeView3.SelectedNode.Text
             Case "Airplanes", "Helicopters", "Bikes", "Convertibles", "Industrial", "Lowriders", "Off Road", "Public Service", "Saloons", "Sport", "Station Wagons", "Boats""Trailers", "Unique", "RC", "All"
             Case Else
-                Dim tmp As Boolean
-                If Settings.Images OrElse Settings.URL_Veh.Length > 0 Then
-                    tmp = True
-                Else
-                    tmp = False
-                End If
-                If Not tmp Then
-                    Try
-                        PictureBox8.Image = LoadImageFromURL(String.Format(Settings.URL_Veh, TreeView2.SelectedNode.Text))
-                    Catch ex As Exception
-                        PictureBox8.Image = My.Resources.N_A
-                    End Try
-                End If
                 For Each vehicle In Vehicles
                     If vehicle.Name = TreeView3.SelectedNode.Text Then
-                        If tmp Then
-                            Try
-                                PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID - 400)
-                            Catch ex As Exception
+                        Try
+                            Select Case Settings.Images
+                                Case Imgs.iDefault
+                                    PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID)
+                                Case Imgs.iFolder
+                                    Dim path As String = String.Format(Settings.URL_Veh, vehicle.ID)
+                                    If File.Exists(path) Then
+                                        PictureBox8.Image = Image.FromFile(path)
+                                    Else
+                                        PictureBox8.Image = My.Resources.N_A
+                                    End If
+                                Case Imgs.iURL
+                                    PictureBox8.Image = LoadImageFromURL(String.Format(Settings.URL_Veh, vehicle.ID))
+                            End Select
+                        Catch ex As Exception
+                            If Settings.Images = Imgs.iDefault Then
                                 PictureBox8.Image = My.Resources.N_A
-                            End Try
-                        End If
+                            Else
+                                Try
+                                    PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID)
+                                Catch exx As Exception
+                                    PictureBox8.Image = My.Resources.N_A
+                                End Try
+                            End If
+                        End Try
                         TextBox54.Text = vehicle.ID
                         TextBox55.Text = vehicle.Name
                         TextBox56.Text = vehicle.Type.ToString
@@ -4008,7 +4205,7 @@ Public Class Tools
             End If
             TreeView3.Select()
         Else
-            If TextBox52.Text.Length > 0 Then
+            If TextBox53.Text.Length = 0 Then
                 Select Case Settings.Language
                     Case Languages.English
                         MsgBox("Invalid model name.", MsgBoxStyle.Critical, "Error")
@@ -4174,28 +4371,33 @@ Public Class Tools
 #Region "Display"
 
     Private Sub TreeView6_AfterSelect(ByVal sender As System.Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles TreeView6.AfterSelect
-        Dim tmp As Boolean
-        If Settings.Images OrElse Settings.URL_Weap.Length > 0 Then
-            tmp = True
-        Else
-            tmp = False
-        End If
-        If Not tmp Then
-            Try
-                PictureBox9.Image = LoadImageFromURL(String.Format(Settings.URL_Weap, TreeView7.SelectedNode.Text))
-            Catch ex As Exception
-                PictureBox9.Image = My.Resources.N_A
-            End Try
-        End If
         For Each weapon As Weap In Weapons
             If weapon.Name = TreeView6.SelectedNode.Text Then
-                If tmp Then
-                    Try
-                        PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID)
-                    Catch ex As Exception
+                Try
+                    Select Case Settings.Images
+                        Case Imgs.iDefault
+                            PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID)
+                        Case Imgs.iFolder
+                            Dim path As String = String.Format(Settings.URL_Weap, weapon.ID)
+                            If File.Exists(path) Then
+                                PictureBox9.Image = Image.FromFile(path)
+                            Else
+                                PictureBox9.Image = My.Resources.N_A
+                            End If
+                        Case Imgs.iURL
+                            PictureBox9.Image = LoadImageFromURL(Settings.URL_Weap)
+                    End Select
+                Catch ex As Exception
+                    If Settings.Images = Imgs.iDefault Then
                         PictureBox9.Image = My.Resources.N_A
-                    End Try
-                End If
+                    Else
+                        Try
+                            PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID)
+                        Catch exx As Exception
+                            PictureBox9.Image = My.Resources.N_A
+                        End Try
+                    End If
+                End Try
                 TextBox64.Text = weapon.ID
                 TextBox65.Text = weapon.Name
                 TextBox66.Text = weapon.Slot
@@ -4242,28 +4444,33 @@ Public Class Tools
 #Region "Display"
 
     Private Sub TreeView7_AfterSelect(ByVal sender As System.Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles TreeView7.AfterSelect
-        Dim tmp As Boolean
-        If Settings.Images OrElse Settings.URL_Map.Length > 0 Then
-            tmp = True
-        Else
-            tmp = False
-        End If
-        If Not tmp Then
-            Try
-                PictureBox10.Image = LoadImageFromURL(String.Format(Settings.URL_Map, TreeView7.SelectedNode.Text))
-            Catch ex As Exception
-                PictureBox10.Image = My.Resources.N_A
-            End Try
-        End If
         For Each map In Maps
             If map.ID = TreeView7.SelectedNode.Text Then
-                If tmp Then
-                    Try
-                        PictureBox10.Image = GetImageFromResource(ImageTypes.MapIcon, map.ID - 1)
-                    Catch ex As Exception
+                Try
+                    Select Case Settings.Images
+                        Case Imgs.iDefault
+                            PictureBox10.Image = GetImageFromResource(ImageTypes.MapIcon, map.ID - 1)
+                        Case Imgs.iFolder
+                            Dim path As String = String.Format(Settings.URL_Map, map.ID)
+                            If File.Exists(path) Then
+                                PictureBox10.Image = Image.FromFile(path)
+                            Else
+                                PictureBox10.Image = My.Resources.N_A
+                            End If
+                        Case Imgs.iURL
+                            PictureBox10.Image = LoadImageFromURL(String.Format(Settings.URL_Map, map.ID))
+                    End Select
+                Catch ex As Exception
+                    If Settings.Images = Imgs.iDefault Then
                         PictureBox10.Image = My.Resources.N_A
-                    End Try
-                End If
+                    Else
+                        Try
+                            PictureBox10.Image = GetImageFromResource(ImageTypes.MapIcon, map.ID - 1)
+                        Catch exx As Exception
+                            PictureBox10.Image = My.Resources.N_A
+                        End Try
+                    End If
+                End Try
                 TextBox72.Text = map.Name
                 TextBox73.Text = map.ID
                 Exit For
@@ -4286,35 +4493,38 @@ Public Class Tools
 #Region "Display"
 
     Private Sub TreeView8_AfterSelect(ByVal sender As System.Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles TreeView8.AfterSelect
-        Dim tmp As Boolean
-        If Settings.Images OrElse Settings.URL_Map.Length > 0 Then
-            tmp = True
-        Else
-            tmp = False
-        End If
-        If Not tmp Then
-            Try
-                PictureBox11.Image = LoadImageFromURL(String.Format(Settings.URL_Sprite, TreeView7.SelectedNode.Text))
-            Catch ex As Exception
-                PictureBox11.Image = My.Resources.N_A
-            End Try
-        End If
-        Dim count As Integer
         For i = 0 To Sprites.Length - 1
             If TreeView8.SelectedNode.Text = Sprites(i).Name Then
-                If tmp Then
-                    Try
-                        PictureBox11.Image = GetImageFromResource(ImageTypes.Sprite, i)
-                    Catch ex As Exception
+                Try
+                    Select Case Settings.Images
+                        Case Imgs.iDefault
+                            PictureBox11.Image = GetImageFromResource(ImageTypes.Sprite, i)
+                        Case Imgs.iFolder
+                            Dim path As String = String.Format(Settings.URL_Sprite, i)
+                            If File.Exists(path) Then
+                                PictureBox11.Image = Image.FromFile(path)
+                            Else
+                                PictureBox11.Image = My.Resources.N_A
+                            End If
+                        Case Imgs.iURL
+                            LoadImageFromURL(String.Format(Settings.URL_Sprite, TreeView7.SelectedNode.Text))
+                    End Select
+                Catch ex As Exception
+                    If Settings.Images = Imgs.iDefault Then
                         PictureBox11.Image = My.Resources.N_A
-                    End Try
-                End If
+                    Else
+                        Try
+                            PictureBox11.Image = GetImageFromResource(ImageTypes.Sprite, i)
+                        Catch exx As Exception
+                            PictureBox11.Image = My.Resources.N_A
+                        End Try
+                    End If
+                End Try
                 TextBox88.Text = Sprites(i).Name
                 TextBox89.Text = Sprites(i).Path
                 TextBox90.Text = Sprites(i).File
                 TextBox91.Text = Sprites(i).Size
             End If
-            count += 1
         Next
     End Sub
 

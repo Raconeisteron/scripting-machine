@@ -14,8 +14,8 @@
     <Setting Name="Lang" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="dImg" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+    <Setting Name="dImg" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="sURL" Type="System.String" Scope="User">
       <Value Profile="(Default)">http://mexicanzerver.tk/Skins/Skin_{0}.png</Value>
@@ -79,6 +79,24 @@
     </Setting>
     <Setting Name="FirstTime" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="H_Number" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="H_String" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="H_String2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="H_Operator" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="H_Chars" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="H_Class" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
     </Setting>
   </Settings>
 </SettingsFile>

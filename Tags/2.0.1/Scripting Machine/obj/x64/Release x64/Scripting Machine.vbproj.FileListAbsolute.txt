@@ -1,0 +1,19 @@
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\bin\x64\Release x64\Scripting Machine.exe.config
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\bin\x64\Release x64\ScintillaNet.dll
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\bin\x64\Release x64\libpawnc.dll
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\bin\x64\Release x64\pawnc.dll
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\bin\x64\Release x64\pawncc.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\bin\x64\Release x64\SciLexer.dll
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\bin\x64\Release x64\Scripting Machine.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\ResolveAssemblyReference.cache
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\Scripting_Machine.Creds.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\Scripting_Machine.eColor.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\Scripting_Machine.Main.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\Scripting_Machine.Resources.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\Scripting_Machine.Options.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\Scripting_Machine.Splash.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\Scripting_Machine.Srch.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\Scripting_Machine.Tools.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\GenerateResource.read.1.tlog
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\GenerateResource.write.1.tlog
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\2.0.1\Scripting Machine\Scripting Machine\obj\x64\Release x64\Scripting Machine.exe

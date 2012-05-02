@@ -1,0 +1,195 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+ScriptingMachine
+</name>
+</assembly>
+<members>
+<member name="P:Scripting_Machine.My.Resources.Resources.ResourceManager">
+	<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member><member name="P:Scripting_Machine.My.Resources.Resources.Culture">
+	<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member><member name="T:Scripting_Machine.My.Resources.Resources">
+	<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton1_Click(System.Object,System.EventArgs)">
+	<summary>
+ New
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton2_Click(System.Object,System.EventArgs)">
+	<summary>
+ Open
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton3_Click(System.Object,System.EventArgs)">
+	<summary>
+ Save
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton4_Click(System.Object,System.EventArgs)">
+	<summary>
+ Copy
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton5_Click(System.Object,System.EventArgs)">
+	<summary>
+ Cut
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton6_Click(System.Object,System.EventArgs)">
+	<summary>
+ Paste
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton7_Click(System.Object,System.EventArgs)">
+	<summary>
+ Undo
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton8_Click(System.Object,System.EventArgs)">
+	<summary>
+ Redo
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton9_Click(System.Object,System.EventArgs)">
+	<summary>
+ Find
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton10_Click(System.Object,System.EventArgs)">
+	<summary>
+ Goto line
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.ToolStripButton11_Click(System.Object,System.EventArgs)">
+	<summary>
+ Compile
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.TreeView1_DoubleClick(System.Object,System.EventArgs)">
+	<summary>
+ Add current instance's text the selected function
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.TreeView2_DoubleClick(System.Object,System.EventArgs)">
+	<summary>
+ Add current instance's text the selected function
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.Button1_Click(System.Object,System.EventArgs)">
+	<summary>
+ Refresh current instance's include list
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.Button2_Click(System.Object,System.EventArgs)">
+	<summary>
+ Refresh main include list
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.TabControl2_Selected(System.Object,System.Windows.Forms.TabControlEventArgs)">
+	<summary>
+ Refresh current instance's include list
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.TabControl1_ControlRemoved(System.Object,System.Windows.Forms.ControlEventArgs)">
+	<summary>
+ Destroy selected instance
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.TabControl1_OnClose(System.Object,Scripting_Machine.TabControlEx.CloseEventArgs)">
+	<summary>
+ Destroy selected instance
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="M:Scripting_Machine.Main.TabControl1_Selected(System.Object,System.Windows.Forms.TabControlEventArgs)">
+	<summary>
+ Update controls using current instance's info
+ </summary>
+	<param name="sender"></param>
+	<param name="e"></param>
+	<remarks></remarks>
+</member><member name="F:Scripting_Machine.TabControlEx.TabCtlEx.components">
+	<summary>
+ Required designer variable.
+ </summary>
+</member><member name="M:Scripting_Machine.TabControlEx.TabCtlEx.Dispose(System.Boolean)">
+	<summary>
+ Clean up any resources being used.
+ </summary>
+</member><member name="M:Scripting_Machine.TabControlEx.TabCtlEx.InitializeComponent">
+	<summary>
+ Required method for Designer support - do not modify 
+ the contents of this method with the code editor.
+ </summary>
+</member><member name="T:Scripting_Machine.TabControlEx.TabCtlEx">
+	<summary>
+ Summary description for UserControl1.
+ </summary>
+</member><member name="P:Scripting_Machine.TabControlEx.CloseEventArgs.TabIndex">
+	<summary>
+ Get/Set the tab index value where the close button is clicked
+ </summary>
+</member><member name="F:Scripting_Machine.TabPageEx.TabPageEx.components">
+	<summary>
+ Required designer variable.
+ </summary>
+</member><member name="M:Scripting_Machine.TabPageEx.TabPageEx.Dispose(System.Boolean)">
+	<summary> 
+ Clean up any resources being used.
+ </summary>
+</member><member name="M:Scripting_Machine.TabPageEx.TabPageEx.InitializeComponent">
+	<summary>
+ Required method for Designer support - do not modify
+ the contents of this method with the code editor.
+ </summary>
+</member><member name="T:Scripting_Machine.TabPageEx.TabPageEx">
+	<summary>
+ Summary description for TabPage.
+ </summary>
+</member>
+</members>
+</doc>

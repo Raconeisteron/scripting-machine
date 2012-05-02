@@ -31,13 +31,15 @@ Public Class Srch
             Exit Sub
         End If
         Process.Start("http://wiki.sa-mp.com/wiki/Special:Search?search=" & TextBox1.Text & "&go=Go")
-        Me.Close()
+        Me.Hide()
+        Me.Owner.Refresh()
     End Sub
 
     Private Sub TextBox1_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox1.KeyPress
         If e.KeyChar = Chr(Keys.Enter) Then
             Process.Start("http://wiki.sa-mp.com/wiki/Special:Search?search=" & TextBox1.Text & "&go=Go")
-            Me.Close()
+            Me.Hide()
+            Me.Owner.Refresh()
         End If
     End Sub
 

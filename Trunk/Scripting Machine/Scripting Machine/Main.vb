@@ -19,8 +19,14 @@ Public Class Main
 #Region "Me"
 
     Private Sub Main_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        Me.Visible = False
         AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf OnUnhandledException
         AddHandler My.Application.StartupNextInstance, AddressOf OnStartupNextInstance
+        Tools.Owner = Me
+        MultiF.Owner = Me
+        Options.Owner = Me
+        Srch.Owner = Me
+        eColor.Owner = Me
         Dim Reader As StreamReader
         RegisterHotKey(Me.Handle, 9303, MOD_CONTROL, Keys.Space)
         LoadResources()
@@ -85,6 +91,7 @@ Public Class Main
                 Reader.Close()
             End If
         End Try
+        Me.Visible = True
     End Sub
 
     Private Sub Main_FormClosing(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosingEventArgs) Handles MyBase.FormClosing
@@ -362,21 +369,20 @@ Public Class Main
 
     Private Sub OpenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles OpenToolStripMenuItem.Click
         OFD.InitialDirectory = Settings.DefaultPath
-        If OFD.ShowDialog() = Windows.Forms.DialogResult.OK Then
-            If Not OFD.FileName Is Nothing AndAlso OFD.FileName.Length > 0 Then
-                If File.Exists(OFD.FileName) Then
-                    Dim name As String
-                    name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
-                    Instances.Add(New Instance(name))
-                    With Instances(GetInstanceByName(name))
-                        TabControl1.SelectedTab = .TabHandle
-                        Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591), True)
-                        .SyntaxHandle.Text = Reader.ReadToEnd()
-                        Reader.Close()
-                        .Name = name
-                        .Path = OFD.FileName
-                    End With
-                End If
+        If OFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
+        If Not OFD.FileName Is Nothing AndAlso OFD.FileName.Length > 0 Then
+            If File.Exists(OFD.FileName) Then
+                Dim name As String
+                name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
+                Instances.Add(New Instance(name))
+                With Instances(GetInstanceByName(name))
+                    TabControl1.SelectedTab = .TabHandle
+                    Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591), True)
+                    .SyntaxHandle.Text = Reader.ReadToEnd()
+                    Reader.Close()
+                    .Name = name
+                    .Path = OFD.FileName
+                End With
             End If
         End If
     End Sub
@@ -390,7 +396,7 @@ Public Class Main
                 .Saved = True
             Else
                 SFD.InitialDirectory = Settings.DefaultPath
-                SFD.ShowDialog()
+                If SFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
                 If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
                     Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(.SyntaxHandle.Text)
@@ -413,7 +419,7 @@ Public Class Main
                     .Saved = True
                 Else
                     SFD.InitialDirectory = Settings.DefaultPath
-                    SFD.ShowDialog()
+                    If SFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
                     If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
                         Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                         Writer.Write(.SyntaxHandle.Text)
@@ -429,7 +435,7 @@ Public Class Main
 
     Private Sub SaveAsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SaveAsToolStripMenuItem.Click
         SFD.InitialDirectory = Settings.DefaultPath
-        SFD.ShowDialog()
+        If SFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
         If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
             Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
             With Instances(TabControl1.SelectedIndex)
@@ -467,7 +473,7 @@ Public Class Main
                             Inst.Saved = True
                         Else
                             SFD.InitialDirectory = Settings.DefaultPath
-                            SFD.ShowDialog()
+                            If SFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
                             Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                             Writer.Write(Inst.SyntaxHandle.Text)
                             Writer.Close()
@@ -560,7 +566,7 @@ Public Class Main
                 End If
             Else
                 SFD.InitialDirectory = Settings.DefaultPath
-                SFD.ShowDialog()
+                If SFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
                 If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
                     Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(Instances(TabControl1.SelectedIndex).SyntaxHandle.Text)
@@ -769,9 +775,13 @@ Public Class Main
 #End Region
 
     Private Sub CreditsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CreditsToolStripMenuItem.Click
-        Creds.Show()
-        Creds.Top = Me.Top + 130
-        Creds.Left = Me.Left + 100
+        tSender = MsgT.Credits
+        With MultiF
+            .Show()
+            .Size = New Size(532, 335)
+            .Location = New Point(Me.Location.X + 130, Me.Location.Y + 100)
+            .Opacity = 70
+        End With
     End Sub
 
 #End Region
@@ -828,21 +838,20 @@ Public Class Main
     ''' <remarks></remarks>
     Private Sub ToolStripButton2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton2.Click
         OFD.InitialDirectory = Settings.DefaultPath
-        If OFD.ShowDialog() = Windows.Forms.DialogResult.OK Then
-            If Not OFD.FileName Is Nothing AndAlso OFD.FileName.Length > 0 Then
-                If File.Exists(OFD.FileName) Then
-                    Dim name As String
-                    name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
-                    Instances.Add(New Instance(name))
-                    With Instances(GetInstanceByName(name))
-                        TabControl1.SelectedTab = .TabHandle
-                        Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591))
-                        .SyntaxHandle.Text = Reader.ReadToEnd()
-                        Reader.Close()
-                        .Name = name
-                        .Path = OFD.FileName
-                    End With
-                End If
+        If OFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
+        If Not OFD.FileName Is Nothing AndAlso OFD.FileName.Length > 0 Then
+            If File.Exists(OFD.FileName) Then
+                Dim name As String
+                name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
+                Instances.Add(New Instance(name))
+                With Instances(GetInstanceByName(name))
+                    TabControl1.SelectedTab = .TabHandle
+                    Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591))
+                    .SyntaxHandle.Text = Reader.ReadToEnd()
+                    Reader.Close()
+                    .Name = name
+                    .Path = OFD.FileName
+                End With
             End If
         End If
     End Sub
@@ -862,7 +871,7 @@ Public Class Main
                 .Saved = True
             Else
                 SFD.InitialDirectory = Settings.DefaultPath
-                SFD.ShowDialog()
+                If SFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
                 If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
                     Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(.SyntaxHandle.Text)
@@ -882,7 +891,8 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton4.Click
-        Clipboard.SetText(Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.Text)
+        On Error Resume Next
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Copy()
     End Sub
 
     ''' <summary>
@@ -892,8 +902,8 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton5_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton5.Click
-        Clipboard.SetText(Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.Text)
-        Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = ""
+        On Error Resume Next
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Cut()
     End Sub
 
     ''' <summary>
@@ -903,7 +913,8 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton6_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton6.Click
-        Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = Clipboard.GetText()
+        On Error Resume Next
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Paste()
     End Sub
 
     ''' <summary>
@@ -975,7 +986,7 @@ Public Class Main
                 End If
             Else
                 SFD.InitialDirectory = Settings.DefaultPath
-                SFD.ShowDialog()
+                If SFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
                 If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
                     Dim Writer As New StreamWriter(SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
                     Writer.Write(Instances(TabControl1.SelectedIndex).SyntaxHandle.Text)
@@ -1249,7 +1260,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub TabControl1_OnClose(ByVal sender As Object, ByVal e As TabControlEx.CloseEventArgs) Handles TabControl1.OnClose
-        Dim index As Integer = GetInstanceByName(TabControl1.TabPages(e.TabIndex).Text)
+        Dim index As Integer = GetInstanceByName(Trim(TabControl1.TabPages(e.TabIndex).Text))
         Instances(index).destroy()
         Instances.RemoveAt(index)
         TabControl1.Controls.RemoveAt(e.TabIndex)
@@ -1428,9 +1439,22 @@ Public Class Main
         If Not ListView1.FocusedItem Is Nothing AndAlso ListView1.FocusedItem.SubItems(3).Text <> "" Then
             With Instances(TabControl1.SelectedIndex).SyntaxHandle
                 .Focus()
-                .GoTo.Line(ListView1.FocusedItem.SubItems(3).Text - 1)
-                .Selection.Start = .Lines(ListView1.FocusedItem.SubItems(3).Text - 1).SelectionStartPosition
-                .Selection.Length = .Lines(ListView1.FocusedItem.SubItems(3).Text - 1).Text.Length
+                If IsNumeric(ListView1.FocusedItem.SubItems(3).Text) Then
+                    .GoTo.Line(ListView1.FocusedItem.SubItems(3).Text - 1)
+                    .Selection.Start = .Lines(ListView1.FocusedItem.SubItems(3).Text - 1).SelectionStartPosition
+                    .Selection.Length = .Lines(ListView1.FocusedItem.SubItems(3).Text - 1).Text.Length
+                Else
+                    If ListView1.FocusedItem.SubItems(3).Text.IndexOf("--") > -1 Then
+                        Dim i As Integer, tmp As String = vbNullString
+                        While ListView1.FocusedItem.SubItems(3).Text(i) <> " "
+                            tmp += ListView1.FocusedItem.SubItems(3).Text(i)
+                            i += 1
+                        End While
+                        .GoTo.Line(tmp - 1)
+                        .Selection.Start = .Lines(tmp - 1).SelectionStartPosition
+                        .Selection.Length = .Lines(tmp - 1).Text.Length
+                    End If
+                End If
             End With
         End If
     End Sub

@@ -1464,32 +1464,22 @@ Public Class Instance
                 wait = False
                 .Invoke(MarginUpdater)
                 .Invoke(DataUpdater)
+                SyntaxHandle.UndoRedo.IsUndoEnabled = True
             Else
-                With .UndoRedo
-                    If Not .IsUndoEnabled Then
-                        If .CanUndo Then
-                            Main.ToolStripButton7.Enabled = True
-                            Main.UndoToolStripMenuItem.Enabled = True
-                        End If
-                    Else
-                        If .CanUndo Then
-                            Main.ToolStripButton7.Enabled = True
-                            Main.UndoToolStripMenuItem.Enabled = True
-                        Else
-                            Main.ToolStripButton7.Enabled = False
-                            Main.UndoToolStripMenuItem.Enabled = False
-                        End If
-                        If .CanRedo Then
-                            Main.ToolStripButton8.Enabled = True
-                            Main.RedoToolStripMenuItem.Enabled = True
-                        Else
-                            Main.ToolStripButton8.Enabled = False
-                            Main.RedoToolStripMenuItem.Enabled = False
-                        End If
-                        SyntaxHandle.UndoRedo.IsUndoEnabled = True
-
-                    End If
-                End With
+                If .UndoRedo.CanUndo Then
+                    Main.ToolStripButton7.Enabled = True
+                    Main.UndoToolStripMenuItem.Enabled = True
+                Else
+                    Main.ToolStripButton7.Enabled = False
+                    Main.UndoToolStripMenuItem.Enabled = False
+                End If
+                If .UndoRedo.CanRedo Then
+                    Main.ToolStripButton8.Enabled = True
+                    Main.RedoToolStripMenuItem.Enabled = True
+                Else
+                    Main.ToolStripButton8.Enabled = False
+                    Main.RedoToolStripMenuItem.Enabled = False
+                End If
                 Saved = False
             End If
         End With
@@ -1546,7 +1536,7 @@ Public Class Instance
         Dim calrest As Long = GetTickCount() - lastcall
         If lastcall = 0 OrElse (calrest) > 3000 Then
             func = StrReverse(Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length))
-            If (func.StartsWith(";") OrElse func.StartsWith("//")) AndAlso func.IndexOf("""") = -1 Then
+            If func.EndsWith("#") OrElse (func.StartsWith(";") OrElse func.StartsWith("//")) AndAlso func.IndexOf("""") = -1 Then
                 lastcall = GetTickCount()
                 Return ""
             End If
@@ -1558,7 +1548,7 @@ Public Class Instance
                         func = func.Remove(func.IndexOf(""""), tpos - func.IndexOf("""") + 1)
                         tpos = func.IndexOf("""")
                         If tpos > -1 Then
-                            tpos = func.IndexOf("""", tpos)
+                            tpos = func.IndexOf("""", tpos + 1)
                         Else
                             Exit While
                         End If

@@ -167,14 +167,38 @@ Public Class eColor
                 Tools.Panel3.BackColor = Panel1.BackColor
                 Settings.C_Help.Hex = Panel1.BackColor
                 Settings.C_Help.Name = tmp
+            Case CC.H_NF
+                Options.Panel1.BackColor = Panel1.BackColor
+            Case CC.H_NB
+                Options.Panel2.BackColor = Panel1.BackColor
+            Case CC.H_SF
+                Options.Panel4.BackColor = Panel1.BackColor
+            Case CC.H_SB
+                Options.Panel3.BackColor = Panel1.BackColor
+            Case CC.H_S2F
+                Options.Panel6.BackColor = Panel1.BackColor
+            Case CC.H_S2B
+                Options.Panel5.BackColor = Panel1.BackColor
+            Case CC.H_OF
+                Options.Panel8.BackColor = Panel1.BackColor
+            Case CC.H_OB
+                Options.Panel7.BackColor = Panel1.BackColor
+            Case CC.H_CHF
+                Options.Panel10.BackColor = Panel1.BackColor
+            Case CC.H_CHB
+                Options.Panel9.BackColor = Panel1.BackColor
+            Case CC.H_CLF
+                Options.Panel12.BackColor = Panel1.BackColor
+            Case CC.H_CLB
+                Options.Panel11.BackColor = Panel1.BackColor
         End Select
-        Me.Close()
-        Tools.Focus()
+        Me.Hide()
+        Me.Owner.Refresh()
     End Sub
 
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
-        Me.Close()
-        Tools.Focus()
+        Me.Hide()
+        Me.Owner.Refresh()
     End Sub
 
 #End Region

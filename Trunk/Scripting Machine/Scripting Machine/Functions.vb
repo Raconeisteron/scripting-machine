@@ -86,6 +86,18 @@ Module Functions
         Msg
         Area
         Dialog
+        H_NF
+        H_NB
+        H_SF
+        H_SB
+        H_S2F
+        H_S2B
+        H_OF
+        H_OB
+        H_CHF
+        H_CHB
+        H_CLF
+        H_CLB
     End Enum
 
     Public Enum GenderType
@@ -139,6 +151,17 @@ Module Functions
         Other
     End Enum
 
+    Public Enum MsgT As Integer
+        Credits
+        oFormatTuto
+    End Enum
+
+    Public Enum Imgs As Integer
+        iDefault
+        iFolder
+        iURL
+    End Enum
+
 #End Region
 
 #Region "Structures"
@@ -164,7 +187,12 @@ Module Functions
         Public URL_Weap As String
         Public URL_Map As String
         Public URL_Sprite As String
-        Public Images As Boolean
+        Public Skin_Ext As String
+        Public Veh_Ext As String
+        Public Weap_Ext As String
+        Public Map_Ext As String
+        Public Sprite_Ext As String
+        Public Images As Imgs
         Public Assoc As Boolean
         Public iTabs As Boolean
         Public CompDefPath As Boolean
@@ -173,6 +201,12 @@ Module Functions
         Public ToolBar As Boolean
         Public aSelect As Boolean
         Public OETab As Boolean
+        Public H_Numbers As HighLightS
+        Public H_String As HighLightS
+        Public H_String2 As HighLightS
+        Public H_Operator As HighLightS
+        Public H_Chars As HighLightS
+        Public H_Class As HighLightS
     End Structure
 
     Public Structure Skin
@@ -227,6 +261,13 @@ Module Functions
         Public WhenceTypes As List(Of String)
     End Structure
 
+    Public Structure HighLightS
+        Public ForeColor As Color
+        Public BackColor As Color
+        Public Bold As Boolean
+        Public Italic As Boolean
+    End Structure
+
 #End Region
 
 #Region "Constants"
@@ -238,13 +279,12 @@ Module Functions
     Public Const MOD_NOREPEAT As Integer = &H4000
     Public Const WM_HOTKEY As Integer = &H312
 
-    Public Const BadChars As String = "[^\d\.]+-"
-    Public Const BadChars2 As String = "[^\d\,]+-"
+    Public Const BadChars As String = "[^\d\.]+"
+    Public Const BadChars2 As String = "[^\d,]+"
 
     Public Const SC_MARGIN_BACK As UInteger = 2
     Public Const SC_MARGIN_FORE As UInteger = 3
     Public Const SC_MARGIN_TEXT As UInteger = 4
-
 
 #End Region
 
@@ -265,6 +305,8 @@ Module Functions
     Public Instances As New List(Of Instance)
     Public gSender As CC
     Public TextDrawFonts As New List(Of PrivateFontCollection)
+    Public tSender As MsgT
+    Public tText As String
 
 #End Region
 
@@ -695,11 +737,11 @@ Module Functions
             Skins(4).Gender = GenderType.Male
             Skins(4).Gang = GangType.Civilian
             Skins(5).ID = 5
-            Skins(5).Name = "Emmet"
+            Skins(5).Name = "Big Bear Big"
             Skins(5).Gender = GenderType.Male
             Skins(5).Gang = GangType.Civilian
             Skins(6).ID = 6
-            Skins(6).Name = "Big Bear"
+            Skins(6).Name = "Emmet"
             Skins(6).Gender = GenderType.Male
             Skins(6).Gang = GangType.Civilian
             Skins(7).ID = 7
@@ -1143,11 +1185,11 @@ Module Functions
             Skins(116).Gender = GenderType.Male
             Skins(116).Gang = GangType.Azteca
             Skins(117).ID = 117
-            Skins(117).Name = "Traid"
+            Skins(117).Name = "Triad"
             Skins(117).Gender = GenderType.Male
             Skins(117).Gang = GangType.Triad
             Skins(118).ID = 118
-            Skins(118).Name = "Traid"
+            Skins(118).Name = "Triad"
             Skins(118).Gender = GenderType.Male
             Skins(118).Gang = GangType.Triad
             Skins(119).ID = 119
@@ -1155,7 +1197,7 @@ Module Functions
             Skins(119).Gender = GenderType.Male
             Skins(119).Gang = GangType.Civilian
             Skins(120).ID = 120
-            Skins(120).Name = "Traid"
+            Skins(120).Name = "Triad"
             Skins(120).Gender = GenderType.Male
             Skins(120).Gang = GangType.Triad
             Skins(121).ID = 121
@@ -16467,7 +16509,7 @@ Module Functions
 
     Private Sub LoadConfig()
         Splash.Label1.Invoke(sLabel, New Object() {"Loading config...", Splash})
-        Dim Path As String, key As Microsoft.Win32.RegistryKey = Microsoft.Win32.Registry.ClassesRoot
+        Dim Path As String, tmp(3) As String, key As Microsoft.Win32.RegistryKey = Microsoft.Win32.Registry.ClassesRoot
         Path = My.Application.Info.DirectoryPath & "\Scripting Machine.cfg"
         With Settings
             .C_Msg.Hex = My.Settings.MsgC
@@ -16478,7 +16520,7 @@ Module Functions
             If .C_Area.Hex = Color.LavenderBlush Then .C_Area.Hex = Color.FromArgb(166, 255, 0, 0)
             .C_Area.Name = cColor(.C_Area.Hex.A, .C_Area.Hex.R, .C_Area.Hex.G, .C_Area.Hex.B)
             .Language = LangFromInt(My.Settings.Lang)
-            .Images = My.Settings.dImg
+            .Images = ImgFromInt(My.Settings.dImg)
             .URL_Skin = My.Settings.sURL
             .URL_Veh = My.Settings.vURL
             .URL_Weap = My.Settings.wURL
@@ -16501,7 +16543,7 @@ Module Functions
             .aSelect = My.Settings.aSel
             If .oPath.Length = 0 Then .oPath = My.Application.Info.DirectoryPath
             If .CompPath.Length = 0 Then .CompPath = My.Application.Info.DirectoryPath & "\pawncc.exe"
-            If .cFont Is Nothing Then .cFont = New Font(New FontFamily("Courier New"), 12)
+            If .cFont Is Nothing Then .cFont = New Font(New FontFamily("Courier New"), 12, FontStyle.Regular, GraphicsUnit.Pixel)
             If My.Settings.FirstTime OrElse .Assoc Then
                 My.Settings.FirstTime = False
                 If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
@@ -16530,12 +16572,93 @@ Module Functions
                 Case Else
                     Tools.RadioButton4.Checked = True
             End Select
+
+            If My.Settings.H_Number = "Default" Then My.Settings.H_Number = Color.White.ToArgb() & "|" & Color.FromArgb(255, 27, 124, 143).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_Number, "|")
+            .H_Numbers.BackColor = Color.FromArgb(tmp(0))
+            .H_Numbers.ForeColor = Color.FromArgb(tmp(1))
+            .H_Numbers.Bold = IntToBool(tmp(2))
+            .H_Numbers.Italic = IntToBool(tmp(3))
+            If My.Settings.H_String = "Default" Then My.Settings.H_String = Color.White.ToArgb() & "|" & Color.FromArgb(255, 92, 32, 153).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_String, "|")
+            .H_String.BackColor = Color.FromArgb(tmp(0))
+            .H_String.ForeColor = Color.FromArgb(tmp(1))
+            .H_String.Bold = IntToBool(tmp(2))
+            .H_String.Italic = IntToBool(tmp(3))
+            If My.Settings.H_String2 = "Default" Then My.Settings.H_String2 = Color.FromArgb(255, 180, 240, 227).ToArgb() & "|" & Color.FromArgb(255, 237, 21, 180).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_String2, "|")
+            .H_String2.BackColor = Color.FromArgb(tmp(0))
+            .H_String2.ForeColor = Color.FromArgb(tmp(1))
+            .H_String2.Bold = IntToBool(tmp(2))
+            .H_String2.Italic = IntToBool(tmp(3))
+            If My.Settings.H_Operator = "Default" Then My.Settings.H_Operator = Color.White.ToArgb() & "|" & Color.FromArgb(255, 17, 112, 72).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_Operator, "|")
+            .H_Operator.BackColor = Color.FromArgb(tmp(0))
+            .H_Operator.ForeColor = Color.FromArgb(tmp(1))
+            .H_Operator.Bold = IntToBool(tmp(2))
+            .H_Operator.Italic = IntToBool(tmp(3))
+            If My.Settings.H_Chars = "Default" Then My.Settings.H_Chars = Color.White.ToArgb() & "|" & Color.FromArgb(255, 17, 95, 112).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_Chars, "|")
+            .H_Chars.BackColor = Color.FromArgb(tmp(0))
+            .H_Chars.ForeColor = Color.FromArgb(tmp(1))
+            .H_Chars.Bold = IntToBool(tmp(2))
+            .H_Chars.Italic = IntToBool(tmp(3))
+            If My.Settings.H_Class = "Default" Then My.Settings.H_Class = Color.White.ToArgb() & "|" & Color.FromArgb(255, 232, 19, 204).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_Class, "|")
+            .H_Class.BackColor = Color.FromArgb(tmp(0))
+            .H_Class.ForeColor = Color.FromArgb(tmp(1))
+            .H_Class.Bold = IntToBool(tmp(2))
+            .H_Class.Italic = IntToBool(tmp(3))
+
+            With .H_Numbers
+                Options.Panel2.BackColor = .BackColor
+                Options.Panel1.BackColor = .ForeColor
+                Options.CheckBox10.Checked = .Bold
+                Options.CheckBox11.Checked = .Italic
+            End With
+            With .H_String
+                Options.Panel3.BackColor = .BackColor
+                Options.Panel4.BackColor = .ForeColor
+                Options.CheckBox13.Checked = .Bold
+                Options.CheckBox12.Checked = .Italic
+            End With
+            With .H_String2
+                Options.Panel5.BackColor = .BackColor
+                Options.Panel6.BackColor = .ForeColor
+                Options.CheckBox15.Checked = .Bold
+                Options.CheckBox14.Checked = .Italic
+            End With
+            With .H_Operator
+                Options.Panel7.BackColor = .BackColor
+                Options.Panel8.BackColor = .ForeColor
+                Options.CheckBox17.Checked = .Bold
+                Options.CheckBox16.Checked = .Italic
+            End With
+            With .H_Chars
+                Options.Panel9.BackColor = .BackColor
+                Options.Panel10.BackColor = .ForeColor
+                Options.CheckBox19.Checked = .Bold
+                Options.CheckBox18.Checked = .Italic
+            End With
+            With .H_Class
+                Options.Panel11.BackColor = .BackColor
+                Options.Panel12.BackColor = .ForeColor
+                Options.CheckBox21.Checked = .Bold
+                Options.CheckBox20.Checked = .Italic
+            End With
             ChangeLang(.Language)
             Options.ComboBox1.SelectedIndex = Options.ComboBox1.FindString(.cFont.FontFamily.Name)
             Options.ComboBox2.SelectedIndex = Options.ComboBox2.FindString(.cFont.Size)
             Options.CheckBox1.Checked = .cFont.Bold
             Options.CheckBox2.Checked = .cFont.Italic
-            Options.CheckBox3.Checked = .Images
+            Select Case .Images
+                Case Imgs.iDefault
+                    Options.RadioButton5.Checked = True
+                Case Imgs.iFolder
+                    Options.RadioButton6.Checked = True
+                Case Else
+                    Options.RadioButton7.Checked = True
+            End Select
             Options.CheckBox4.Checked = .Assoc
             Options.CheckBox5.Checked = .iTabs
             Options.CheckBox6.Checked = .CompDefPath
@@ -16564,7 +16687,7 @@ Module Functions
             My.Settings.HelpC = .C_Help.Hex
             My.Settings.AreaC = .C_Area.Hex
             My.Settings.Lang = LanguageToInt(.Language)
-            My.Settings.dImg = .Images
+            My.Settings.dImg = ImgToInt(.Images)
             My.Settings.sURL = .URL_Skin
             My.Settings.vURL = .URL_Veh
             My.Settings.wURL = .URL_Weap
@@ -16585,6 +16708,12 @@ Module Functions
             My.Settings.tBar = .ToolBar
             My.Settings.cFont = .cFont
             My.Settings.aSel = .aSelect
+            My.Settings.H_Number = .H_Numbers.BackColor.ToArgb & "|" & .H_Numbers.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_Numbers.Bold) & "|" & Convert.ToInt16(.H_Numbers.Italic)
+            My.Settings.H_String = .H_String.BackColor.ToArgb & "|" & .H_String.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_String.Bold) & "|" & Convert.ToInt16(.H_String.Italic)
+            My.Settings.H_String2 = .H_String2.BackColor.ToArgb & "|" & .H_String2.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_String2.Bold) & "|" & Convert.ToInt16(.H_String2.Italic)
+            My.Settings.H_Operator = .H_Operator.BackColor.ToArgb & "|" & .H_Operator.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_Operator.Bold) & "|" & Convert.ToInt16(.H_Operator.Italic)
+            My.Settings.H_Chars = .H_Chars.BackColor.ToArgb & "|" & .H_Chars.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_Chars.Bold) & "|" & Convert.ToInt16(.H_Chars.Italic)
+            My.Settings.H_Class = .H_Class.BackColor.ToArgb & "|" & .H_Class.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_Class.Bold) & "|" & Convert.ToInt16(.H_Class.Italic)
         End With
         My.Settings.Save()
     End Sub
@@ -16807,15 +16936,62 @@ Module Functions
                     .TabPage2.Text = "Advanced"
                     '   Images
                     .TabPage4.Text = "Images"
-                    .CheckBox3.Text = "Use default images"
+                    .RadioButton5.Text = "Default Images"
+                    .RadioButton6.Text = "From Folder"
+                    .RadioButton7.Text = "From URL"
                     '   Compiler
                     .CheckBox6.Text = "Use default compiler"
+                    .Label9.Text = "Forecolor:"
+                    .Label10.Text = "Backcolor:"
+                    .Label12.Text = "Forecolor:"
+                    .Label11.Text = "Backcolor:"
+                    .Label14.Text = "Forecolor:"
+                    .Label13.Text = "Backcolor:"
+                    .Label16.Text = "Forecolor:"
+                    .Label15.Text = "Backcolor:"
+                    .Label18.Text = "Forecolor:"
+                    .Label17.Text = "Backcolor:"
+                    .Label20.Text = "Forecolor:"
+                    .Label19.Text = "Backcolor:"
+                    .CheckBox10.Text = "Bold"
+                    .CheckBox11.Text = "Italic"
+                    .CheckBox13.Text = "Bold"
+                    .CheckBox12.Text = "Italic"
+                    .CheckBox15.Text = "Bold"
+                    .CheckBox14.Text = "Italic"
+                    .CheckBox17.Text = "Bold"
+                    .CheckBox16.Text = "Italic"
+                    .CheckBox18.Text = "Bold"
+                    .CheckBox17.Text = "Italic"
+                    .CheckBox20.Text = "Bold"
+                    .CheckBox19.Text = "Italic"
                 End With
                 With Srch
                     .Text = "Search"
                     .Label1.Text = "Search:"
                     .Button1.Text = "Go!"
                 End With
+                tText = _
+                        "Custom Objects Input Format:" & vbNewLine & _
+                        "   ** What's this for?" & vbNewLine & _
+                        "       You can use it to define your own object format (input only)." & vbNewLine & _
+                        "   ** Example usage:" & vbNewLine & _
+                        "       d<, >MyObjectFormat({M}{X}{Y}{Z}{Rx}{Ry}{Rz}{W})" & vbNewLine & _
+                        "   ** Specifiers:" & vbNewLine & _
+                        "       'd<.>   =>  Delimiter" & vbNewLine & _
+                        "       {M}       =>  Model" & vbNewLine & _
+                        "       {X}       =>  X coordinate" & vbNewLine & _
+                        "       {Y}       =>  Y coordinate" & vbNewLine & _
+                        "       {Z}       =>  Z coordinate" & vbNewLine & _
+                        "       {W}       =>  Virtual World" & vbNewLine & _
+                        "       {I}       =>  Interior" & vbNewLine & _
+                        "       {Rx}      =>  X rotation" & vbNewLine & _
+                        "       {Ry}      =>  Y rotation" & vbNewLine & _
+                        "       {Rz}      =>  Z rotation" & vbNewLine & _
+                        "       {S}       =>  Stream Distance" & vbNewLine & _
+                        "       {O}       =>  Other" & vbNewLine &
+                        "   ** Note: Notice that specify "","" as the delimiter is not the same" & vbNewLine & _
+                        "            as specify it like "", ""."
             Case Languages.Español
                 With Main
                     .FileToolStripMenuItem.Text = "Archivo"
@@ -17013,7 +17189,7 @@ Module Functions
                     .Label1.Text = "Fuente:"
                     .ComboBox1.Location = New Point(55, 19)
                     .CheckBox1.Text = "Negrita"
-                    .CheckBox2.Text = "Italica"
+                    .CheckBox2.Text = "Bastardilla"
                     .Label2.Text = "Tamaño:"
                     .Label2.Location = New Point(182, 23)
                     .ComboBox2.Location = New Point(237, 20)
@@ -17029,15 +17205,62 @@ Module Functions
                     .TabPage2.Text = "Avanzado"
                     '   Images
                     .TabPage4.Text = "Imagenes"
-                    .CheckBox3.Text = "Usar imagenes por defecto"
+                    .RadioButton5.Text = "Imagenes por defecto"
+                    .RadioButton6.Text = "Desde carpeta"
+                    .RadioButton7.Text = "Desde URL"
                     '   Compiler
                     .CheckBox6.Text = "Usar compilador normal"
+                    .Label9.Text = "Fuente:"
+                    .Label10.Text = "Atras:"
+                    .Label12.Text = "Fuente:"
+                    .Label11.Text = "Atras:"
+                    .Label14.Text = "Fuente:"
+                    .Label13.Text = "Atras:"
+                    .Label16.Text = "Fuente:"
+                    .Label15.Text = "Atras:"
+                    .Label18.Text = "Fuente:"
+                    .Label17.Text = "Atras:"
+                    .Label20.Text = "Fuente:"
+                    .Label19.Text = "Atras:"
+                    .CheckBox10.Text = "Negrita"
+                    .CheckBox11.Text = "Bastardilla"
+                    .CheckBox13.Text = "Negrita"
+                    .CheckBox12.Text = "Bastardilla"
+                    .CheckBox15.Text = "Negrita"
+                    .CheckBox14.Text = "Bastardilla"
+                    .CheckBox17.Text = "Negrita"
+                    .CheckBox16.Text = "Bastardilla"
+                    .CheckBox18.Text = "Negrita"
+                    .CheckBox17.Text = "Bastardilla"
+                    .CheckBox20.Text = "Negrita"
+                    .CheckBox19.Text = "Bastardilla"
                 End With
                 With Srch
                     .Text = "Buscar"
                     .Label1.Text = "Buscar:"
                     .Button1.Text = "Ir!"
                 End With
+                tText = _
+                        "Formato de Entrada de Objetos Personalizado:" & vbNewLine & _
+                        "   ** ¿Qué es esto?" & vbNewLine & _
+                        "       Se puede utilizar para definir un formato propio de un objeto (sólo entrada)." & vbNewLine & _
+                        "   ** Ejemplo de uso:" & vbNewLine & _
+                        "       d<, >MiFormatoPersonal({M}{X}{Y}{Z}{Rx}{Ry}{Rz}{W})" & vbNewLine & _
+                        "   ** Especificadores:" & vbNewLine & _
+                        "       d<.>    => Delimitador" & vbNewLine & _
+                        "       {M}     => Modelo>" & vbNewLine & _
+                        "       {X}     => coordenada X" & vbNewLine & _
+                        "       {Y}     => coordenada Y" & vbNewLine & _
+                        "       {Z}     => coordenada Z" & vbNewLine & _
+                        "       {W}     => Mundo Virtual" & vbNewLine & _
+                        "       {I}     => Interior" & vbNewLine & _
+                        "       {Rx}    => X rotación" & vbNewLine & _
+                        "       {Ry}    => rotación Y" & vbNewLine & _
+                        "       {Rz}    => Z rotación" & vbNewLine & _
+                        "       {S}     => Distancia Stream" & vbNewLine & _
+                        "       {O}     => Otros" & vbNewLine &
+                        "   ** Nota: Especificar el delimitador como "","" no es lo mismo que" & vbNewLine & _
+                        "            hacerlo de la siguiente forma "", ""."
             Case Languages.Portuguêse
                 With Main
                     .FileToolStripMenuItem.Text = "Arquivo"
@@ -17235,7 +17458,7 @@ Module Functions
                     .Label1.Text = "Fonte:"
                     .ComboBox1.Location = New Point(49, 20)
                     .CheckBox1.Text = "Negrito"
-                    .CheckBox2.Text = "Italica"
+                    .CheckBox2.Text = "Itálico"
                     .Label2.Text = "Tamanho:"
                     .Label2.Location = New Point(176, 23)
                     .ComboBox2.Location = New Point(237, 20)
@@ -17251,15 +17474,62 @@ Module Functions
                     .TabPage2.Text = "Avançado"
                     '   Images
                     .TabPage4.Text = "Imagens"
-                    .CheckBox3.Text = "Usando imagens por padrão"
+                    .RadioButton5.Text = "Default Imagens"
+                    .RadioButton6.Text = "Pasta De"
+                    .RadioButton7.Text = "From URL"
                     '   Compiler
                     .CheckBox6.Text = "Usando o compilador padrão"
+                    .Label9.Text = "Fonte:"
+                    .Label10.Text = "Fundo:"
+                    .Label12.Text = "Fonte:"
+                    .Label11.Text = "Fundo:"
+                    .Label14.Text = "Fonte:"
+                    .Label13.Text = "Fundo:"
+                    .Label16.Text = "Fonte:"
+                    .Label15.Text = "Fundo:"
+                    .Label18.Text = "Fonte:"
+                    .Label17.Text = "Fundo:"
+                    .Label20.Text = "Fonte:"
+                    .Label19.Text = "Fundo:"
+                    .CheckBox10.Text = "Negrita"
+                    .CheckBox11.Text = "Itálico"
+                    .CheckBox13.Text = "Negrita"
+                    .CheckBox12.Text = "Itálico"
+                    .CheckBox15.Text = "Negrita"
+                    .CheckBox14.Text = "Itálico"
+                    .CheckBox17.Text = "Negrita"
+                    .CheckBox16.Text = "Itálico"
+                    .CheckBox18.Text = "Negrita"
+                    .CheckBox17.Text = "Itálico"
+                    .CheckBox20.Text = "Negrita"
+                    .CheckBox19.Text = "Itálico"
                 End With
                 With Srch
                     .Text = "Localizar"
                     .Label1.Text = "Localizar:"
                     .Button1.Text = "Ir!"
                 End With
+                tText = _
+                        "Formato de entrada personalizado Objects:" & vbNewLine & _
+                        "   ** O que é isso?" & vbNewLine & _
+                        "       Você pode usá-lo para definir o seu formato próprio objeto (somente entrada)." & vbNewLine & _
+                        "   ** Exemplo de uso:" & vbNewLine & _
+                        "       d<, >MiFormatoPersonal({M}{X}{Y}{Z}{Rx}{Ry}{Rz}{W})" & vbNewLine & _
+                        "   ** Especificadores:" & vbNewLine & _
+                        "       d<.>    => Delimitador" & vbNewLine & _
+                        "       {M}     => Modelo" & vbNewLine & _
+                        "       {X}     => Coordenada X" & vbNewLine & _
+                        "       {Y}     => Coordenada Y" & vbNewLine & _
+                        "       {Z}     => coordenada Z" & vbNewLine & _
+                        "       {W}     => Virtual World" & vbNewLine & _
+                        "       {I}     => Interior" & vbNewLine & _
+                        "       {Rx}    => rotação X" & vbNewLine & _
+                        "       {Ry}    => rotação Y" & vbNewLine & _
+                        "       {Rz}    => rotação Z" & vbNewLine & _
+                        "       {S}     => Distância Stream" & vbNewLine & _
+                        "       {O}     => Outros" & vbNewLine &
+                        "   ** Nota: Note que especificar "","" como o delimitador não é o mesmo" & vbNewLine & _
+                        "            que especificá-lo como "", ""."
             Case Else
                 With Main
                     .FileToolStripMenuItem.Text = "Datei"
@@ -17475,15 +17745,62 @@ Module Functions
                     .TabPage2.Text = "Erweitert"
                     'Build
                     .TabPage4.Text = "Bilder"
-                    .CheckBox3.Text = "Verwenden Sie Standard-Bilder"
+                    .RadioButton5.Text = "Standard-Images"
+                    .RadioButton6.Text = "aus dem Verzeichnis"
+                    .RadioButton7.Text = "Von URL"
                     'Compiler
                     .CheckBox6.Text = "Standard-Compiler"
+                    .Label9.Text = "Hintergrund:"
+                    .Label10.Text = "Backcolor:"
+                    .Label12.Text = "Hintergrund:"
+                    .Label11.Text = "Backcolor:"
+                    .Label14.Text = "Hintergrund:"
+                    .Label13.Text = "Backcolor:"
+                    .Label16.Text = "Hintergrund:"
+                    .Label15.Text = "Backcolor:"
+                    .Label18.Text = "Hintergrund:"
+                    .Label17.Text = "Backcolor:"
+                    .Label20.Text = "Hintergrund:"
+                    .Label19.Text = "Backcolor:"
+                    .CheckBox10.Text = "Fett"
+                    .CheckBox11.Text = "Kursiv"
+                    .CheckBox13.Text = "Fett"
+                    .CheckBox12.Text = "Kursiv"
+                    .CheckBox15.Text = "Fett"
+                    .CheckBox14.Text = "Kursiv"
+                    .CheckBox17.Text = "Fett"
+                    .CheckBox16.Text = "Kursiv"
+                    .CheckBox18.Text = "Fett"
+                    .CheckBox17.Text = "Kursiv"
+                    .CheckBox20.Text = "Fett"
+                    .CheckBox19.Text = "Kursiv"
                 End With
                 With Srch
                     .Text = "Suchen"
                     .Label1.Text = "Suche:"
                     .Button1.Text = "Go!"
                 End With
+                tText = _
+                        "Custom Objects Eingabeformat:" & vbNewLine & _
+                        "   ** Was ist das denn?" & vbNewLine & _
+                        "       Sie können es verwenden, um Ihr eigenes Objekt-Format (nur Eingang) zu definieren." & vbNewLine & _
+                        "   ** Anwendungsbeispiel:" & vbNewLine & _
+                        "       d<, >MyObjectFormat({M}{X}{Y}{Z}{Rx}{Ry}{Rz}{W})" & vbNewLine & _
+                        "   ** Planer:" & vbNewLine & _
+                        "       d<.>    => Trennzeichen" & vbNewLine & _
+                        "       {M}     => Modell" & vbNewLine & _
+                        "       {X}     => X-Koordinate" & vbNewLine & _
+                        "       {Y}     => Y-Koordinate" & vbNewLine & _
+                        "       {Z}     => Z-Koordinate" & vbNewLine & _
+                        "       {W}     => Virtual World" & vbNewLine & _
+                        "       {I}     => Interior" & vbNewLine & _
+                        "       {Rx}    => X-Rotation" & vbNewLine & _
+                        "       {Ry}    => Y Rotation" & vbNewLine & _
+                        "       {Rz}    => Z-Rotation" & vbNewLine & _
+                        "       {S}     => Stream-Distance" & vbNewLine & _
+                        "       {O}     => Sonstige" & vbNewLine & _
+                        "   ** Hinweis: Beachten Sie, dass angeben "","" als Trennzeichen ist" & vbNewLine & _
+                        "               nicht das Gleiche wie angeben like it "",""."
         End Select
         Dim Header As Boolean() = New Boolean() {True, True, True}
         With Main
@@ -17698,6 +18015,32 @@ Module Functions
         End Select
     End Function
 
+    Public Function ImgFromInt(ByVal value As Integer) As Imgs
+        Select Case value
+            Case 0
+                Return Imgs.iDefault
+            Case 1
+                Return Imgs.iFolder
+            Case 2
+                Return Imgs.iURL
+            Case Else
+                Return Imgs.iDefault
+        End Select
+    End Function
+
+    Public Function ImgToInt(ByVal Img As Imgs) As Integer
+        Select Case Img
+            Case Imgs.iDefault
+                Return 0
+            Case Imgs.iFolder
+                Return 1
+            Case Imgs.iURL
+                Return 2
+            Case Else
+                Return 0
+        End Select
+    End Function
+
     Public Function IsHex(ByVal strInput As String) As Boolean
         Dim I As Long, J As Long
         If strInput.Length * 2 = 0 Then Return False
@@ -17786,6 +18129,18 @@ Module Functions
         Else
             Return New TreeNode()
         End If
+    End Function
+
+    Public Function IntToBool(ByVal value As Integer)
+        Return If(value <> 0, True, False)
+    End Function
+
+    Public Function CountEqualStringFromString(ByVal text As String, ByVal s As String, Optional ByVal start As Integer = 0)
+        Dim count As Integer, Ms As MatchCollection = Regex.Matches(text, s)
+        For Each M As Match In Ms
+            If M.Index >= start Then count += 1
+        Next
+        Return count
     End Function
 
 #End Region

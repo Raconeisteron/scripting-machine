@@ -104,10 +104,10 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("True")>  _
-        Public Property dImg() As Boolean
+         Global.System.Configuration.DefaultSettingValueAttribute("0")>  _
+        Public Property dImg() As Integer
             Get
-                Return CType(Me("dImg"),Boolean)
+                Return CType(Me("dImg"),Integer)
             End Get
             Set
                 Me("dImg") = value
@@ -362,6 +362,78 @@ Namespace My
             End Get
             Set
                 Me("FirstTime") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Default")>  _
+        Public Property H_Number() As String
+            Get
+                Return CType(Me("H_Number"),String)
+            End Get
+            Set
+                Me("H_Number") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Default")>  _
+        Public Property H_String() As String
+            Get
+                Return CType(Me("H_String"),String)
+            End Get
+            Set
+                Me("H_String") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Default")>  _
+        Public Property H_String2() As String
+            Get
+                Return CType(Me("H_String2"),String)
+            End Get
+            Set
+                Me("H_String2") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Default")>  _
+        Public Property H_Operator() As String
+            Get
+                Return CType(Me("H_Operator"),String)
+            End Get
+            Set
+                Me("H_Operator") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Default")>  _
+        Public Property H_Chars() As String
+            Get
+                Return CType(Me("H_Chars"),String)
+            End Get
+            Set
+                Me("H_Chars") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Default")>  _
+        Public Property H_Class() As String
+            Get
+                Return CType(Me("H_Class"),String)
+            End Get
+            Set
+                Me("H_Class") = value
             End Set
         End Property
     End Class

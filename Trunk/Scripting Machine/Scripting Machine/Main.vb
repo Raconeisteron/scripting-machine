@@ -14,84 +14,92 @@
 '   You should have received a copy of the GNU General Public License
 '   along with Scripting Machine.  If not, see <http://www.gnu.org/licenses/>.
 
+Imports System.Text.RegularExpressions
+
 Public Class Main
 
 #Region "Me"
 
     Private Sub Main_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        Me.Visible = False
-        AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf OnUnhandledException
-        AddHandler My.Application.StartupNextInstance, AddressOf OnStartupNextInstance
-        Tools.Owner = Me
-        MultiF.Owner = Me
-        Options.Owner = Me
-        Srch.Owner = Me
-        eColor.Owner = Me
-        Dim Reader As StreamReader
-        RegisterHotKey(Me.Handle, 9303, MOD_CONTROL, Keys.Space)
-        LoadResources()
-        SFD.Filter = "Script files|*.pwn;*.inc|Pawn files (.pwn)|*.pwn|Include files (.inc)|*.inc|All files| *.*"
-        SFD.DefaultExt = "pwn"
-        OFD.Filter = "Script files|*.pwn;*.inc|Pawn files (.pwn)|*.pwn|Include files (.inc)|*.inc|All files| *.*"
-        If Directory.Exists(My.Application.Info.DirectoryPath & "\TMP") Then
-            If Directory.GetFiles(My.Application.Info.DirectoryPath & "\TMP").Length > 0 Then
-                Dim result As MsgBoxResult
-                Select Case Settings.Language
-                    Case Languages.English
-                        result = MsgBox("Unsaved files from the last time the program was used were detected. Do you want to recover them?", MsgBoxStyle.YesNo, "Alert")
-                    Case Languages.Español
-                        result = MsgBox("Archivos no guardados desde la ultima sesion del programa fueron encontrados. ¿Quieres recuperarlos?", MsgBoxStyle.YesNo, "Alerta")
-                    Case Languages.Portuguêse
-                        result = MsgBox("Arquivos não salvos da última vez que o programa foi utilizado foram detectados. Você deseja recuperá-los?", MsgBoxStyle.YesNo, "Alerta")
-                    Case Else
-                        result = MsgBox("Nicht gespeicherte Dateien aus der letzten Zeit wurde das Programm eingesetzt wurden nachgewiesen. Wollen Sie sie wieder?", MsgBoxStyle.YesNo, "Alarm")
-                End Select
-                If result = vbYes Then
-                    Dim name As String
-                    For Each File In Directory.GetFiles(My.Application.Info.DirectoryPath & "\TMP")
-                        name = Mid(File, File.LastIndexOf("\") + 2, File.LastIndexOf(".") - File.LastIndexOf("\") - 1)
-                        Instances.Add(New Instance(name))
-                        TabControl1.SelectedTab = Instances(GetInstanceByName(name)).TabHandle
-                        TabControl1.Select()
-                        Reader = New StreamReader(File, System.Text.Encoding.GetEncoding(28591))
-                        Instances(GetInstanceByName(name)).SyntaxHandle.Text = Reader.ReadToEnd()
-                        Reader.Close()
-                        With Instances(GetInstanceByName(name))
-                            .Path = .SyntaxHandle.Lines(0).Text
-                            .Saved = False
-                            .SyntaxHandle.Lines(0).Text = ""
-                        End With
-                    Next
-                    Directory.Delete(My.Application.Info.DirectoryPath & "\TMP", True)
-                    If My.Application.CommandLineArgs Is Nothing Then Exit Sub
+        Try
+            Me.Visible = False
+            AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf OnUnhandledException
+            AddHandler My.Application.StartupNextInstance, AddressOf OnStartupNextInstance
+            Tools.Owner = Me
+            MultiF.Owner = Me
+            Options.Owner = Me
+            Srch.Owner = Me
+            eColor.Owner = Me
+            RegisterHotKey(Me.Handle, 9303, MOD_CONTROL, Keys.Space)
+            SFD.Filter = "Script files|*.pwn;*.inc|Pawn files (.pwn)|*.pwn|Include files (.inc)|*.inc|All files| *.*"
+            SFD.DefaultExt = "pwn"
+            OFD.Filter = "Script files|*.pwn;*.inc|Pawn files (.pwn)|*.pwn|Include files (.inc)|*.inc|All files| *.*"
+            LoadResources()
+            Dim Reader As StreamReader
+            If Directory.Exists(My.Application.Info.DirectoryPath & "\TMP") Then
+                If Directory.GetFiles(My.Application.Info.DirectoryPath & "\TMP").Length > 0 Then
+                    Dim result As MsgBoxResult
+                    Select Case Settings.Language
+                        Case Languages.English
+                            result = MsgBox("Unsaved files from the last time the program was used were detected. Do you want to recover them?", MsgBoxStyle.YesNo, "Alert")
+                        Case Languages.Español
+                            result = MsgBox("Archivos no guardados desde la ultima sesion del programa fueron encontrados. ¿Quieres recuperarlos?", MsgBoxStyle.YesNo, "Alerta")
+                        Case Languages.Portuguêse
+                            result = MsgBox("Arquivos não salvos da última vez que o programa foi utilizado foram detectados. Você deseja recuperá-los?", MsgBoxStyle.YesNo, "Alerta")
+                        Case Else
+                            result = MsgBox("Nicht gespeicherte Dateien aus der letzten Zeit wurde das Programm eingesetzt wurden nachgewiesen. Wollen Sie sie wieder?", MsgBoxStyle.YesNo, "Alarm")
+                    End Select
+                    If result = vbYes Then
+                        Dim name As String
+                        For Each File In Directory.GetFiles(My.Application.Info.DirectoryPath & "\TMP")
+                            name = Mid(File, File.LastIndexOf("\") + 2, File.LastIndexOf(".") - File.LastIndexOf("\") - 1)
+                            Instances.Add(New Instance(name))
+                            TabControl1.SelectedTab = Instances(GetInstanceByName(name)).TabHandle
+                            TabControl1.Select()
+                            Reader = New StreamReader(File, System.Text.Encoding.GetEncoding(28591))
+                            Instances(GetInstanceByName(name)).SyntaxHandle.Text = Reader.ReadToEnd()
+                            Reader.Close()
+                            With Instances(GetInstanceByName(name))
+                                .Path = .SyntaxHandle.Lines(0).Text
+                                .Saved = False
+                                .SyntaxHandle.Lines(0).Text = ""
+                            End With
+                        Next
+                        Directory.Delete(My.Application.Info.DirectoryPath & "\TMP", True)
+                        If My.Application.CommandLineArgs Is Nothing Then Exit Sub
+                    Else
+                        Directory.Delete(My.Application.Info.DirectoryPath & "\TMP", True)
+                    End If
                 Else
                     Directory.Delete(My.Application.Info.DirectoryPath & "\TMP", True)
                 End If
-            Else
-                Directory.Delete(My.Application.Info.DirectoryPath & "\TMP", True)
             End If
-        End If
-        Try
-            Dim name As String
-            name = Mid(My.Application.CommandLineArgs(0), My.Application.CommandLineArgs(0).LastIndexOf("\") + 2, My.Application.CommandLineArgs(0).LastIndexOf(".") - My.Application.CommandLineArgs(0).LastIndexOf("\") - 1)
-            Instances.Add(New Instance(name))
-            Reader = New StreamReader(My.Application.CommandLineArgs(0), System.Text.Encoding.GetEncoding(28591))
-            With Instances(GetInstanceByName(name))
-                .SyntaxHandle.Text = Reader.ReadToEnd()
-                .Path = My.Application.CommandLineArgs(0)
-                .Saved = True
-                .Ext = Mid(My.Application.CommandLineArgs(0), My.Application.CommandLineArgs(0).LastIndexOf(".") + 2, My.Application.CommandLineArgs(0).Length - My.Application.CommandLineArgs(0).LastIndexOf(".") - 1)
-            End With
-            Reader.Close()
-        Catch ex As Exception
-            If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
-                Instances.Add(New Instance("new script"))
-                Reader = New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
-                Instances(GetInstanceByName("new script")).SyntaxHandle.Text = Reader.ReadToEnd()
+            Try
+                Dim name As String
+                name = Mid(My.Application.CommandLineArgs(0), My.Application.CommandLineArgs(0).LastIndexOf("\") + 2, My.Application.CommandLineArgs(0).LastIndexOf(".") - My.Application.CommandLineArgs(0).LastIndexOf("\") - 1)
+                Instances.Add(New Instance(name))
+                Reader = New StreamReader(My.Application.CommandLineArgs(0), System.Text.Encoding.GetEncoding(28591))
+                With Instances(GetInstanceByName(name))
+                    .SyntaxHandle.Text = Reader.ReadToEnd()
+                    .Path = My.Application.CommandLineArgs(0)
+                    .Saved = True
+                    .Ext = Mid(My.Application.CommandLineArgs(0), My.Application.CommandLineArgs(0).LastIndexOf(".") + 2, My.Application.CommandLineArgs(0).Length - My.Application.CommandLineArgs(0).LastIndexOf(".") - 1)
+                End With
                 Reader.Close()
-            End If
+            Catch ex As Exception
+                If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
+                    Instances.Add(New Instance("new script"))
+                    Reader = New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
+                    Instances(GetInstanceByName("new script")).SyntaxHandle.Text = Reader.ReadToEnd()
+                    Reader.Close()
+                End If
+            End Try
+            Me.Visible = True
+        Catch ex As Exception
+            Splash.Label1.Invoke(sLabel, New Object() {"An error was detected and the application will close", Splash})
+            Threading.Thread.Sleep(3000)
+            End
         End Try
-        Me.Visible = True
     End Sub
 
     Private Sub Main_FormClosing(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosingEventArgs) Handles MyBase.FormClosing

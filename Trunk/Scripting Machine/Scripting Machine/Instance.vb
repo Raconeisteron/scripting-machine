@@ -15,6 +15,7 @@
 '   along with Scripting Machine.  If not, see <http://www.gnu.org/licenses/>.
 
 Imports ScintillaNet
+Imports System.Text.RegularExpressions
 
 Public Class Instance
 
@@ -167,7 +168,7 @@ Public Class Instance
 
     Public ReadOnly Property CurrentFunction As String
         Get
-            CurrentFunction = GetCurrentFunction(False, True)
+            CurrentFunction = GetCurrentFunction(GetLineCursorPosition(True), False, True)
         End Get
     End Property
 
@@ -381,7 +382,7 @@ Public Class Instance
             With InfoText
                 .Clear()
                 Dim istart As Integer, iend As Integer, func As PawnFunction
-                func = GetFunctionByName(ACLists.Functions, GetCurrentFunction())
+                func = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True)))
                 If func.Name.Length > 0 Then
                     For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                         If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
@@ -459,7 +460,7 @@ Public Class Instance
                     CommentedChar = True
                 End If
                 If CommentedChar Then Exit Sub
-                Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction(False, True))
+                Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True), False, True))
                 If TrueContainsFunction(ACLists.Functions, func) Then
                     If GetCurrentParamIndex() < func.Params.Length Then
                         If func.Params(0).IndexOf("color") > -1 AndAlso ACLists.Colors.Count Then
@@ -549,7 +550,7 @@ Public Class Instance
                                         .Show()
                                     End With
                                 Case "style", "Style"
-                                    Select Case GetCurrentFunction()
+                                    Select Case GetCurrentFunction(GetLineCursorPosition(True))
                                         Case "SetPlayerFightingStyle"
                                             With SyntaxHandle.AutoComplete
                                                 .List.Clear()
@@ -734,7 +735,7 @@ Public Class Instance
                     CommentedChar = True
                 End If
                 If CommentedChar Then Exit Sub
-                Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction(False, True))
+                Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True), False, True))
                 Dim index As Integer = GetCurrentParamIndex()
                 If Settings.aSelect AndAlso func.Name = "SetPlayerSkin" AndAlso index = 1 Then
                     With Main
@@ -1081,7 +1082,7 @@ Public Class Instance
                     CommentedChar = True
                 End If
                 If CommentedChar Then Exit Sub
-                Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction(False, True))
+                Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True), False, True))
                 If func.Name.Length = 0 Then : ShowingInfoText = False
                 Else
                     With InfoText
@@ -1169,12 +1170,12 @@ Public Class Instance
                 End If
             Case Keys.Delete, Keys.Back
                 If _ShowingInfoText Then
-                    If GetCurrentFunction() = "" Then : ShowingInfoText = False
+                    If GetCurrentFunction(GetLineCursorPosition(True)) = "" Then : ShowingInfoText = False
                     Else
                         With InfoText
                             .Clear()
                             Dim istart As Integer, iend As Integer, func As PawnFunction, index As Integer
-                            func = GetFunctionByName(ACLists.Functions, GetCurrentFunction(True, True))
+                            func = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True), True, True))
                             index = If(SyntaxHandle.Lines.Current.Text(GetLineCursorPosition(False) - 1) = ",", GetCurrentParamIndex(True, True), GetCurrentParamIndex(False, True))
                             If TrueContainsFunction(ACLists.Functions, func) Then
                                 If index > -1 AndAlso index < func.Params.Length Then
@@ -1292,12 +1293,12 @@ Public Class Instance
                 End If
             Case Keys.Right, Keys.Left
                 If _ShowingInfoText Then
-                    If GetCurrentFunction() = "" Then : ShowingInfoText = False
+                    If GetCurrentFunction(GetLineCursorPosition(True)) = "" Then : ShowingInfoText = False
                     Else
                         With InfoText
                             .Clear()
                             Dim istart As Integer, iend As Integer, func As PawnFunction, index As Integer
-                            func = GetFunctionByName(ACLists.Functions, GetCurrentFunction(True, True))
+                            func = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True), True, True))
                             index = If(SyntaxHandle.Lines.Current.Text(GetLineCursorPosition() - 1) = ",", GetCurrentParamIndex(True, True), GetCurrentParamIndex(False, True))
                             If TrueContainsFunction(ACLists.Functions, func) Then
                                 If index > -1 AndAlso index < func.Params.Length Then
@@ -1429,7 +1430,7 @@ Public Class Instance
                     SyntaxHandle.Focus()
                 End If
             Else
-                If GetCurrentFunction() = "" AndAlso _ShowingInfoText Then ShowingInfoText = False
+                If GetCurrentFunction(GetLineCursorPosition(True)) = "" AndAlso _ShowingInfoText Then ShowingInfoText = False
                 Select Case Settings.Language
                     Case Languages.English
                         .Text = "Selection length: 0"
@@ -1531,12 +1532,17 @@ Public Class Instance
 
 #Region "Functions"
 
-    Private Function GetCurrentFunction(Optional ByVal remove As Boolean = False, Optional ByVal must As Boolean = False) As String
+    Private Function GetCurrentFunction(ByVal StartPos As Integer, Optional ByVal remove As Boolean = False, Optional ByVal must As Boolean = False) As String
         Static func As String, lastcall As Long
         Dim calrest As Long = GetTickCount() - lastcall
         If lastcall = 0 OrElse (calrest) > 3000 Then
             func = StrReverse(Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length))
-            If func.EndsWith("#") OrElse (func.StartsWith(";") OrElse func.StartsWith("//")) AndAlso func.IndexOf("""") = -1 Then
+            Dim lenght As Integer
+            If StartPos = -1 OrElse func.Length - StartPos < 1 OrElse func.Length - StartPos > func.Length Then : lenght = 0
+            Else : lenght = func.Length - StartPos
+            End If
+            func = func.Remove(0, lenght)
+            If func.StartsWith(";") OrElse ((func.EndsWith("#") OrElse func.EndsWith("//")) AndAlso func.IndexOf("""") = -1) Then
                 lastcall = GetTickCount()
                 Return ""
             End If
@@ -1556,6 +1562,10 @@ Public Class Instance
                 Else
                     func = func.Remove(0, func.IndexOf("""") + 1)
                 End If
+            End If
+            If func.IndexOf(";") > -1 Then
+                lastcall = GetTickCount()
+                Return ""
             End If
             If func.StartsWith("(") AndAlso func.IndexOf(",") > -1 Then func = func.Remove(func.IndexOf(","), func.Length - func.IndexOf(","))
             If remove AndAlso func.StartsWith("(") Then func = func.Remove(0, 1)
@@ -1617,33 +1627,37 @@ Public Class Instance
     End Function
 
     Private Function GetCurrentParamIndex(Optional ByVal fix As Boolean = False, Optional ByVal remove As Boolean = False) As Integer
-        If GetCurrentFunction(True) = "" Then Return -1
+        If GetCurrentFunction(GetLineCursorPosition(True), True) = "" Then Return -1
         Static index As Integer, lastcall As Long
         If lastcall = 0 OrElse (GetTickCount() - lastcall) > 500 Then
-            Try
-                Dim tmp(1) As String, pos(1) As Integer
-                tmp(1) = Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length)
-                pos(0) = GetLineCursorPosition()
-                tmp(1) = tmp(1).Remove(pos(0), tmp(1).Length - pos(0))
-                tmp(0) = StrReverse(Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length))
-                While tmp(0).IndexOf("(") > -1 AndAlso tmp(0).IndexOf(")") > -1
-                    pos(0) = tmp(0).IndexOf(")")
-                    pos(1) = tmp(0).IndexOf(",", tmp(0).IndexOf("(", tmp(0).IndexOf(")")))
-                    tmp(0) = tmp(0).Remove(pos(0), pos(1) - pos(0))
-                End While
-                If tmp(0).IndexOf(",") = -1 Then Return 0
-                If remove AndAlso tmp(0).StartsWith("(") Then tmp(0) = tmp(0).Remove(0, 1)
-                If tmp(0).IndexOf("(", tmp(0).IndexOf("(") + 1) > -1 Then
-                    pos(0) = tmp(0).IndexOf(",", tmp(0).IndexOf("("))
-                    tmp(0) = tmp(0).Remove(pos(0), tmp(0).Length - pos(0))
-                End If
-                tmp(0) = Trim(StrReverse(tmp(0)))
-                index = CountEqualCharsFromString(tmp(0), ",", tmp(0).IndexOf(tmp(1)))
-                lastcall = GetTickCount()
-                Return If(fix, index - 1, index)
-            Catch ex As Exception
-                Return -1
-            End Try
+            'Try
+            Dim tmp(1) As String, pos(1) As Integer
+            tmp(1) = Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length)
+            pos(0) = GetLineCursorPosition()
+            tmp(1) = tmp(1).Remove(pos(0), tmp(1).Length - pos(0))
+            tmp(0) = StrReverse(Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length))
+            'While tmp(0).IndexOf("(") > -1 AndAlso tmp(0).IndexOf(")") > -1
+            '     pos(0) = tmp(0).IndexOf(")")
+            '     pos(1) = tmp(0).IndexOf(",", tmp(0).IndexOf("(", tmp(0).IndexOf(")")))
+            '     tmp(0) = tmp(0).Remove(pos(0), pos(1) - pos(0))
+            'End While
+            Dim Ms As MatchCollection = Regex.Matches(tmp(0), "\(.*\)")
+            For Each M As Match In Ms
+                tmp(0) = tmp(0).Remove(M.Index, M.Length)
+            Next
+            If tmp(0).IndexOf(",") = -1 Then Return 0
+            If remove AndAlso tmp(0).StartsWith("(") Then tmp(0) = tmp(0).Remove(0, 1)
+            If tmp(0).IndexOf("(", tmp(0).IndexOf("(") + 1) > -1 Then
+                pos(0) = tmp(0).IndexOf(",", tmp(0).IndexOf("("))
+                tmp(0) = tmp(0).Remove(pos(0), tmp(0).Length - pos(0))
+            End If
+            tmp(0) = Trim(StrReverse(tmp(0)))
+            index = CountEqualCharsFromString(tmp(0), ",", tmp(0).IndexOf(tmp(1)))
+            lastcall = GetTickCount()
+            Return If(fix, index - 1, index)
+            'Catch ex As Exception
+            '    Return -1
+            'End Try
         Else
             Return If(fix, index - 1, index)
         End If

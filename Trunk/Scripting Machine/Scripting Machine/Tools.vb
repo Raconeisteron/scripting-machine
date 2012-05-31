@@ -117,6 +117,7 @@ Public Class Tools
         ComboBox3.Items.Add("MidoStream ObjectInfo (ObjectInfo Only)")
         ComboBox3.Items.Add("Doble-O ObjectInfo (ObjectInfo Only)")
         ComboBox3.Items.Add("Fallout's Object Streamer (ObjectInfo Only)")
+        ComboBox3.Items.Add("Item Placement File (.ipl)")
         ComboBox3.Items.Add("Custom...")
         ComboBox3.SelectedIndex = 2
         ComboBox4.Items.Add("SA:MP")
@@ -3269,13 +3270,13 @@ Public Class Tools
                                 End Try
                             End If
                             If ObjArray Then
-                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 OrElse Obj.World <> -1 Then
+                                If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
                                     ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                                 Else
                                     ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                                 End If
                             Else
-                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 OrElse Obj.World <> -1 Then
+                                If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
                                     ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                                 Else
                                     ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
@@ -3485,7 +3486,63 @@ Public Class Tools
                         End If
                     Next
                     TextBox26.Text += ConvertedString
-                Case 9 'Custom...
+                Case 9 'IPL
+                    Dim i As Integer
+                    For Each Line In RichTextBox3.Lines
+                        If Line.StartsWith("#") OrElse Line = "inst" OrElse Line = "end" Then Continue For
+                        If Line.IndexOf("#") > 0 Then
+                            Dim M As Match = Regex.Match(Line, ".*#")
+                            If M.Success Then
+                                Line = Mid(M.Value, M.Value - 1, 1)
+                            End If
+                        End If
+                        pos = Split(Line, ", ")
+                        i = UBound(pos)
+                        If CheckBox9.Checked Then
+                            Select Case pos(0)
+                                Case 14383 To 14483
+                                    pos(0) += 4248
+                                Case 14770 To 14856
+                                    pos(0) += 4063
+                                Case 14858 To 14871
+                                    pos(0) += 4062
+                                Case 18000 To 18036
+                                    pos(0) += 934
+                                Case 18038 To 18101
+                                    pos(0) += 933
+                                Case 14872 To 14883
+                                    pos(0) += 4163
+                                Case 14885 To 14891
+                                    pos(0) += 4162
+                                Case 13590 To 13667
+                                    pos(0) += 5142
+                                Case 14500 To 14522
+                                    pos(0) += 4310
+                                Case 12835 To 12944
+                                    pos(0) += 6219
+                                Case 16000 To 16143
+                                    pos(0) += 3164
+                                Case 14892
+                                    pos(0) += 5009
+                            End Select
+                        End If
+                        If ObjArray Then
+                            If CheckBox3.Checked AndAlso pos(2) <> -1 Then
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8), pos(2))
+                            Else
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8))
+                            End If
+                        Else
+                            If CheckBox3.Checked AndAlso pos(2) <> -1 Then
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8), pos(2))
+                            Else
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8))
+                            End If
+                        End If
+                        oCount += 1
+                    Next
+                    TextBox26.Text = ConvertedString
+                Case 10 'Custom...
                     If TextBox47.Text.Length = 0 Then
                         Select Case Settings.Language
                             Case Languages.English
@@ -3541,14 +3598,42 @@ Public Class Tools
                                         Obj.World = Regex.Replace(tmp(i), "[^\d]+", "")
                                 End Select
                             Next
+                            If CheckBox9.Checked Then
+                                Select Case Obj.Model
+                                    Case 14383 To 14483
+                                        Obj.Model += 4248
+                                    Case 14770 To 14856
+                                        Obj.Model += 4063
+                                    Case 14858 To 14871
+                                        Obj.Model += 4062
+                                    Case 18000 To 18036
+                                        Obj.Model += 934
+                                    Case 18038 To 18101
+                                        Obj.Model += 933
+                                    Case 14872 To 14883
+                                        Obj.Model += 4163
+                                    Case 14885 To 14891
+                                        Obj.Model += 4162
+                                    Case 13590 To 13667
+                                        Obj.Model += 5142
+                                    Case 14500 To 14522
+                                        Obj.Model += 4310
+                                    Case 12835 To 12944
+                                        Obj.Model += 6219
+                                    Case 16000 To 16143
+                                        Obj.Model += 3164
+                                    Case 14892
+                                        Obj.Model += 5009
+                                End Select
+                            End If
                             If ObjArray Then
-                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 OrElse Obj.World <> -1 Then
+                                If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
                                     ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                                 Else
                                     ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                                 End If
                             Else
-                                If CheckBox3.Checked AndAlso Obj.Interior <> -1 OrElse Obj.World <> -1 Then
+                                If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
                                     ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                                 Else
                                     ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
@@ -3571,7 +3656,7 @@ Public Class Tools
             End Select
         Catch ex As Exception
             TextBox26.Clear()
-                Select Settings.Language
+            Select Case Settings.Language
                 Case Languages.English
                     MsgBox("Conversion Stoped due to an error.", MsgBoxStyle.Critical, "Error")
                 Case Languages.Español

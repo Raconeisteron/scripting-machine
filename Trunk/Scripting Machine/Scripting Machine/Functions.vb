@@ -293,7 +293,6 @@ Module Functions
 #Region "Private"
 
     Private sProgress As New AddProgressBarValue(AddressOf UpdateProgressBar)
-    Private sLabel As New ChangeLabelText(AddressOf UpdateLabelText)
     Private AllCallbacks As New List(Of String)
 
 #End Region
@@ -307,6 +306,7 @@ Module Functions
     Public TextDrawFonts As New List(Of PrivateFontCollection)
     Public tSender As MsgT
     Public tText As String
+    Public sLabel As New ChangeLabelText(AddressOf UpdateLabelText)
 
 #End Region
 

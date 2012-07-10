@@ -1,0 +1,24 @@
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\bin\Debug\Scripting Machine.exe.config
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\bin\Debug\ScintillaNet.dll
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\bin\Debug\libpawnc.dll
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\bin\Debug\pawnc.dll
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\bin\Debug\pawncc.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\bin\Debug\SciLexer.dll
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\bin\Debug\Scripting Machine.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\bin\Debug\Scripting Machine.pdb
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\bin\Debug\Scripting Machine.xml
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\ResolveAssemblyReference.cache
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting_Machine.MultiF.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting_Machine.eColor.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting_Machine.Main.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting_Machine.Resources.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting_Machine.Options.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting_Machine.Splash.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting_Machine.Srch.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting_Machine.Tools.resources
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\GenerateResource-ResGen.read.1.tlog
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\GenerateResource-ResGen.read.4.tlog
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\GenerateResource-ResGen.write.1.tlog
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting Machine.exe
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting Machine.xml
+E:\Juan\programacion\VB\VB.Net\proyectos\Scripting Machine\Tags\2.2.0\Scripting Machine\obj\x86\Debug\Scripting Machine.pdb

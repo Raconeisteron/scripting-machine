@@ -147,9 +147,28 @@ Public Class Options
                 .Bold = CheckBox21.Checked
                 .Italic = CheckBox20.Checked
             End With
+            With .H_Comment
+                .BackColor = Panel14.BackColor
+                .ForeColor = Panel13.BackColor
+                .Bold = CheckBox22.Checked
+                .Italic = CheckBox3.Checked
+            End With
+            .BackColor = Panel15.BackColor
+
+            If RadioButton8.Checked Then
+                .Enc = System.Text.Encoding.UTF8
+            ElseIf RadioButton9.Checked Then
+                .Enc = System.Text.Encoding.BigEndianUnicode
+            ElseIf RadioButton10.Checked Then
+                .Enc = System.Text.Encoding.ASCII
+            Else
+                .Enc = System.Text.Encoding.Unicode
+            End If
 
             For Each inst As Instance In Instances
                 inst.Font = .cFont
+                inst.SyntaxHandle.Encoding = .Enc
+                inst.SyntaxHandle.BackColor = .BackColor
                 With .H_Numbers
                     inst.SyntaxHandle.Styles("NUMBER").BackColor = .BackColor
                     inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
@@ -186,6 +205,20 @@ Public Class Options
                     inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
                     inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
                     inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                End With
+                With .H_Comment
+                    inst.SyntaxHandle.Styles("COMMENT").BackColor = .BackColor
+                    inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                    inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                    inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                    inst.SyntaxHandle.Styles("COMMENTLINE").BackColor = .BackColor
+                    inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                    inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                    inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                    inst.SyntaxHandle.Styles("COMMENTDOC").BackColor = .BackColor
+                    inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                    inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                    inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
                 End With
                 inst.SyntaxHandle.Lexing.Colorize()
             Next
@@ -279,6 +312,22 @@ Public Class Options
                 CheckBox21.Checked = .Bold
                 CheckBox20.Checked = .Italic
             End With
+            With .H_Comment
+                Panel13.BackColor = .ForeColor
+                Panel14.BackColor = .BackColor
+                CheckBox22.Checked = .Bold
+                CheckBox3.Checked = .Italic
+            End With
+            If .Enc Is System.Text.Encoding.UTF8 Then
+                RadioButton8.Checked = True
+            ElseIf .Enc Is System.Text.Encoding.BigEndianUnicode Then
+                RadioButton9.Checked = True
+            ElseIf .Enc Is System.Text.Encoding.ASCII Then
+                RadioButton10.Checked = True
+            Else
+                RadioButton11.Checked = True
+            End If
+            Panel15.BackColor = .BackColor
         End With
         Me.Hide()
         Me.Owner.Refresh()
@@ -308,6 +357,7 @@ Public Class Options
         TextBox9.Clear()
         CheckBox6.Checked = True
         TextBox10.Text = "-r"
+        RadioButton8.Checked = True
 
         Panel1.BackColor = Color.FromArgb(255, 27, 124, 143)
         Panel2.BackColor = Color.White
@@ -333,7 +383,11 @@ Public Class Options
         Panel11.BackColor = Color.White
         CheckBox21.Checked = False
         CheckBox20.Checked = False
-
+        Panel13.BackColor = Color.FromArgb(255, 0, 160, 0)
+        Panel14.BackColor = Color.White
+        CheckBox22.Checked = False
+        CheckBox3.Checked = False
+        Panel15.BackColor = Color.White
     End Sub
 
     Private Sub Button4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button4.Click
@@ -355,134 +409,180 @@ Public Class Options
 
     Private Sub Panel1_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel1.Click
         gSender = CC.H_NF
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel1.BackColor
-        eColor.TrackBar1.Value = Panel1.BackColor.R
-        eColor.TrackBar2.Value = Panel1.BackColor.G
-        eColor.TrackBar3.Value = Panel1.BackColor.B
-        eColor.TrackBar4.Value = Panel1.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel1.BackColor
+            .TrackBar1.Value = Panel1.BackColor.R
+            .TrackBar2.Value = Panel1.BackColor.G
+            .TrackBar3.Value = Panel1.BackColor.B
+            .TrackBar4.Value = Panel1.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel2_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel2.Click
         gSender = CC.H_NB
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel2.BackColor
-        eColor.TrackBar1.Value = Panel2.BackColor.R
-        eColor.TrackBar2.Value = Panel2.BackColor.G
-        eColor.TrackBar3.Value = Panel2.BackColor.B
-        eColor.TrackBar4.Value = Panel2.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel2.BackColor
+            .TrackBar1.Value = Panel2.BackColor.R
+            .TrackBar2.Value = Panel2.BackColor.G
+            .TrackBar3.Value = Panel2.BackColor.B
+            .TrackBar4.Value = Panel2.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel3_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel3.Click
         gSender = CC.H_SB
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel3.BackColor
-        eColor.TrackBar1.Value = Panel3.BackColor.R
-        eColor.TrackBar2.Value = Panel3.BackColor.G
-        eColor.TrackBar3.Value = Panel3.BackColor.B
-        eColor.TrackBar4.Value = Panel3.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel3.BackColor
+            .TrackBar1.Value = Panel3.BackColor.R
+            .TrackBar2.Value = Panel3.BackColor.G
+            .TrackBar3.Value = Panel3.BackColor.B
+            .TrackBar4.Value = Panel3.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel4_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel4.Click
         gSender = CC.H_SF
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel4.BackColor
-        eColor.TrackBar1.Value = Panel4.BackColor.R
-        eColor.TrackBar2.Value = Panel4.BackColor.G
-        eColor.TrackBar3.Value = Panel4.BackColor.B
-        eColor.TrackBar4.Value = Panel4.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel4.BackColor
+            .TrackBar1.Value = Panel4.BackColor.R
+            .TrackBar2.Value = Panel4.BackColor.G
+            .TrackBar3.Value = Panel4.BackColor.B
+            .TrackBar4.Value = Panel4.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel5_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel5.Click
         gSender = CC.H_S2B
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel5.BackColor
-        eColor.TrackBar1.Value = Panel5.BackColor.R
-        eColor.TrackBar2.Value = Panel5.BackColor.G
-        eColor.TrackBar3.Value = Panel5.BackColor.B
-        eColor.TrackBar4.Value = Panel5.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel5.BackColor
+            .TrackBar1.Value = Panel5.BackColor.R
+            .TrackBar2.Value = Panel5.BackColor.G
+            .TrackBar3.Value = Panel5.BackColor.B
+            .TrackBar4.Value = Panel5.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel6_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel6.Click
         gSender = CC.H_S2F
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel6.BackColor
-        eColor.TrackBar1.Value = Panel6.BackColor.R
-        eColor.TrackBar2.Value = Panel6.BackColor.G
-        eColor.TrackBar3.Value = Panel6.BackColor.B
-        eColor.TrackBar4.Value = Panel6.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel6.BackColor
+            .TrackBar1.Value = Panel6.BackColor.R
+            .TrackBar2.Value = Panel6.BackColor.G
+            .TrackBar3.Value = Panel6.BackColor.B
+            .TrackBar4.Value = Panel6.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel7_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel7.Click
         gSender = CC.H_OB
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel7.BackColor
-        eColor.TrackBar1.Value = Panel7.BackColor.R
-        eColor.TrackBar2.Value = Panel7.BackColor.G
-        eColor.TrackBar3.Value = Panel7.BackColor.B
-        eColor.TrackBar4.Value = Panel7.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel7.BackColor
+            .TrackBar1.Value = Panel7.BackColor.R
+            .TrackBar2.Value = Panel7.BackColor.G
+            .TrackBar3.Value = Panel7.BackColor.B
+            .TrackBar4.Value = Panel7.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel8_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel8.Click
         gSender = CC.H_OF
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel8.BackColor
-        eColor.TrackBar1.Value = Panel8.BackColor.R
-        eColor.TrackBar2.Value = Panel8.BackColor.G
-        eColor.TrackBar3.Value = Panel8.BackColor.B
-        eColor.TrackBar4.Value = Panel8.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel8.BackColor
+            .TrackBar1.Value = Panel8.BackColor.R
+            .TrackBar2.Value = Panel8.BackColor.G
+            .TrackBar3.Value = Panel8.BackColor.B
+            .TrackBar4.Value = Panel8.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel9_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel9.Click
         gSender = CC.H_CHB
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel9.BackColor
-        eColor.TrackBar1.Value = Panel9.BackColor.R
-        eColor.TrackBar2.Value = Panel9.BackColor.G
-        eColor.TrackBar3.Value = Panel9.BackColor.B
-        eColor.TrackBar4.Value = Panel9.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel9.BackColor
+            .TrackBar1.Value = Panel9.BackColor.R
+            .TrackBar2.Value = Panel9.BackColor.G
+            .TrackBar3.Value = Panel9.BackColor.B
+            .TrackBar4.Value = Panel9.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel10_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel10.Click
         gSender = CC.H_CHF
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel10.BackColor
-        eColor.TrackBar1.Value = Panel10.BackColor.R
-        eColor.TrackBar2.Value = Panel10.BackColor.G
-        eColor.TrackBar3.Value = Panel10.BackColor.B
-        eColor.TrackBar4.Value = Panel10.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel10.BackColor
+            .TrackBar1.Value = Panel10.BackColor.R
+            .TrackBar2.Value = Panel10.BackColor.G
+            .TrackBar3.Value = Panel10.BackColor.B
+            .TrackBar4.Value = Panel10.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel11_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel11.Click
         gSender = CC.H_CLB
-        eColor.Owner = Me
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel11.BackColor
-        eColor.TrackBar1.Value = Panel11.BackColor.R
-        eColor.TrackBar2.Value = Panel11.BackColor.G
-        eColor.TrackBar3.Value = Panel11.BackColor.B
-        eColor.TrackBar4.Value = Panel11.BackColor.A
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel11.BackColor
+            .TrackBar1.Value = Panel11.BackColor.R
+            .TrackBar2.Value = Panel11.BackColor.G
+            .TrackBar3.Value = Panel11.BackColor.B
+            .TrackBar4.Value = Panel11.BackColor.A
+        End With
     End Sub
 
     Private Sub Panel12_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel12.Click
         gSender = CC.H_CLF
-        eColor.Owner = Me
         eColor.Show()
         eColor.Panel1.BackColor = Panel12.BackColor
         eColor.TrackBar1.Value = Panel12.BackColor.R
         eColor.TrackBar2.Value = Panel12.BackColor.G
         eColor.TrackBar3.Value = Panel12.BackColor.B
         eColor.TrackBar4.Value = Panel12.BackColor.A
+    End Sub
+
+    Private Sub Panel13_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel13.Click
+        gSender = CC.H_CMF
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel13.BackColor
+            .TrackBar1.Value = Panel13.BackColor.R
+            .TrackBar2.Value = Panel13.BackColor.G
+            .TrackBar3.Value = Panel13.BackColor.B
+            .TrackBar4.Value = Panel13.BackColor.A
+        End With
+    End Sub
+
+    Private Sub Panel14_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel14.Click
+        gSender = CC.H_CMB
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel14.BackColor
+            .TrackBar1.Value = Panel14.BackColor.R
+            .TrackBar2.Value = Panel14.BackColor.G
+            .TrackBar3.Value = Panel14.BackColor.B
+            .TrackBar4.Value = Panel14.BackColor.A
+        End With
+    End Sub
+
+    Private Sub Panel15_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel15.Click
+        gSender = CC.Back
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel15.BackColor
+            .TrackBar1.Value = Panel15.BackColor.R
+            .TrackBar2.Value = Panel15.BackColor.G
+            .TrackBar3.Value = Panel15.BackColor.B
+            .TrackBar4.Value = Panel15.BackColor.A
+        End With
     End Sub
 
 #End Region

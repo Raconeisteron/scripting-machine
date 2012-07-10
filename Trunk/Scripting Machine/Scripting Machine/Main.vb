@@ -96,9 +96,7 @@ Public Class Main
             End Try
             Me.Visible = True
         Catch ex As Exception
-            Splash.Label1.Invoke(sLabel, New Object() {"An error was detected and the application will close", Splash})
-            Threading.Thread.Sleep(3000)
-            End
+            Splash.Label1.Invoke(sLabel, New Object() {"Error", Splash})
         End Try
     End Sub
 
@@ -617,10 +615,10 @@ Public Class Main
             .Close()
         End With
         For Each pr As Process In Process.GetProcesses
-            If pr Is P Then
-                pr.Kill()
-            End If
+            If pr Is P Then pr.Kill()
         Next
+        Dim tmpf As String = Mid(Instances(TabControl1.SelectedIndex).Path, 1, Instances(TabControl1.SelectedIndex).Path.LastIndexOf("\")) & ".xml"
+        If File.Exists(tmpf) Then File.Delete(tmpf)
         Dim errs As String(), tmp As String()
         errs = Split(err, vbNewLine)
         With Instances(TabControl1.SelectedIndex)
@@ -629,7 +627,7 @@ Public Class Main
                 If er.Length > 0 Then
                     Try
                         tmp = Split(er, " : ")
-                        .Errors.Add(New ListViewItem(New String() {"", Trim(System.Text.RegularExpressions.Regex.Replace(Mid(tmp(1), 1, tmp(1).IndexOf(":")), "[A-z]", "")), Mid(tmp(0), tmp(0).LastIndexOf("\") + 2, tmp(0).LastIndexOf(".") - tmp(0).LastIndexOf("\") - 1), Mid(tmp(0), tmp(0).IndexOf("(") + 2, tmp(0).IndexOf(")") - tmp(0).IndexOf("(") - 1), Mid(tmp(1), tmp(1).IndexOf(":") + 3, tmp(1).Length - tmp(1).IndexOf(":") - 1)}, If(tmp(1).IndexOf("error") > -1, 0, 1)))
+                        .Errors.Add(New ListViewItem(New String() {"", Trim(System.Text.RegularExpressions.Regex.Replace(Mid(tmp(1), 1, tmp(1).IndexOf(":")), "[A-z]", "")), Mid(tmp(0), tmp(0).LastIndexOf("\") + 2, tmp(0).LastIndexOf(".") - tmp(0).LastIndexOf("\") - 1), Regex.Replace(Mid(tmp(0), tmp(0).IndexOf("(") + 2, tmp(0).IndexOf(")") - tmp(0).IndexOf("(") - 1), "[A-z]", ""), Mid(tmp(1), tmp(1).IndexOf(":") + 3, tmp(1).Length - tmp(1).IndexOf(":") - 1)}, If(tmp(1).IndexOf("error") > -1, 0, 1)))
                     Catch ex As Exception
 
                     End Try
@@ -671,6 +669,12 @@ Public Class Main
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage6
+    End Sub
+
+    Private Sub GatesToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles GatesToolStripMenuItem.Click
+        Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
+        Tools.Show()
+        Tools.TabControl1.SelectedTab = Tools.TabPage12
     End Sub
 
     Private Sub DialogsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles DialogsToolStripMenuItem.Click
@@ -783,7 +787,23 @@ Public Class Main
 #End Region
 
     Private Sub CreditsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CreditsToolStripMenuItem.Click
+        On Error Resume Next
         tSender = MsgT.Credits
+        With MultiF
+            .Show()
+            .Size = New Size(532, 335)
+            .Location = New Point(Me.Location.X + 130, Me.Location.Y + 100)
+            .Opacity = 70
+        End With
+    End Sub
+
+    Private Sub ReportBugToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ReportBugToolStripMenuItem.Click
+        Process.Start("https://accounts.google.com/ServiceLogin?service=code&ltmpl=phosting&continue=http%3A%2F%2Fcode.google.com%2Fp%2Fscripting-machine%2Fissues%2Fentry")
+    End Sub
+
+    Private Sub ContactToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ContactToolStripMenuItem.Click
+        On Error Resume Next
+        tSender = MsgT.Contact
         With MultiF
             .Show()
             .Size = New Size(532, 335)
@@ -1037,10 +1057,10 @@ Public Class Main
             .Close()
         End With
         For Each pr As Process In Process.GetProcesses
-            If pr Is P Then
-                pr.Kill()
-            End If
+            If pr Is P Then pr.Kill()
         Next
+        Dim tmpf As String = Mid(Instances(TabControl1.SelectedIndex).Path, 1, Instances(TabControl1.SelectedIndex).Path.LastIndexOf("\")) & ".xml"
+        If File.Exists(tmpf) Then File.Delete(tmpf)
         Dim errs As String(), tmp As String()
         errs = Split(err, vbNewLine)
         With Instances(TabControl1.SelectedIndex)
@@ -1049,9 +1069,8 @@ Public Class Main
                 If er.Length > 0 Then
                     Try
                         tmp = Split(er, " : ")
-                        .Errors.Add(New ListViewItem(New String() {"", Trim(System.Text.RegularExpressions.Regex.Replace(Mid(tmp(1), 1, tmp(1).IndexOf(":")), "[A-z]", "")), Mid(tmp(0), tmp(0).LastIndexOf("\") + 2, tmp(0).LastIndexOf(".") - tmp(0).LastIndexOf("\") - 1), Mid(tmp(0), tmp(0).IndexOf("(") + 2, tmp(0).IndexOf(")") - tmp(0).IndexOf("(") - 1), Mid(tmp(1), tmp(1).IndexOf(":") + 3, tmp(1).Length - tmp(1).IndexOf(":") - 1)}, If(tmp(1).IndexOf("error") > -1, 0, 1)))
+                        .Errors.Add(New ListViewItem(New String() {"", Trim(System.Text.RegularExpressions.Regex.Replace(Mid(tmp(1), 1, tmp(1).IndexOf(":")), "[A-z]", "")), Mid(tmp(0), tmp(0).LastIndexOf("\") + 2, tmp(0).LastIndexOf(".") - tmp(0).LastIndexOf("\") - 1), Regex.Replace(Mid(tmp(0), tmp(0).IndexOf("(") + 2, tmp(0).IndexOf(")") - tmp(0).IndexOf("(") - 1), "[A-z]", ""), Mid(tmp(1), tmp(1).IndexOf(":") + 3, tmp(1).Length - tmp(1).IndexOf(":") - 1)}, If(tmp(1).IndexOf("error") > -1, 0, 1)))
                     Catch ex As Exception
-
                     End Try
                 End If
             Next

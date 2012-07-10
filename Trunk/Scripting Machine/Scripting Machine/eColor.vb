@@ -84,6 +84,22 @@ Public Class eColor
         TextBox4.Text = TrackBar4.Value
     End Sub
 
+    Private Sub TrackBar1_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TrackBar1.ValueChanged
+        TextBox1.Text = TrackBar1.Value
+    End Sub
+
+    Private Sub TrackBar2_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TrackBar2.ValueChanged
+        TextBox2.Text = TrackBar2.Value
+    End Sub
+
+    Private Sub TrackBar3_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TrackBar3.ValueChanged
+        TextBox3.Text = TrackBar3.Value
+    End Sub
+
+    Private Sub TrackBar4_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TrackBar4.ValueChanged
+        TextBox4.Text = TrackBar4.Value
+    End Sub
+
 #End Region
 
 #Region "Box"
@@ -172,25 +188,52 @@ Public Class eColor
             Case CC.H_NB
                 Options.Panel2.BackColor = Panel1.BackColor
             Case CC.H_SF
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel4.BackColor = Panel1.BackColor
             Case CC.H_SB
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel3.BackColor = Panel1.BackColor
             Case CC.H_S2F
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel6.BackColor = Panel1.BackColor
             Case CC.H_S2B
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel5.BackColor = Panel1.BackColor
             Case CC.H_OF
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel8.BackColor = Panel1.BackColor
             Case CC.H_OB
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel7.BackColor = Panel1.BackColor
             Case CC.H_CHF
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel10.BackColor = Panel1.BackColor
             Case CC.H_CHB
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel9.BackColor = Panel1.BackColor
             Case CC.H_CLF
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel12.BackColor = Panel1.BackColor
             Case CC.H_CLB
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel11.BackColor = Panel1.BackColor
+            Case CC.H_CMB
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
+                Options.Panel14.BackColor = Panel1.BackColor
+            Case CC.H_CMF
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
+                Options.Panel13.BackColor = Panel1.BackColor
+            Case CC.G_Open
+                Tools.Panel10.BackColor = Panel1.BackColor
+                Settings.G_Open_Color.Hex = Panel1.BackColor
+                Settings.G_Open_Color.Name = tmp
+            Case CC.G_Close
+                Tools.Panel9.BackColor = Panel1.BackColor
+                Settings.G_Close_Color.Hex = Panel1.BackColor
+                Settings.G_Close_Color.Name = tmp
+            Case CC.Back
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
+                Options.Panel15.BackColor = Panel1.BackColor
         End Select
         Me.Hide()
         Me.Owner.Refresh()

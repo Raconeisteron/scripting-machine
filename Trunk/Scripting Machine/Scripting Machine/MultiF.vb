@@ -20,6 +20,7 @@ Public Class MultiF
 
     Private Sub Creds_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         If tSender = MsgT.Credits Then
+            LinkLabel1.Visible = False
             Label1.Text = "Credits:" & vbNewLine & _
                 "   **Programing:" & vbNewLine & _
                 "       ***The_Chaoz" & vbNewLine & _
@@ -39,7 +40,17 @@ Public Class MultiF
                 "       ***Jovanny" & vbNewLine & _
                 "   **SA:MP team, without them this program won't exist." & vbNewLine & _
                 "   **Every one that contribute to the SA:MP wikipedia."
+        ElseIf tSender = MsgT.Contact Then
+            LinkLabel1.Visible = True
+            Label1.Text = "Mail:            scriptingmachine@gmail.com" & vbNewLine & vbNewLine & _
+                "SA-MP Forums:" & vbNewLine & vbNewLine & _
+                "IRC:   Server: ""irc.focogaming.com:7777""" & vbNewLine & _
+                "       Channels: ""#sa-mp"" or ""#sa-mp.scripting"""
+        ElseIf tSender = MsgT.gFormatTuto Then
+            LinkLabel1.Visible = False
+            Label1.Text = "Tutorial:" & vbNewLine & tText2
         Else
+            LinkLabel1.Visible = False
             Label1.Text = "Tutorial:" & vbNewLine & tText
         End If
     End Sub
@@ -49,7 +60,16 @@ Public Class MultiF
 #Region "Closing"
 
     Private Sub Creds_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.LostFocus
-        Me.Close()
+        If tSender = MsgT.Contact Then
+            Static tmp As Boolean = False
+            If tmp = False Then
+                tmp = True
+            Else
+                Me.Close()
+            End If
+        Else
+            Me.Close()
+        End If
     End Sub
 
     Private Sub Creds_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Click
@@ -62,6 +82,15 @@ Public Class MultiF
 
     Private Sub Label2_Click(ByVal sender As Object, ByVal e As System.EventArgs)
         Me.Close()
+    End Sub
+
+#End Region
+
+#Region "Link"
+
+    Private Sub LinkLabel1_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
+        LinkLabel1.LinkVisited = True
+        Process.Start("http://forum.sa-mp.com/member.php?u=75309")
     End Sub
 
 #End Region

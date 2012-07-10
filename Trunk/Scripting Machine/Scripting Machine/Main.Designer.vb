@@ -95,6 +95,8 @@ Partial Class Main
         Me.MainPageToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.SearchForToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CreditsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ReportBugToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ContactToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.TabControl2 = New System.Windows.Forms.TabControl()
         Me.TabPage3 = New System.Windows.Forms.TabPage()
         Me.TreeView1 = New System.Windows.Forms.TreeView()
@@ -139,6 +141,7 @@ Partial Class Main
         Me.TabPage5 = New System.Windows.Forms.TabPage()
         Me.TextBox1 = New System.Windows.Forms.TextBox()
         Me.TabControl1 = New Scripting_Machine.TabControlEx.TabCtlEx()
+        Me.GatesToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.MenuStrip1.SuspendLayout()
         Me.TabControl2.SuspendLayout()
         Me.TabPage3.SuspendLayout()
@@ -374,7 +377,7 @@ Partial Class Main
         '
         'ToolsToolStripMenuItem
         '
-        Me.ToolsToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AreasToolStripMenuItem, Me.ColorPickerToolStripMenuItem, Me.ConverterToolStripMenuItem, Me.DialogsToolStripMenuItem, Me.TeleportsToolStripMenuItem, Me.InfoToolStripMenuItem})
+        Me.ToolsToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AreasToolStripMenuItem, Me.ColorPickerToolStripMenuItem, Me.ConverterToolStripMenuItem, Me.DialogsToolStripMenuItem, Me.GatesToolStripMenuItem, Me.TeleportsToolStripMenuItem, Me.InfoToolStripMenuItem})
         Me.ToolsToolStripMenuItem.Name = "ToolsToolStripMenuItem"
         Me.ToolsToolStripMenuItem.Size = New System.Drawing.Size(44, 20)
         Me.ToolsToolStripMenuItem.Text = "Tools"
@@ -382,38 +385,38 @@ Partial Class Main
         'AreasToolStripMenuItem
         '
         Me.AreasToolStripMenuItem.Name = "AreasToolStripMenuItem"
-        Me.AreasToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
+        Me.AreasToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.AreasToolStripMenuItem.Text = "Areas"
         '
         'ColorPickerToolStripMenuItem
         '
         Me.ColorPickerToolStripMenuItem.Name = "ColorPickerToolStripMenuItem"
-        Me.ColorPickerToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
+        Me.ColorPickerToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.ColorPickerToolStripMenuItem.Text = "Color Picker"
         '
         'ConverterToolStripMenuItem
         '
         Me.ConverterToolStripMenuItem.Name = "ConverterToolStripMenuItem"
-        Me.ConverterToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
+        Me.ConverterToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.ConverterToolStripMenuItem.Text = "Converter"
         '
         'DialogsToolStripMenuItem
         '
         Me.DialogsToolStripMenuItem.Name = "DialogsToolStripMenuItem"
-        Me.DialogsToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
+        Me.DialogsToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.DialogsToolStripMenuItem.Text = "Dialogs"
         '
         'TeleportsToolStripMenuItem
         '
         Me.TeleportsToolStripMenuItem.Name = "TeleportsToolStripMenuItem"
-        Me.TeleportsToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
+        Me.TeleportsToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.TeleportsToolStripMenuItem.Text = "Teleports"
         '
         'InfoToolStripMenuItem
         '
         Me.InfoToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AnimsToolStripMenuItem, Me.MapIconsToolStripMenuItem, Me.SkinsToolStripMenuItem, Me.SoundsToolStripMenuItem, Me.SpritesToolStripMenuItem, Me.VehiclesToolStripMenuItem, Me.WeaponsToolStripMenuItem})
         Me.InfoToolStripMenuItem.Name = "InfoToolStripMenuItem"
-        Me.InfoToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
+        Me.InfoToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.InfoToolStripMenuItem.Text = "Info"
         '
         'AnimsToolStripMenuItem
@@ -460,7 +463,7 @@ Partial Class Main
         '
         'HelpToolStripMenuItem
         '
-        Me.HelpToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.SaMPToolStripMenuItem, Me.CreditsToolStripMenuItem})
+        Me.HelpToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.SaMPToolStripMenuItem, Me.CreditsToolStripMenuItem, Me.ReportBugToolStripMenuItem, Me.ContactToolStripMenuItem})
         Me.HelpToolStripMenuItem.Name = "HelpToolStripMenuItem"
         Me.HelpToolStripMenuItem.Size = New System.Drawing.Size(40, 20)
         Me.HelpToolStripMenuItem.Text = "Help"
@@ -469,7 +472,7 @@ Partial Class Main
         '
         Me.SaMPToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.WebPageToolStripMenuItem, Me.ForumToolStripMenuItem, Me.WikiToolStripMenuItem})
         Me.SaMPToolStripMenuItem.Name = "SaMPToolStripMenuItem"
-        Me.SaMPToolStripMenuItem.Size = New System.Drawing.Size(108, 22)
+        Me.SaMPToolStripMenuItem.Size = New System.Drawing.Size(128, 22)
         Me.SaMPToolStripMenuItem.Text = "SA-MP"
         '
         'WebPageToolStripMenuItem
@@ -506,8 +509,20 @@ Partial Class Main
         'CreditsToolStripMenuItem
         '
         Me.CreditsToolStripMenuItem.Name = "CreditsToolStripMenuItem"
-        Me.CreditsToolStripMenuItem.Size = New System.Drawing.Size(108, 22)
+        Me.CreditsToolStripMenuItem.Size = New System.Drawing.Size(128, 22)
         Me.CreditsToolStripMenuItem.Text = "Credits"
+        '
+        'ReportBugToolStripMenuItem
+        '
+        Me.ReportBugToolStripMenuItem.Name = "ReportBugToolStripMenuItem"
+        Me.ReportBugToolStripMenuItem.Size = New System.Drawing.Size(128, 22)
+        Me.ReportBugToolStripMenuItem.Text = "Report Bug"
+        '
+        'ContactToolStripMenuItem
+        '
+        Me.ContactToolStripMenuItem.Name = "ContactToolStripMenuItem"
+        Me.ContactToolStripMenuItem.Size = New System.Drawing.Size(128, 22)
+        Me.ContactToolStripMenuItem.Text = "Contact"
         '
         'TabControl2
         '
@@ -908,6 +923,12 @@ Partial Class Main
         Me.TabControl1.TabIndex = 31
         Me.TabControl1.TabStop = False
         '
+        'GatesToolStripMenuItem
+        '
+        Me.GatesToolStripMenuItem.Name = "GatesToolStripMenuItem"
+        Me.GatesToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.GatesToolStripMenuItem.Text = "Gates"
+        '
         'Main
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
@@ -921,6 +942,7 @@ Partial Class Main
         Me.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Margin = New System.Windows.Forms.Padding(4)
+        Me.MinimumSize = New System.Drawing.Size(835, 570)
         Me.Name = "Main"
         Me.Text = "Scripting Machine"
         Me.WindowState = System.Windows.Forms.FormWindowState.Maximized
@@ -1041,4 +1063,7 @@ Partial Class Main
     Friend WithEvents ColumnHeader5 As System.Windows.Forms.ColumnHeader
     Friend WithEvents ColumnHeader1 As System.Windows.Forms.ColumnHeader
     Friend WithEvents ImgList As System.Windows.Forms.ImageList
+    Friend WithEvents ReportBugToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents ContactToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents GatesToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
 End Class

@@ -43,7 +43,14 @@ Partial Class Options
         Me.Button3 = New System.Windows.Forms.Button()
         Me.TabControl1 = New System.Windows.Forms.TabControl()
         Me.TabPage1 = New System.Windows.Forms.TabPage()
+        Me.GroupBox1 = New System.Windows.Forms.GroupBox()
+        Me.RadioButton11 = New System.Windows.Forms.RadioButton()
+        Me.RadioButton10 = New System.Windows.Forms.RadioButton()
+        Me.RadioButton9 = New System.Windows.Forms.RadioButton()
+        Me.RadioButton8 = New System.Windows.Forms.RadioButton()
         Me.GroupBox7 = New System.Windows.Forms.GroupBox()
+        Me.Label23 = New System.Windows.Forms.Label()
+        Me.Panel15 = New System.Windows.Forms.Panel()
         Me.CheckBox9 = New System.Windows.Forms.CheckBox()
         Me.CheckBox8 = New System.Windows.Forms.CheckBox()
         Me.CheckBox7 = New System.Windows.Forms.CheckBox()
@@ -128,6 +135,13 @@ Partial Class Options
         Me.Label19 = New System.Windows.Forms.Label()
         Me.Label20 = New System.Windows.Forms.Label()
         Me.Panel11 = New System.Windows.Forms.Panel()
+        Me.TabPage13 = New System.Windows.Forms.TabPage()
+        Me.Panel13 = New System.Windows.Forms.Panel()
+        Me.CheckBox3 = New System.Windows.Forms.CheckBox()
+        Me.CheckBox22 = New System.Windows.Forms.CheckBox()
+        Me.Label21 = New System.Windows.Forms.Label()
+        Me.Label22 = New System.Windows.Forms.Label()
+        Me.Panel14 = New System.Windows.Forms.Panel()
         Me.TabPage5 = New System.Windows.Forms.TabPage()
         Me.TextBox10 = New System.Windows.Forms.TextBox()
         Me.Label8 = New System.Windows.Forms.Label()
@@ -138,6 +152,7 @@ Partial Class Options
         Me.FBD = New System.Windows.Forms.FolderBrowserDialog()
         Me.TabControl1.SuspendLayout()
         Me.TabPage1.SuspendLayout()
+        Me.GroupBox1.SuspendLayout()
         Me.GroupBox7.SuspendLayout()
         Me.GroupBox3.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -153,6 +168,7 @@ Partial Class Options
         Me.TabPage10.SuspendLayout()
         Me.TabPage11.SuspendLayout()
         Me.TabPage12.SuspendLayout()
+        Me.TabPage13.SuspendLayout()
         Me.TabPage5.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -195,6 +211,7 @@ Partial Class Options
         '
         'TabPage1
         '
+        Me.TabPage1.Controls.Add(Me.GroupBox1)
         Me.TabPage1.Controls.Add(Me.GroupBox7)
         Me.TabPage1.Controls.Add(Me.GroupBox3)
         Me.TabPage1.Controls.Add(Me.GroupBox2)
@@ -206,8 +223,68 @@ Partial Class Options
         Me.TabPage1.Text = "General"
         Me.TabPage1.UseVisualStyleBackColor = True
         '
+        'GroupBox1
+        '
+        Me.GroupBox1.Controls.Add(Me.RadioButton11)
+        Me.GroupBox1.Controls.Add(Me.RadioButton10)
+        Me.GroupBox1.Controls.Add(Me.RadioButton9)
+        Me.GroupBox1.Controls.Add(Me.RadioButton8)
+        Me.GroupBox1.Location = New System.Drawing.Point(323, 117)
+        Me.GroupBox1.Name = "GroupBox1"
+        Me.GroupBox1.Size = New System.Drawing.Size(102, 110)
+        Me.GroupBox1.TabIndex = 6
+        Me.GroupBox1.TabStop = False
+        Me.GroupBox1.Text = "Encoding"
+        '
+        'RadioButton11
+        '
+        Me.RadioButton11.AutoSize = True
+        Me.RadioButton11.Location = New System.Drawing.Point(6, 87)
+        Me.RadioButton11.Name = "RadioButton11"
+        Me.RadioButton11.Size = New System.Drawing.Size(65, 17)
+        Me.RadioButton11.TabIndex = 3
+        Me.RadioButton11.TabStop = True
+        Me.RadioButton11.Text = "Unicode"
+        Me.RadioButton11.UseVisualStyleBackColor = True
+        '
+        'RadioButton10
+        '
+        Me.RadioButton10.AutoSize = True
+        Me.RadioButton10.Location = New System.Drawing.Point(6, 64)
+        Me.RadioButton10.Name = "RadioButton10"
+        Me.RadioButton10.Size = New System.Drawing.Size(52, 17)
+        Me.RadioButton10.TabIndex = 2
+        Me.RadioButton10.TabStop = True
+        Me.RadioButton10.Text = "ASCII"
+        Me.RadioButton10.UseVisualStyleBackColor = True
+        '
+        'RadioButton9
+        '
+        Me.RadioButton9.AutoSize = True
+        Me.RadioButton9.Location = New System.Drawing.Point(6, 41)
+        Me.RadioButton9.Name = "RadioButton9"
+        Me.RadioButton9.Size = New System.Drawing.Size(76, 17)
+        Me.RadioButton9.TabIndex = 1
+        Me.RadioButton9.TabStop = True
+        Me.RadioButton9.Text = "Big Endian"
+        Me.RadioButton9.UseVisualStyleBackColor = True
+        '
+        'RadioButton8
+        '
+        Me.RadioButton8.AutoSize = True
+        Me.RadioButton8.Checked = True
+        Me.RadioButton8.Location = New System.Drawing.Point(6, 19)
+        Me.RadioButton8.Name = "RadioButton8"
+        Me.RadioButton8.Size = New System.Drawing.Size(55, 17)
+        Me.RadioButton8.TabIndex = 0
+        Me.RadioButton8.TabStop = True
+        Me.RadioButton8.Text = "UTF-8"
+        Me.RadioButton8.UseVisualStyleBackColor = True
+        '
         'GroupBox7
         '
+        Me.GroupBox7.Controls.Add(Me.Label23)
+        Me.GroupBox7.Controls.Add(Me.Panel15)
         Me.GroupBox7.Controls.Add(Me.CheckBox9)
         Me.GroupBox7.Controls.Add(Me.CheckBox8)
         Me.GroupBox7.Controls.Add(Me.CheckBox7)
@@ -215,10 +292,27 @@ Partial Class Options
         Me.GroupBox7.Controls.Add(Me.CheckBox4)
         Me.GroupBox7.Location = New System.Drawing.Point(6, 123)
         Me.GroupBox7.Name = "GroupBox7"
-        Me.GroupBox7.Size = New System.Drawing.Size(419, 104)
+        Me.GroupBox7.Size = New System.Drawing.Size(311, 104)
         Me.GroupBox7.TabIndex = 5
         Me.GroupBox7.TabStop = False
         Me.GroupBox7.Text = "Other"
+        '
+        'Label23
+        '
+        Me.Label23.AutoSize = True
+        Me.Label23.Location = New System.Drawing.Point(141, 69)
+        Me.Label23.Name = "Label23"
+        Me.Label23.Size = New System.Drawing.Size(58, 13)
+        Me.Label23.TabIndex = 24
+        Me.Label23.Text = "Backcolor:"
+        '
+        'Panel15
+        '
+        Me.Panel15.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel15.Location = New System.Drawing.Point(205, 65)
+        Me.Panel15.Name = "Panel15"
+        Me.Panel15.Size = New System.Drawing.Size(23, 23)
+        Me.Panel15.TabIndex = 23
         '
         'CheckBox9
         '
@@ -290,7 +384,7 @@ Partial Class Options
         Me.GroupBox3.Controls.Add(Me.Label1)
         Me.GroupBox3.Location = New System.Drawing.Point(110, 6)
         Me.GroupBox3.Name = "GroupBox3"
-        Me.GroupBox3.Size = New System.Drawing.Size(315, 111)
+        Me.GroupBox3.Size = New System.Drawing.Size(315, 105)
         Me.GroupBox3.TabIndex = 4
         Me.GroupBox3.TabStop = False
         Me.GroupBox3.Text = "Font"
@@ -466,7 +560,7 @@ Partial Class Options
         Me.TextBox2.Name = "TextBox2"
         Me.TextBox2.Size = New System.Drawing.Size(288, 20)
         Me.TextBox2.TabIndex = 20
-        Me.TextBox2.Text = "GangZoneShowForAll({5}, {6});"
+        Me.TextBox2.Text = "GangZoneShowForAll({4}, {5});"
         '
         'Label82
         '
@@ -657,6 +751,7 @@ Partial Class Options
         Me.TabControl3.Controls.Add(Me.TabPage10)
         Me.TabControl3.Controls.Add(Me.TabPage11)
         Me.TabControl3.Controls.Add(Me.TabPage12)
+        Me.TabControl3.Controls.Add(Me.TabPage13)
         Me.TabControl3.Location = New System.Drawing.Point(3, 3)
         Me.TabControl3.Multiline = True
         Me.TabControl3.Name = "TabControl3"
@@ -1080,6 +1175,75 @@ Partial Class Options
         Me.Panel11.Size = New System.Drawing.Size(23, 23)
         Me.Panel11.TabIndex = 7
         '
+        'TabPage13
+        '
+        Me.TabPage13.Controls.Add(Me.Panel13)
+        Me.TabPage13.Controls.Add(Me.CheckBox3)
+        Me.TabPage13.Controls.Add(Me.CheckBox22)
+        Me.TabPage13.Controls.Add(Me.Label21)
+        Me.TabPage13.Controls.Add(Me.Label22)
+        Me.TabPage13.Controls.Add(Me.Panel14)
+        Me.TabPage13.Location = New System.Drawing.Point(4, 22)
+        Me.TabPage13.Name = "TabPage13"
+        Me.TabPage13.Size = New System.Drawing.Size(397, 158)
+        Me.TabPage13.TabIndex = 6
+        Me.TabPage13.Text = "Comment"
+        Me.TabPage13.UseVisualStyleBackColor = True
+        '
+        'Panel13
+        '
+        Me.Panel13.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel13.Location = New System.Drawing.Point(81, 6)
+        Me.Panel13.Name = "Panel13"
+        Me.Panel13.Size = New System.Drawing.Size(23, 23)
+        Me.Panel13.TabIndex = 14
+        '
+        'CheckBox3
+        '
+        Me.CheckBox3.AutoSize = True
+        Me.CheckBox3.Location = New System.Drawing.Point(20, 88)
+        Me.CheckBox3.Name = "CheckBox3"
+        Me.CheckBox3.Size = New System.Drawing.Size(48, 17)
+        Me.CheckBox3.TabIndex = 18
+        Me.CheckBox3.Text = "Italic"
+        Me.CheckBox3.UseVisualStyleBackColor = True
+        '
+        'CheckBox22
+        '
+        Me.CheckBox22.AutoSize = True
+        Me.CheckBox22.Location = New System.Drawing.Point(20, 65)
+        Me.CheckBox22.Name = "CheckBox22"
+        Me.CheckBox22.Size = New System.Drawing.Size(47, 17)
+        Me.CheckBox22.TabIndex = 17
+        Me.CheckBox22.Text = "Bold"
+        Me.CheckBox22.UseVisualStyleBackColor = True
+        '
+        'Label21
+        '
+        Me.Label21.AutoSize = True
+        Me.Label21.Location = New System.Drawing.Point(17, 40)
+        Me.Label21.Name = "Label21"
+        Me.Label21.Size = New System.Drawing.Size(58, 13)
+        Me.Label21.TabIndex = 16
+        Me.Label21.Text = "Backcolor:"
+        '
+        'Label22
+        '
+        Me.Label22.AutoSize = True
+        Me.Label22.Location = New System.Drawing.Point(17, 11)
+        Me.Label22.Name = "Label22"
+        Me.Label22.Size = New System.Drawing.Size(54, 13)
+        Me.Label22.TabIndex = 15
+        Me.Label22.Text = "Forecolor:"
+        '
+        'Panel14
+        '
+        Me.Panel14.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel14.Location = New System.Drawing.Point(81, 35)
+        Me.Panel14.Name = "Panel14"
+        Me.Panel14.Size = New System.Drawing.Size(23, 23)
+        Me.Panel14.TabIndex = 13
+        '
         'TabPage5
         '
         Me.TabPage5.Controls.Add(Me.TextBox10)
@@ -1158,6 +1322,8 @@ Partial Class Options
         Me.Text = "Options"
         Me.TabControl1.ResumeLayout(False)
         Me.TabPage1.ResumeLayout(False)
+        Me.GroupBox1.ResumeLayout(False)
+        Me.GroupBox1.PerformLayout()
         Me.GroupBox7.ResumeLayout(False)
         Me.GroupBox7.PerformLayout()
         Me.GroupBox3.ResumeLayout(False)
@@ -1184,6 +1350,8 @@ Partial Class Options
         Me.TabPage11.PerformLayout()
         Me.TabPage12.ResumeLayout(False)
         Me.TabPage12.PerformLayout()
+        Me.TabPage13.ResumeLayout(False)
+        Me.TabPage13.PerformLayout()
         Me.TabPage5.ResumeLayout(False)
         Me.TabPage5.PerformLayout()
         Me.ResumeLayout(False)
@@ -1287,4 +1455,18 @@ Partial Class Options
     Friend WithEvents RadioButton6 As System.Windows.Forms.RadioButton
     Friend WithEvents RadioButton5 As System.Windows.Forms.RadioButton
     Friend WithEvents FBD As System.Windows.Forms.FolderBrowserDialog
+    Friend WithEvents GroupBox1 As System.Windows.Forms.GroupBox
+    Friend WithEvents RadioButton9 As System.Windows.Forms.RadioButton
+    Friend WithEvents RadioButton8 As System.Windows.Forms.RadioButton
+    Friend WithEvents RadioButton11 As System.Windows.Forms.RadioButton
+    Friend WithEvents RadioButton10 As System.Windows.Forms.RadioButton
+    Friend WithEvents TabPage13 As System.Windows.Forms.TabPage
+    Friend WithEvents Panel13 As System.Windows.Forms.Panel
+    Friend WithEvents CheckBox3 As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBox22 As System.Windows.Forms.CheckBox
+    Friend WithEvents Label21 As System.Windows.Forms.Label
+    Friend WithEvents Label22 As System.Windows.Forms.Label
+    Friend WithEvents Panel14 As System.Windows.Forms.Panel
+    Friend WithEvents Label23 As System.Windows.Forms.Label
+    Friend WithEvents Panel15 As System.Windows.Forms.Panel
 End Class

@@ -36,7 +36,7 @@
       <Value Profile="(Default)">GangZoneCreate({0}, {1}, {2}, {3});</Value>
     </Setting>
     <Setting Name="zshw" Type="System.String" Scope="User">
-      <Value Profile="(Default)">GangZoneShowForAll({5}, {6});</Value>
+      <Value Profile="(Default)">GangZoneShowForAll({4}, {5});</Value>
     </Setting>
     <Setting Name="Bounds" Type="System.String" Scope="User">
       <Value Profile="(Default)">SetPlayerWorldBounds(playerid, {0}, {1}, {2}, {3});</Value>
@@ -97,6 +97,15 @@
     </Setting>
     <Setting Name="H_Class" Type="System.String" Scope="User">
       <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="H_Comment" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="Encod" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="BackColor" Type="System.Drawing.Color" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

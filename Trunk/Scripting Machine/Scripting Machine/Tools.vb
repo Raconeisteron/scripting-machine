@@ -14,8 +14,6 @@
 '   You should have received a copy of the GNU General Public License
 '   along with Scripting Machine.  If not, see <http://www.gnu.org/licenses/>.
 
-'Arreglar el cache que funciona como el culo
-
 Imports System.Text.RegularExpressions
 Imports System.Drawing
 Imports System.Math
@@ -43,6 +41,11 @@ Public Class Tools
         Sprite
         Vehicle
         Weapon
+    End Enum
+
+    Private Enum AreaFormat
+        Area
+        WorldBounds
     End Enum
 
 #End Region
@@ -93,6 +96,16 @@ Public Class Tools
         Public W As Integer
         Public I As Integer
         Public Format As String
+    End Structure
+
+    Private Structure AreaInfo
+        Public Index As Integer
+        Public Pos As Rectangle
+        Public Min As PointF
+        Public Max As PointF
+        Public Color As PawnColor
+        Public format As AreaFormat
+        Public Res As Integer
     End Structure
 
 #End Region
@@ -191,11 +204,11 @@ Public Class Tools
     End Sub
 
     Private Sub TextBox6_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox35.TextChanged
-        TextBox35.Text = Regex.Replace(TextBox35.Text, BadChars, "")
+        TextBox35.Text = Regex.Replace(TextBox35.Text, BadChars2, "")
     End Sub
 
     Private Sub textbox36_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox36.TextChanged
-        TextBox36.Text = Regex.Replace(TextBox36.Text, BadChars, "")
+        TextBox36.Text = Regex.Replace(TextBox36.Text, BadChars2, "")
     End Sub
 
     Private Sub textbox37_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox37.TextChanged
@@ -208,20 +221,20 @@ Public Class Tools
 
     Private Sub Button8_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button8.Click
         gSender = CC.Msg
-        eColor.TrackBar4.Enabled = True
-        eColor.TextBox4.Enabled = True
-        eColor.Owner = Me
         eColor.Show()
-        eColor.Panel1.BackColor = Settings.C_Msg.Hex
+        eColor.TrackBar1.Value = Settings.C_Msg.Hex.R
+        eColor.TrackBar2.Value = Settings.C_Msg.Hex.G
+        eColor.TrackBar3.Value = Settings.C_Msg.Hex.B
+        eColor.TrackBar4.Value = Settings.C_Msg.Hex.A
     End Sub
 
     Private Sub Button7_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button7.Click
         gSender = CC.Help
-        eColor.TrackBar4.Enabled = True
-        eColor.TextBox4.Enabled = True
-        eColor.Owner = Me
         eColor.Show()
-        eColor.Panel1.BackColor = Settings.C_Help.Hex
+        eColor.TrackBar1.Value = Settings.C_Help.Hex.R
+        eColor.TrackBar2.Value = Settings.C_Help.Hex.G
+        eColor.TrackBar3.Value = Settings.C_Help.Hex.B
+        eColor.TrackBar4.Value = Settings.C_Help.Hex.A
     End Sub
 
 #End Region
@@ -853,6 +866,869 @@ Public Class Tools
             Me.Hide()
             Me.Owner.Refresh()
         End If
+    End Sub
+
+#End Region
+
+#End Region
+
+#Region "Gates"
+
+#Region " Text Restrictions"
+
+    Private Sub TextBox68_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox68.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox68.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox63_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox63.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox63.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox62_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox62.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox62.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox61_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox61.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox61.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox79_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox79.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox79.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox78_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox78.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox78.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox77_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox77.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox77.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox49_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox49.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox58_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox58.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox48_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox48.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox76_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox76.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox76.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox80_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox80.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox80.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox81_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox81.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox81.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox82_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox82.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox82.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox83_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox83.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox83.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox84_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox84.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox84.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox85_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles TextBox85.KeyPress
+        If Not IsNumeric(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) AndAlso e.KeyChar <> "." AndAlso e.KeyChar <> "-" AndAlso Asc(e.KeyChar) <> 8 Then e.Handled = True
+        If e.KeyChar = "." And TextBox85.Text.LastIndexOf(".") <> -1 Then e.Handled = True
+    End Sub
+
+    Private Sub TextBox68_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox68.TextChanged
+        TextBox68.Text = Regex.Replace(TextBox68.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox63_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox63.TextChanged
+        TextBox63.Text = Regex.Replace(TextBox63.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox62_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox62.TextChanged
+        TextBox62.Text = Regex.Replace(TextBox62.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox61_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox61.TextChanged
+        TextBox61.Text = Regex.Replace(TextBox61.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox79_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox79.TextChanged
+        TextBox79.Text = Regex.Replace(TextBox79.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox78_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox78.TextChanged
+        TextBox78.Text = Regex.Replace(TextBox78.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox77_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox77.TextChanged
+        TextBox77.Text = Regex.Replace(TextBox77.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox49_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox49.TextChanged
+        TextBox49.Text = Regex.Replace(TextBox49.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox58_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox58.TextChanged
+        TextBox58.Text = Regex.Replace(TextBox58.Text, BadChars2, "")
+    End Sub
+
+    Private Sub TextBox48_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox48.TextChanged
+        TextBox48.Text = Regex.Replace(TextBox48.Text, BadChars2, "")
+    End Sub
+
+    Private Sub TextBox85_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox85.TextChanged
+        TextBox85.Text = Regex.Replace(TextBox85.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox84_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox84.TextChanged
+        TextBox84.Text = Regex.Replace(TextBox84.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox83_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox83.TextChanged
+        TextBox83.Text = Regex.Replace(TextBox83.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox82_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox82.TextChanged
+        TextBox82.Text = Regex.Replace(TextBox82.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox81_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox81.TextChanged
+        TextBox81.Text = Regex.Replace(TextBox81.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox80_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox80.TextChanged
+        TextBox80.Text = Regex.Replace(TextBox80.Text, BadChars, "")
+    End Sub
+
+    Private Sub TextBox76_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox76.TextChanged
+        TextBox76.Text = Regex.Replace(TextBox76.Text, BadChars, "")
+    End Sub
+
+#End Region
+
+#Region "Message(Open/Close)"
+
+    Private Sub Button22_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button22.Click
+        gSender = CC.G_Open
+        eColor.Show()
+        eColor.TrackBar1.Value = Settings.G_Open_Color.Hex.R
+        eColor.TrackBar2.Value = Settings.G_Open_Color.Hex.G
+        eColor.TrackBar3.Value = Settings.G_Open_Color.Hex.B
+        eColor.TrackBar4.Value = Settings.G_Open_Color.Hex.A
+    End Sub
+
+    Private Sub Button21_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button21.Click
+        gSender = CC.G_Close
+        eColor.Show()
+        eColor.TrackBar1.Value = Settings.G_Close_Color.Hex.R
+        eColor.TrackBar2.Value = Settings.G_Close_Color.Hex.G
+        eColor.TrackBar3.Value = Settings.G_Close_Color.Hex.B
+        eColor.TrackBar4.Value = Settings.G_Close_Color.Hex.A
+    End Sub
+
+#End Region
+
+#Region "Visual"
+
+    Private Sub CheckBox11_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox11.CheckedChanged
+        If CheckBox11.Checked Then
+            Panel10.Enabled = True
+            Panel10.BackColor = Settings.G_Open_Color.Hex
+            Button22.Enabled = True
+            Label43.Enabled = True
+            TextBox51.Enabled = True
+        Else
+            Panel10.Enabled = False
+            Button22.Enabled = False
+            Label43.Enabled = False
+            TextBox51.Enabled = False
+        End If
+    End Sub
+
+    Private Sub CheckBox7_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox7.CheckedChanged
+        If CheckBox7.Checked Then
+            Panel9.Enabled = True
+            Panel9.BackColor = Settings.G_Close_Color.Hex
+            Button21.Enabled = True
+            Label42.Enabled = True
+            TextBox50.Enabled = True
+        Else
+            Panel9.Enabled = False
+            Button21.Enabled = False
+            Label42.Enabled = False
+            TextBox50.Enabled = False
+        End If
+    End Sub
+
+    Private Sub RadioButton22_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RadioButton22.CheckedChanged
+        If RadioButton22.Checked Then GroupBox15.Enabled = True
+    End Sub
+
+    Private Sub RadioButton17_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RadioButton17.CheckedChanged
+        If RadioButton17.Checked Then
+            GroupBox15.Enabled = True
+            Select Case Settings.Language
+                Case Languages.English
+                    Label45.Text = "Command (both):"
+                Case Languages.Español, Languages.Portuguêse
+                    Label45.Text = "Cmd (ambos):"
+                Case Else
+                    Label45.Text = "Befehl (beides):"
+            End Select
+            Label44.Visible = False
+            TextBox59.Visible = False
+            LinkLabel2.Location = New Point(29, 48)
+            TextBox58.Location = New Point(94, 45)
+        Else
+            Select Case Settings.Language
+                Case Languages.English
+                    Label45.Text = "Command (open):"
+                Case Languages.Español
+                    Label45.Text = "Comando (abrir):"
+                Case Languages.Portuguêse
+                    Label45.Text = "Comando (aberta):"
+                Case Else
+                    Label45.Text = "Befehl (öffnen):"
+            End Select
+            Label44.Visible = True
+            TextBox59.Visible = True
+            LinkLabel2.Location = New Point(29, 74)
+            TextBox58.Location = New Point(94, 71)
+        End If
+    End Sub
+
+    Private Sub RadioButton21_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RadioButton21.CheckedChanged
+        If RadioButton21.Checked Then
+            GroupBox15.Enabled = True
+            Label44.Visible = False
+            TextBox59.Visible = False
+            LinkLabel2.Location = New Point(29, 48)
+            TextBox58.Location = New Point(94, 45)
+            Label39.Enabled = True
+            TextBox48.Enabled = True
+        Else
+            Label44.Visible = True
+            TextBox59.Visible = True
+            LinkLabel2.Location = New Point(29, 74)
+            TextBox58.Location = New Point(94, 71)
+            Label39.Enabled = False
+            TextBox48.Enabled = False
+        End If
+    End Sub
+
+    Private Sub RadioButton20_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RadioButton20.CheckedChanged
+        If RadioButton20.Checked Then
+            GroupBox15.Enabled = False
+            Label45.Visible = False
+            TextBox60.Visible = False
+            Label44.Visible = False
+            TextBox59.Visible = False
+            LinkLabel2.Location = New Point(29, 22)
+            TextBox58.Location = New Point(94, 19)
+            Label39.Enabled = True
+            TextBox48.Enabled = True
+        Else
+            Label45.Visible = True
+            TextBox60.Visible = True
+            Label44.Visible = True
+            TextBox59.Visible = True
+            LinkLabel2.Location = New Point(29, 74)
+            TextBox58.Location = New Point(94, 71)
+            Label39.Enabled = False
+            TextBox48.Enabled = False
+        End If
+    End Sub
+
+    Private Sub Button24_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button24.Click
+        Panel11.Visible = Not Panel11.Visible
+    End Sub
+
+    Private Sub Button24_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles Button24.MouseMove
+        If Not Panel11.Visible Then Panel11.Visible = True
+    End Sub
+
+    Private Sub GroupBox9_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles GroupBox9.MouseMove
+        If Panel11.Visible Then Panel11.Visible = False
+    End Sub
+
+    Private Sub TabPage12_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles TabPage12.MouseMove
+        If Panel11.Visible Then Panel11.Visible = False
+    End Sub
+
+    Private Sub CheckBox13_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox13.CheckedChanged
+        If CheckBox13.Checked Then
+            Label89.Enabled = True
+            TextBox86.Enabled = True
+            Label91.Enabled = True
+            TextBox87.Enabled = True
+            PictureBox13.Enabled = True
+            PictureBox13.Image = My.Resources.Question_Mark__Up_
+        Else
+            Label89.Enabled = False
+            TextBox86.Enabled = False
+            Label91.Enabled = False
+            TextBox87.Enabled = False
+            PictureBox13.Enabled = False
+            PictureBox13.Image = My.Resources.Question_Mark__Disabled_
+        End If
+    End Sub
+
+    Private Sub PictureBox13_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PictureBox13.MouseDown
+        PictureBox13.Image = My.Resources.Question_Mark__Down_
+    End Sub
+
+    Private Sub PictureBox13_MouseUp(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PictureBox13.MouseUp
+        PictureBox13.Image = My.Resources.Question_Mark__Up_
+    End Sub
+
+#End Region
+
+#Region "Generate Code"
+
+    Private Sub Button23_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button23.Click
+        TextBox75.Clear()
+        If TextBox58.Text.Length = 0 Then
+            Select Case Settings.Language
+                Case Languages.English
+                    MsgBox("You must enter an object id.", MsgBoxStyle.Critical, "Error")
+                Case Languages.Español
+                    MsgBox("Debes ingresar el id de un objeto.", MsgBoxStyle.Critical, "Error")
+                Case Languages.Portuguêse
+                    MsgBox("Você deve digitar um ID de objeto.", MsgBoxStyle.Critical, "Erro")
+                Case Else
+                    MsgBox("Du musst eine Objekt ID eingeben.", MsgBoxStyle.Critical, "Fehler")
+            End Select
+            Exit Sub
+        ElseIf CheckBox11.Checked AndAlso TextBox51.Text.Length = 0 Then
+            Select Case Settings.Language
+                Case Languages.English
+                    MsgBox("You must enter a message to send when the door opens.", MsgBoxStyle.Critical, "Error")
+                Case Languages.Español
+                    MsgBox("Debes ingresar un mensaje para enviar cuando la puerta se abre.", MsgBoxStyle.Critical, "Error")
+                Case Languages.Portuguêse
+                    MsgBox("Você deve digitar uma mensagem para enviar, quando a porta se abre.", MsgBoxStyle.Critical, "Erro")
+                Case Else
+                    MsgBox("Du musst eine Nachricht eingeben, die beim Öffnen der Tür erscheint.", MsgBoxStyle.Critical, "Fehler")
+            End Select
+            Exit Sub
+        ElseIf CheckBox7.Checked AndAlso TextBox50.Text.Length = 0 Then
+            Select Case Settings.Language
+                Case Languages.English
+                    MsgBox("You must enter a message to send when the door closes.", MsgBoxStyle.Critical, "Error")
+                Case Languages.Español
+                    MsgBox("Debes ingresar un mensaje para enviar cuando la puerta se cierra.", MsgBoxStyle.Critical, "Error")
+                Case Languages.Portuguêse
+                    MsgBox("Você deve digitar uma mensagem para enviar, quando a porta se fecha.", MsgBoxStyle.Critical, "Erro")
+                Case Else
+                    MsgBox("Du musst eine Nachricht eingeben, die beim Schließen der Tür erscheint.", MsgBoxStyle.Critical, "Fehler")
+            End Select
+            Exit Sub
+        ElseIf TextBox68.Text.Length = 0 OrElse TextBox63.Text.Length = 0 OrElse TextBox62.Text.Length = 0 OrElse TextBox61.Text.Length = 0 OrElse TextBox79.Text.Length = 0 OrElse TextBox78.Text.Length = 0 OrElse TextBox77.Text.Length = 0 Then
+            Select Case Settings.Language
+                Case Languages.English
+                    MsgBox("You must enter all coordinates of the opened door and its opening's radius", MsgBoxStyle.Critical, "Error")
+                Case Languages.Español
+                    MsgBox("Debe introducir todas las coordenadas de la puerta se abrió y el radio de su apertura", MsgBoxStyle.Critical, "Error")
+                Case Languages.Portuguêse
+                    MsgBox("Você deve digitar todas as coordenadas de a porta se abriu e um raio de sua abertura", MsgBoxStyle.Critical, "Erro")
+                Case Else
+                    MsgBox("Sie müssen alle Koordinaten der geöffneten Tür und der Eröffnung der Radius eingeben", MsgBoxStyle.Critical, "Error")
+            End Select
+            Exit Sub
+        ElseIf TextBox85.Text.Length = 0 OrElse TextBox84.Text.Length = 0 OrElse TextBox83.Text.Length = 0 OrElse TextBox82.Text.Length = 0 OrElse TextBox81.Text.Length = 0 OrElse TextBox80.Text.Length = 0 OrElse TextBox76.Text.Length = 0 Then
+            Select Case Settings.Language
+                Case Languages.English
+                    MsgBox("You must enter all coordinates of the closed door and its closing's radius", MsgBoxStyle.Critical, "Error")
+                Case Languages.Español
+                    MsgBox("Debe introducir todas las coordenadas de la puerta cerrada y el radio de su cierre", MsgBoxStyle.Critical, "Error")
+                Case Languages.Portuguêse
+                    MsgBox("Você deve digitar todas as coordenadas da porta fechada e raio do seu encerramento", MsgBoxStyle.Critical, "Erro")
+                Case Else
+                    MsgBox("Sie müssen alle Koordinaten der geschlossenen Tür und seine Schließung des Radius", MsgBoxStyle.Critical, "Error")
+            End Select
+            Exit Sub
+        ElseIf TextBox49.Text.Length = 0 Then
+            Select Case Settings.Language
+                Case Languages.English
+                    MsgBox("You must enter a speed for the gate movement", MsgBoxStyle.Critical, "Error")
+                Case Languages.Español
+                    MsgBox("Debes introducir una velocidad para el movimiento de la puerta", MsgBoxStyle.Critical, "Error")
+                Case Languages.Portuguêse
+                    MsgBox("Você deve digitar uma velocidade para o movimento do portão", MsgBoxStyle.Critical, "Erro")
+                Case Else
+                    MsgBox("Sie müssen eine Geschwindigkeit für die Bewegung des Tors betreten", MsgBoxStyle.Critical, "Error")
+            End Select
+            Exit Sub
+        ElseIf CheckBox13.Checked Then
+            If (TextBox86.Text.Length = 0 OrElse TextBox87.Text.Length = 0) Then
+                Select Case Settings.Language
+                    Case Languages.English
+                        MsgBox("You must enter a valid 'Team Array' and a valid 'Team ID'", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Español
+                        MsgBox("Debe introducir un 'Team Array' válido y un 'Team ID' válido", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Portuguêse
+                        MsgBox("Você deve digitar um válido 'Team Array' e um 'Team ID' válido", MsgBoxStyle.Critical, "Erro")
+                    Case Else
+                        MsgBox("Sie müssen einen gültigen 'Team Array' und ein gültiger 'Team ID'", MsgBoxStyle.Critical, "Error")
+                End Select
+                Exit Sub
+            ElseIf TextBox86.Text.IndexOf("{P}") = -1 Then
+                Select Case Settings.Language
+                    Case Languages.English
+                        MsgBox("Invalid 'Team Array' format", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Español
+                        MsgBox("Formato de 'Team Array' invalido", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Portuguêse
+                        MsgBox("Formato inválido 'Team Array'", MsgBoxStyle.Critical, "Erro")
+                    Case Else
+                        MsgBox("Ungültige 'Team Array'-Format", MsgBoxStyle.Critical, "Error")
+                End Select
+                Exit Sub
+            End If
+        Else
+            If TextBox60.Text = TextBox59.Text Then RadioButton17.Checked = True
+            If RadioButton22.Checked Then 'Different commands
+                If TextBox60.Text.Length = 0 Then
+                    Select Case Settings.Language
+                        Case Languages.English
+                            MsgBox("You must enter the name of the command to open the door.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Español
+                            MsgBox("Debes ingresar el nombre del comando para abrir la puerta.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Portuguêse
+                            MsgBox("Você deve digitar o nome do comando para abrir a porta.", MsgBoxStyle.Critical, "Error")
+                        Case Else
+                            MsgBox("Du musst einen Befehl zum Öffnen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
+                    End Select
+                    Exit Sub
+                ElseIf TextBox59.Text.Length = 0 Then
+                    Select Case Settings.Language
+                        Case Languages.English
+                            MsgBox("You must enter the name of the command to close the door.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Español
+                            MsgBox("Debes ingresar el nombre del comando para cerrar la puerta.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Portuguêse
+                            MsgBox("Você deve digitar o nome do comando para trancar a porta.", MsgBoxStyle.Critical, "Error")
+                        Case Else
+                            MsgBox("Du musst einen Befehl zum Schließen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
+                    End Select
+                    Exit Sub
+                Else 'Different commands
+                    TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
+                        "new Gate;" & vbNewLine & vbNewLine
+                    If CheckBox12.Checked Then
+                        TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
+                    Else
+                        TextBox75.Text += "public OnGameModeInit()" & vbNewLine
+                    End If
+                    TextBox75.Text += "{" & vbNewLine & _
+                        vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
+                        vbTab & "return 1;" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine
+                    If RadioButton16.Checked Then 'No cmd processor
+                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "if(!strcmp(cmdtext, ""/" & TextBox60.Text & """, true)" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                            vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                        If CheckBox11.Checked Then
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                            vbTab & "}" & vbNewLine & _
+                            vbTab & "else if(!strcmp(cmdtext, ""/" & TextBox59.Text & """, true)" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                            vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                        If CheckBox7.Checked Then
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                            vbTab & "}" & vbNewLine & _
+                            vbTab & "return 0;" & vbNewLine & _
+                            "}"
+                    ElseIf RadioButton15.Checked Then 'DCMD
+                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "dcmd(" & TextBox60.Text & ", " & TextBox60.Text.Length & ", cmdtext);" & vbNewLine & _
+                            vbTab & "dcmd(" & TextBox59.Text & ", " & TextBox59.Text.Length & ", cmdtext);" & vbNewLine & _
+                            vbTab & "return 0;" & vbNewLine & _
+                            "}" & vbNewLine & vbNewLine & _
+                            "dcmd_" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                             vbTab & "#pragma unused params" & vbNewLine & _
+                             vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                             vbTab & "{" & vbNewLine & _
+                             vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                        If CheckBox11.Checked Then
+                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & "}" & vbNewLine & _
+                            "}" & vbNewLine & vbNewLine & _
+                            "dcmd_" & TextBox59.Text & "(playerid, params[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "#pragma unused params" & vbNewLine & _
+                            vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                        If CheckBox7.Checked Then
+                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & "}" & vbNewLine & _
+                            "}"
+                    Else 'ZCMD
+                        TextBox75.Text += "CMD:" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                             vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                             vbTab & "{" & vbNewLine & _
+                             vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                        If CheckBox11.Checked Then
+                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & "}" & vbNewLine & _
+                            "}" & vbNewLine & vbNewLine & _
+                            "CMD:" & TextBox59.Text & "(playerid, params[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                        If CheckBox7.Checked Then
+                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & "}" & vbNewLine & _
+                            "}"
+                    End If
+                End If
+            ElseIf RadioButton17.Checked Then 'Same command
+                If TextBox60.Text.Length = 0 Then
+                    Select Case Settings.Language
+                        Case Languages.English
+                            MsgBox("You must enter the name of the command to open and close the door.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Español
+                            MsgBox("Debe introducir el nombre del comando para abrir y cerrar la puerta.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Portuguêse
+                            MsgBox("Você deve digitar o nome do comando para abrir e fechar a porta.", MsgBoxStyle.Critical, "Erro")
+                        Case Else
+                            MsgBox("Sie müssen den Namen des Befehls zu öffnen, betreten und die Tür schließen.", MsgBoxStyle.Critical, "Error")
+                    End Select
+                    Exit Sub
+                Else
+                    TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
+                        "new Gate, bool:GateClosed = true;" & vbNewLine & vbNewLine
+                    If CheckBox12.Checked Then
+                        TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
+                    Else
+                        TextBox75.Text += "public OnGameModeInit()" & vbNewLine
+                    End If
+                    TextBox75.Text += "{" & vbNewLine & _
+                        vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
+                        vbTab & "return 1;" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine
+                    If RadioButton16.Checked Then 'No cmd processor
+                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "if(!strcmp(cmdtext, """ & TextBox60.Text & """, true))" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "if(GateClosed)" & vbNewLine & _
+                            vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
+                            vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                        If CheckBox11.Checked Then
+                            TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                            vbTab & vbTab & "}" & vbNewLine & _
+                            vbTab & vbTab & "else" & vbNewLine & _
+                            vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & vbTab & "GateClosed = true" & vbNewLine & _
+                            vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                        If CheckBox7.Checked Then
+                            TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & "}" & vbNewLine & _
+                        vbTab & "return 0;" & vbNewLine & _
+                        "}"
+                    ElseIf RadioButton15.Checked Then 'DCMD
+                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                            "{" & vbNewLine & vbNewLine & _
+                            vbTab & "dcmd(" & TextBox60.Text & ", " & TextBox60.Text.Length & ", cmdtext);" & vbNewLine & _
+                            vbTab & "return 0;" & vbNewLine & _
+                            "}" & vbNewLine & vbNewLine & _
+                            "dcmd_" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "#pragma unused params" & vbNewLine & _
+                            vbTab & "if(GateClosed)" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                            vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                        If CheckBox11.Checked Then
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                            vbTab & "}" & vbNewLine & _
+                            vbTab & "else" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                            vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "GateClosed = true" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                        If CheckBox7.Checked Then
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & "}" & vbNewLine & _
+                            "}"
+                    Else 'ZCMD
+                        TextBox75.Text += "CMD:" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "if(GateClosed)" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                            vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                        If CheckBox11.Checked Then
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                            vbTab & "}" & vbNewLine & _
+                            vbTab & "else" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                            vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "GateClosed = true" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                        If CheckBox7.Checked Then
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & "}" & vbNewLine & _
+                            "}"
+                    End If
+                End If
+            ElseIf RadioButton21.Checked Then 'Semi automatic 
+                If TextBox60.Text.Length = 0 Then
+                    Select Case Settings.Language
+                        Case Languages.English
+                            MsgBox("You must enter the name of the command to open the door.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Español
+                            MsgBox("Debes ingresar el nombre del comando para abrir la puerta.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Portuguêse
+                            MsgBox("Você deve digitar o nome do comando para abrir a porta.", MsgBoxStyle.Critical, "Error")
+                        Case Else
+                            MsgBox("Du musst einen Befehl zum Öffnen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
+                    End Select
+                    Exit Sub
+                ElseIf TextBox48.Text.Length = 0 Then
+                    Select Case Settings.Language
+                        Case Languages.English
+                            MsgBox("You must enter a valid time to close the door.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Español
+                            MsgBox("Debes ingresar un tiempo valido para cerrar la puerta.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Portuguêse
+                            MsgBox("Você deve inserir um tempo válido para fechar a porta.", MsgBoxStyle.Critical, "Error")
+                        Case Else
+                            MsgBox("Du musst eine gültige Zeit zum Öffnen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
+                    End Select
+                    Exit Sub
+                Else
+                    TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
+                        "new Gate;" & vbNewLine & vbNewLine
+                    If CheckBox12.Checked Then
+                        TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
+                    Else
+                        TextBox75.Text += "public OnGameModeInit()" & vbNewLine
+                    End If
+                    TextBox75.Text += "{" & vbNewLine & _
+                        vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
+                        vbTab & "return 1;" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine
+                    If RadioButton16.Checked Then 'No cmd processor
+                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "if(!strcmp(cmdtext, """ & TextBox60.Text & ", true))" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                            vbTab & vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "SetTimerEx(""CloseGate"", " & TextBox48.Text & ", false, ""i"", playerid);" & vbNewLine & _
+                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                        If CheckBox11.Checked Then
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                            vbTab & "}" & vbNewLine & _
+                            "}" & vbNewLine & vbNewLine
+                    ElseIf RadioButton15.Checked Then 'DCMD
+                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "dcmd(" & TextBox60.Text & ", " & TextBox60.Text.Length & ", cmdtext);" & vbNewLine & _
+                            vbTab & "return 0;" & vbNewLine & _
+                            "}" & vbNewLine & vbNewLine & _
+                            "dcmd_" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            "#pragma unused params" & vbNewLine & _
+                            vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "SetTimerEx(""CloseGate"", " & TextBox48.Text & ", false, ""i"", playerid);" & vbNewLine & _
+                            vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                        If CheckBox11.Checked Then
+                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & "}" & vbNewLine & _
+                            "}" & vbNewLine & vbNewLine
+                    Else 'ZCMD
+                        TextBox75.Text += "CMD:" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                            "{" & vbNewLine & _
+                            vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                            vbTab & "{" & vbNewLine & _
+                            vbTab & vbTab & "SetTimerEx(""CloseGate"", " & TextBox48.Text & ", false, ""i"", playerid);" & vbNewLine & _
+                            vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                        If CheckBox11.Checked Then
+                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                        Else
+                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                        End If
+                        TextBox75.Text += vbTab & "}" & vbNewLine & _
+                            "}" & vbNewLine & vbNewLine
+                    End If
+                    TextBox75.Text += "forward CloseGate(playerid);" & vbNewLine & _
+                        "public CloseGate(playerid)" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox79.Text & ");" & vbNewLine
+                    If CheckBox7.Checked Then TextBox75.Text += vbTab & "SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                    TextBox75.Text += "}"
+                End If
+            Else
+                If TextBox48.Text.Length = 0 Then
+                    Select Case Settings.Language
+                        Case Languages.English
+                            MsgBox("You must enter a valid time to oepn and close the door.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Español
+                            MsgBox("Debe introducir un tiempo válido para oepn y cierre la puerta.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Portuguêse
+                            MsgBox("Você deve digitar uma hora válida para oepn e feche a porta.", MsgBoxStyle.Critical, "Erro")
+                        Case Else
+                            MsgBox("Sie müssen eine gültige Zeit zu oepn und schließen Sie die Tür einzutreten.", MsgBoxStyle.Critical, "Error")
+                    End Select
+                    Exit Sub
+                Else
+                    TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
+                        "new Gatebool:GateClosed = true;" & vbNewLine & vbNewLine
+                    If CheckBox12.Checked Then
+                        TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
+                    Else
+                        TextBox75.Text += "public OnGameModeInit()" & vbNewLine
+                    End If
+                    TextBox75.Text += """{" & vbNewLine & _
+                        vbTab & "Gate = CreateObject(" & TextBox24.Text & ", " & TextBox21.Text & ", " & TextBox20.Text & ", " & TextBox19.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox17.Text & ", 100.0);" & vbNewLine & _
+                        vbTab & "SetTimer(""GateCheck"", " & TextBox28.Text & ", true);" & vbNewLine & _
+                        vbTab & "return 1;" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine & _
+                        "forward GateCheck();" & vbNewLine & _
+                        "public GateCheck()" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "if(!IsObjectMoving(Gate)){" & vbNewLine & _
+                        vbTab & vbTab & "for(new i; i<GetMaxPlayers(); i++){" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "if(IsPlayerConnected(i) && " & TextBox86.Text.Replace("{P}", "i") & " == " & TextBox87.Text & " && IsPlayerInRangeOfPoint(i, " & TextBox14.Text & ", " & TextBox21.Text & ", " & TextBox20.Text & ", " & TextBox19.Text & ")){" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & "if(GateClosed){" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then TextBox75.Text += "SendClientMessage(i, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                    TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & "else{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & vbTab & "GateClosed = true;" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox79.Text & ");" & vbNewLine
+                    If CheckBox7.Checked Then TextBox75.Text += "SendClientMessage(i, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                    TextBox75.Text += vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & "}" & vbNewLine & _
+                        "}"
+                End If
+            End If
+        End If
+    End Sub
+
+#End Region
+
+#Region "Extra"
+
+    Private Sub LinkLabel2_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles LinkLabel2.LinkClicked
+        Process.Start("http://wiki.sa-mp.com/wiki/Objects")
+    End Sub
+
+#End Region
+
+#Region "Help"
+
+    Private Sub PictureBox13_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles PictureBox13.Click
+        tSender = MsgT.gFormatTuto
+        With MultiF
+            .Show()
+            .Size = New Size(642, 380)
+            .Location = New Point(Me.Location.X + 130, Me.Location.Y + 100)
+            .Opacity = 80
+        End With
     End Sub
 
 #End Region
@@ -2532,7 +3408,7 @@ Public Class Tools
 
 #Region "Arrays"
 
-    Dim Selection As Area, aCount As Integer, Areas As String, pAreas As String
+    Dim Selection As Area, Areas As New List(Of AreaInfo)
 
 #End Region
 
@@ -2670,16 +3546,16 @@ Public Class Tools
                     End If
                 End If
                 TextBox22.Text = Round(6000 / TrackBar14.Value * .minX - 3000, 6)
-                TextBox23.Text = Round(6000 / TrackBar14.Value * .minY - 3000, 6)
+                TextBox23.Text = Round(6000 / TrackBar14.Value * .minY - 3000, 6) * -1
                 If .maxX = PictureBox6.Width - 1 Then
                     TextBox24.Text = 3000
                 Else
                     TextBox24.Text = Round(6000 / TrackBar14.Value * .maxX - 3000, 6)
                 End If
                 If .maxY = PictureBox6.Height - 1 Then
-                    TextBox25.Text = 3000
+                    TextBox25.Text = 3000 * -1
                 Else
-                    TextBox25.Text = Round(6000 / TrackBar14.Value * .maxY - 3000, 6)
+                    TextBox25.Text = Round(6000 / TrackBar14.Value * .maxY - 3000, 6) * -1
                 End If
                 TextBox22.Text = TextBox22.Text.Replace(",", ".")
                 TextBox23.Text = TextBox23.Text.Replace(",", ".")
@@ -2698,17 +3574,24 @@ Public Class Tools
             g = Graphics.FromImage(PictureBox6.Image)
             tmp = 2048 / TrackBar14.Value
             If CheckBox8.Checked Then
+                Dim area As New AreaInfo
+                area.Index = Areas.Count
+                area.Pos = New Rectangle(Selection.minX, Selection.minY, Selection.maxX - Selection.minX, Selection.maxY - Selection.minY)
+                area.Color = Settings.C_Area
+                area.Min = New PointF(TextBox22.Text.Replace(".", ","), TextBox23.Text.Replace(".", ","))
+                area.Max = New PointF(TextBox24.Text.Replace(".", ","), TextBox25.Text.Replace(".", ","))
+                area.Res = TrackBar14.Value
                 If RadioButton18.Checked Then
-                    Areas += String.Format("Area[{4}] = " & Settings.AreaCreateOutput & vbNewLine & Settings.AreaShowOutput & vbNewLine, TextBox22.Text, TextBox23.Text, TextBox24.Text, TextBox25.Text, aCount, "Area[" & aCount & "]", Settings.C_Area.Name)
+                    area.format = AreaFormat.Area
                 Else
-                    Areas += String.Format(Settings.BoundsOutput & vbNewLine, TextBox22.Text, TextBox24.Text, TextBox23.Text, TextBox25.Text)
+                    area.format = AreaFormat.WorldBounds
                 End If
-                pAreas += Selection.minX & "|,|" & Selection.minY & "|,|" & Selection.maxX & "|,|" & Selection.maxY & "|;|"
-                aCount += 1
+                Areas.Add(area)
             End If
             If Not CheckBox10.Checked Then
-                g.DrawRectangle(New Pen(Settings.C_Area.Hex), Selection.minX * tmp, Selection.minY * tmp, (Selection.maxX - Selection.minX) * tmp, (Selection.maxY - Selection.minY) * tmp)
+                g.DrawRectangle(New Pen(Settings.C_Area.Hex, 2.0), Selection.minX * tmp, Selection.minY * tmp, (Selection.maxX - Selection.minX) * tmp, (Selection.maxY - Selection.minY) * tmp)
             Else
+                Dim XX As Single = Selection.minX * tmp
                 g.FillRectangle(New SolidBrush(Settings.C_Area.Hex), Selection.minX * tmp, Selection.minY * tmp, (Selection.maxX - Selection.minX) * tmp, (Selection.maxY - Selection.minY) * tmp)
             End If
             g.Dispose()
@@ -2722,7 +3605,7 @@ Public Class Tools
 #Region "Buttons"
 
     Private Sub Button15_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button15.Click
-        If CheckBox8.Checked = False Then
+        If CheckBox8.Checked = False Or Areas.Count = 1 Then
             If TextBox22.Text.Length = 0 OrElse TextBox23.Text.Length = 0 OrElse TextBox24.Text.Length = 0 OrElse TextBox25.Text.Length = 0 Then
                 Select Case Settings.Language
                     Case Languages.English
@@ -2757,7 +3640,7 @@ Public Class Tools
                 Exit Sub
             End Try
         Else
-            If Areas Is Nothing OrElse Areas.Length = 0 Then
+            If Areas Is Nothing OrElse Areas.Count = 0 Then
                 Select Case Settings.Language
                     Case Languages.English
                         MsgBox("You must select an area first.", MsgBoxStyle.Critical, "Error")
@@ -2771,9 +3654,15 @@ Public Class Tools
                 Exit Sub
             End If
             If RadioButton18.Checked Then
-                Instances(Main.TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = "new Area[" & aCount & "];" & vbNewLine
+                Instances(Main.TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = "new Area[" & Areas.Count & "];" & vbNewLine
             End If
-            Instances(Main.TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = Areas
+            For Each Area As AreaInfo In Areas
+                If Area.format = AreaFormat.Area Then
+                    Instances(Main.TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = String.Format("Area[" & Area.Index & "] = " & Settings.AreaCreateOutput & vbNewLine & Settings.AreaShowOutput & vbNewLine, Area.Min.X.ToString.Replace(",", "."), Area.Min.Y.ToString.Replace(",", "."), Area.Max.X.ToString.Replace(",", "."), Area.Max.Y.ToString.Replace(",", "."), "Area[" & Area.Index & "]", Area.Color.Name)
+                Else
+                    Instances(Main.TabControl1.SelectedIndex).SyntaxHandle.Selection.Text = String.Format(Settings.BoundsOutput & vbNewLine, Area.Min.X.ToString.Replace(",", "."), Area.Min.Y.ToString.Replace(",", "."), Area.Max.X.ToString.Replace(",", "."), Area.Max.Y.ToString.Replace(",", "."))
+                End If
+            Next
         End If
         Me.Hide()
         Me.Owner.Refresh()
@@ -2785,9 +3674,7 @@ Public Class Tools
         TextBox23.Clear()
         TextBox24.Clear()
         TextBox25.Clear()
-        Areas = ""
-        pAreas = ""
-        aCount = 0
+        Areas.Clear()
     End Sub
 
     Private Sub Button17_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button17.Click
@@ -2796,16 +3683,11 @@ Public Class Tools
         TextBox23.Clear()
         TextBox24.Clear()
         TextBox25.Clear()
-        Areas = ""
-        pAreas = ""
-        aCount = 0
+        Areas.Clear()
     End Sub
 
     Private Sub Button18_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button18.Click
         gSender = CC.Area
-        eColor.TrackBar4.Enabled = True
-        eColor.TextBox4.Enabled = True
-        eColor.Owner = Me
         eColor.Show()
         eColor.Panel1.BackColor = Settings.C_Area.Hex
         eColor.TextBox1.Text = Settings.C_Area.Hex.R
@@ -2852,25 +3734,28 @@ Public Class Tools
 
     Private Sub CheckBox8_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox8.CheckedChanged
         If CheckBox8.Checked Then
-            Button17.Visible = True
+            Button17.Enabled = True
             If TextBox22.Text.Length > 0 Then
+                Dim area As New AreaInfo
+                area.Index = Areas.Count
+                area.Pos = New Rectangle(Selection.minX, Selection.minY, Selection.maxX - Selection.minX, Selection.maxY - Selection.minY)
+                area.Color = Settings.C_Area
                 If RadioButton18.Checked Then
-                    Areas += String.Format("Area[{4}] = " & Settings.AreaCreateOutput & vbNewLine & Settings.AreaShowOutput & vbNewLine, TextBox22.Text, TextBox23.Text, TextBox24.Text, TextBox25.Text, aCount, "Area[" & aCount & "]", Settings.C_Area.Name)
+                    area.format = AreaFormat.Area
                 Else
-                    Areas = String.Format(Settings.BoundsOutput & vbNewLine, TextBox22.Text, TextBox24.Text, TextBox23.Text, TextBox25.Text)
+                    area.format = AreaFormat.WorldBounds
                 End If
-                pAreas += Selection.minX & "|,|" & Selection.minY & "|,|" & Selection.maxX & "|,|" & Selection.maxY & "|;|"
-                aCount += 1
+                Areas.Add(area)
             End If
         Else
-            Button17.Visible = False
-            Areas = ""
-            pAreas = ""
+            Button17.Enabled = False
+            Areas.Clear()
             PictureBox6.Image = My.Resources.Map
-            TextBox22.Clear()
-            TextBox23.Clear()
-            TextBox24.Clear()
-            TextBox25.Clear()
+            Dim res As Single, g As Graphics = Graphics.FromImage(PictureBox6.Image)
+            res = 2048 / TrackBar14.Value
+            g.FillRectangle(New SolidBrush(Settings.C_Area.Hex), Selection.minX * res, Selection.minY * res, (Selection.maxX - Selection.minX) * res, (Selection.maxY - Selection.minY) * res)
+            g.Dispose()
+            PictureBox6.Refresh()
         End If
         Settings.A_MSelect = CheckBox8.Checked
     End Sub
@@ -2879,14 +3764,12 @@ Public Class Tools
         Dim res As Single = 2048 / TrackBar14.Value
         If CheckBox10.Checked Then
             If CheckBox8.Checked Then
-                If Not Areas Is Nothing AndAlso Areas.Length > 0 Then
+                If Not Areas Is Nothing AndAlso Areas.Count <> 0 Then
                     PictureBox6.Image = My.Resources.Map
-                    Dim tmp As String(), line As String(), g As Graphics
-                    tmp = Split(pAreas, "|;|")
-                    g = Graphics.FromImage(PictureBox6.Image)
-                    For i = 0 To UBound(tmp) - 1
-                        line = Split(tmp(i), "|,|")
-                        g.FillRectangle(New SolidBrush(Settings.C_Area.Hex), CInt(line(0)) * res, CInt(line(1)) * res, (CInt(line(2)) - CInt(line(0))) * res, (CInt(line(3)) - CInt(line(1))) * res)
+                    Dim g As Graphics = Graphics.FromImage(PictureBox6.Image)
+                    For Each Area As AreaInfo In Areas
+                        Dim XX As Single = Area.Pos.X * Area.Res
+                        g.FillRectangle(New SolidBrush(Area.Color.Hex), Area.Pos.X * res, Area.Pos.Y * res, Area.Pos.Width * res, Area.Pos.Height * res)
                     Next
                     g.Dispose()
                     PictureBox6.Refresh()
@@ -2899,15 +3782,12 @@ Public Class Tools
                 PictureBox6.Refresh()
             End If
         Else
-            If CheckBox8.Checked = True Then
-                If Not Areas Is Nothing AndAlso Areas.Length > 1 Then
+            If CheckBox8.Checked Then
+                If Not Areas Is Nothing AndAlso Areas.Count <> 0 Then
                     PictureBox6.Image = My.Resources.Map
-                    Dim tmp As String(), line As String(), g As Graphics
-                    tmp = Split(pAreas, "|;|")
-                    g = Graphics.FromImage(PictureBox6.Image)
-                    For i = 0 To UBound(tmp) - 1
-                        line = Split(tmp(i), "|,|")
-                        g.DrawRectangle(New Pen(Settings.C_Area.Hex), CInt(line(0)) * res, CInt(line(1)) * res, (CInt(line(2)) - CInt(line(0))) * res, (CInt(line(3)) - CInt(line(1))) * res)
+                    Dim g As Graphics = Graphics.FromImage(PictureBox6.Image)
+                    For Each Area As AreaInfo In Areas
+                        g.DrawRectangle(New Pen(Area.Color.Hex), Area.Pos.X * res, Area.Pos.Y * res, Area.Pos.Width * res, Area.Pos.Height * res)
                     Next
                     g.Dispose()
                     PictureBox6.Refresh()
@@ -2925,30 +3805,14 @@ Public Class Tools
 
     Private Sub RadioButton18_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RadioButton18.CheckedChanged
         If CheckBox8.Checked Then
-            If Not Areas Is Nothing AndAlso Areas.Length > 0 Then
+            If Not Areas Is Nothing AndAlso Areas.Count <> 0 Then
                 If RadioButton18.Checked Then
-                    Areas = ""
-                    Dim tmp As String(), line As String()
-                    tmp = Split(pAreas, "|;|")
-                    For i = 0 To UBound(tmp) - 1
-                        line = Split(tmp(i), "|,|")
-                        Areas += String.Format("Area[{4}] = " & Settings.AreaCreateOutput & vbNewLine & Settings.AreaShowOutput & vbNewLine, Round(6000 / TrackBar14.Value * CInt(line(0)) - 3000, 6), Round(6000 / TrackBar14.Value * CInt(line(1)) - 3000, 6), Round(6000 / TrackBar14.Value * CInt(line(2)) - 3000, 6), Round(6000 / TrackBar14.Value * CInt(line(3)) - 3000, 6), aCount, "Area[" & aCount & "]", Settings.C_Area.Name)
+                    For Each Area As AreaInfo In Areas
+                        Area.format = AreaFormat.Area
                     Next
-                End If
-            End If
-        End If
-    End Sub
-
-    Private Sub RadioButton19_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RadioButton19.CheckedChanged
-        If CheckBox8.Checked Then
-            If Not Areas Is Nothing AndAlso Areas.Length > 0 Then
-                If RadioButton19.Checked Then
-                    Areas = ""
-                    Dim tmp As String(), line As String()
-                    tmp = Split(pAreas, "|;|")
-                    For i = 0 To UBound(tmp) - 1
-                        line = Split(tmp(i), "|,|")
-                        Areas += String.Format(Settings.BoundsOutput & vbNewLine, Round(6000 / TrackBar14.Value * CInt(line(0)) - 3000, 6), Round(6000 / TrackBar14.Value * CInt(line(2)) - 3000, 6), Round(6000 / TrackBar14.Value * CInt(line(1)) - 3000, 6), Round(6000 / TrackBar14.Value * CInt(line(3)) - 3000, 6))
+                Else
+                    For Each Area As AreaInfo In Areas
+                        Area.format = AreaFormat.WorldBounds
                     Next
                 End If
             End If
@@ -2976,528 +3840,350 @@ Public Class Tools
 #Region "Generate Code"
 
     Private Sub Button14_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button14.Click
-        Try
-            If RichTextBox3.Text.Length = 0 Then
-                Select Case Settings.Language
-                    Case Languages.English
-                        MsgBox("You must add some objects and/or vehicles to convert.", MsgBoxStyle.Critical, "Error")
-                    Case Languages.Español
-                        MsgBox("Debes ingresar objetos y/o vehiculos para convertir.", MsgBoxStyle.Critical, "Error")
-                    Case Languages.Portuguêse
-                        MsgBox("Você deve inserir objetos e / ou veículos para converter.", MsgBoxStyle.Critical, "Error")
-                    Case Else
-                        MsgBox("Sie müssen Objekte und / oder Fahrzeuge zu konvertieren.", MsgBoxStyle.Critical, "Error")
-                End Select
+        'Try
+        If RichTextBox3.Text.Length = 0 Then
+            Select Case Settings.Language
+                Case Languages.English
+                    MsgBox("You must add some objects and/or vehicles to convert.", MsgBoxStyle.Critical, "Error")
+                Case Languages.Español
+                    MsgBox("Debes ingresar objetos y/o vehiculos para convertir.", MsgBoxStyle.Critical, "Error")
+                Case Languages.Portuguêse
+                    MsgBox("Você deve inserir objetos e / ou veículos para converter.", MsgBoxStyle.Critical, "Error")
+                Case Else
+                    MsgBox("Sie müssen Objekte und / oder Fahrzeuge zu konvertieren.", MsgBoxStyle.Critical, "Error")
+            End Select
+            Exit Sub
+        End If
+        TextBox26.Clear()
+        If ComboBox3.Text = ComboBox4.Text Then
+            If CheckBox9.Checked = False Then
+                TextBox26.Text = RichTextBox3.Text
                 Exit Sub
             End If
-            TextBox26.Clear()
-            If ComboBox3.Text = ComboBox4.Text Then
-                If CheckBox9.Checked = False Then
-                    TextBox26.Text = RichTextBox3.Text
-                    Exit Sub
-                End If
-            End If
-            Dim pos() As String, _
-                ObjOutput As String, ObjOutPut2 As String = vbNullString, VehOutput As String = vbNullString, _
-                oCount As Integer, vCount As Integer, ObjArray As Boolean, VehArray As Boolean, _
-                ConvertedString As String = vbNullString
-            If TextBox41.Text.Length > 0 Then
-                ObjArray = True
-                Select Case ComboBox4.SelectedIndex
-                    Case 0
-                        ObjOutput = TextBox41.Text & "[{0}] = CreateObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
-                    Case 1
-                        If CheckBox3.Checked Then
-                            ObjOutput = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});" & vbNewLine
-                            ObjOutPut2 = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
-                        Else
-                            ObjOutput = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
-                        End If
-                    Case 2
+        End If
+        Dim pos() As String, _
+            ObjOutput As String, ObjOutPut2 As String = vbNullString, VehOutput As String = vbNullString, _
+            oCount As Integer, vCount As Integer, ObjArray As Boolean, VehArray As Boolean, _
+            ConvertedString As String = vbNullString
+        If TextBox41.Text.Length > 0 Then
+            ObjArray = True
+            Select Case ComboBox4.SelectedIndex
+                Case 0
+                    ObjOutput = TextBox41.Text & "[{0}] = CreateObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
+                Case 1
+                    If CheckBox3.Checked Then
+                        ObjOutput = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});" & vbNewLine
+                        ObjOutPut2 = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
+                    Else
                         ObjOutput = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
-                    Case 3
-                        ObjOutput = TextBox41.Text & "[{0}] = CreateStreamedObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
-                    Case 4
-                        ObjOutput = TextBox41.Text & "[{0}] = CreateStreamObject({1}, {2}, {3}, {4}, {5}, {6}, {7}, 250.0);" & vbNewLine
-                    Case 5
-                        ObjOutput = TextBox41.Text & "[{0}] = CreateStreamObject({1}, {2}, {3}, {4}, {5}, {6}, {7}, 250.0);" & vbNewLine
-                    Case 6
-                        ObjOutput = TextBox41.Text & "[{0}] = F_CreateObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
-                    Case Else
-                        ObjOutput = TextBox41.Text & "[{0}] = CreateObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
-                End Select
-            Else
-                ObjArray = False
-                Select Case ComboBox4.SelectedIndex
-                    Case 0
-                        ObjOutput = "CreateObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
-                    Case 1
-                        If CheckBox3.Checked Then
-                            ObjOutput = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6}, , {8}, {9});" & vbNewLine
-                            ObjOutPut2 = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
-                        Else
-                            ObjOutput = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
-                        End If
-                    Case 2
+                    End If
+                Case 2
+                    ObjOutput = TextBox41.Text & "[{0}] = CreateDynamicObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
+                Case 3
+                    ObjOutput = TextBox41.Text & "[{0}] = CreateStreamedObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
+                Case 4
+                    ObjOutput = TextBox41.Text & "[{0}] = CreateStreamObject({1}, {2}, {3}, {4}, {5}, {6}, {7}, 250.0);" & vbNewLine
+                Case 5
+                    ObjOutput = TextBox41.Text & "[{0}] = CreateStreamObject({1}, {2}, {3}, {4}, {5}, {6}, {7}, 250.0);" & vbNewLine
+                Case 6
+                    ObjOutput = TextBox41.Text & "[{0}] = F_CreateObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
+                Case Else
+                    ObjOutput = TextBox41.Text & "[{0}] = CreateObject({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
+            End Select
+        Else
+            ObjArray = False
+            Select Case ComboBox4.SelectedIndex
+                Case 0
+                    ObjOutput = "CreateObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
+                Case 1
+                    If CheckBox3.Checked Then
+                        ObjOutput = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6}, , {8}, {9});" & vbNewLine
+                        ObjOutPut2 = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
+                    Else
                         ObjOutput = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
-                    Case 3
-                        ObjOutput = "CreateStreamedObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
-                    Case 4
-                        ObjOutput = "CreateStreamObject({0}, {1}, {2}, {3}, {4}, {5}, {6}, 250.0);" & vbNewLine
-                    Case 5
-                        ObjOutput = "CreateStreamObject({0}, {1}, {2}, {3}, {4}, {5}, {6}, 250.0);" & vbNewLine
-                    Case 6
-                        ObjOutput = "F_CreateObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
-                    Case Else
-                        ObjOutput = "CreateObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
-                End Select
-            End If
-            ObjOutPut2 = ObjOutput
-            If Not CheckBox4.Checked Then
-                If TextBox42.Text.Length > 0 Then
-                    VehArray = True
-                    If CheckBox2.Checked = True Then
-                        VehOutput = TextBox42.Text & "[{0}] = AddStaticVehicleEx({1}, {2}, {3}, {4}, {5}, {6}, {7}, {8});" & vbNewLine
-                    Else
-                        VehOutput = TextBox42.Text & "[{0}] = AddStaticVehicle({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
                     End If
+                Case 2
+                    ObjOutput = "CreateDynamicObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
+                Case 3
+                    ObjOutput = "CreateStreamedObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
+                Case 4
+                    ObjOutput = "CreateStreamObject({0}, {1}, {2}, {3}, {4}, {5}, {6}, 250.0);" & vbNewLine
+                Case 5
+                    ObjOutput = "CreateStreamObject({0}, {1}, {2}, {3}, {4}, {5}, {6}, 250.0);" & vbNewLine
+                Case 6
+                    ObjOutput = "F_CreateObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
+                Case Else
+                    ObjOutput = "CreateObject({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
+            End Select
+        End If
+        ObjOutPut2 = ObjOutput
+        If Not CheckBox4.Checked Then
+            If TextBox42.Text.Length > 0 Then
+                VehArray = True
+                If CheckBox2.Checked = True Then
+                    VehOutput = TextBox42.Text & "[{0}] = AddStaticVehicleEx({1}, {2}, {3}, {4}, {5}, {6}, {7}, {8});" & vbNewLine
                 Else
-                    VehArray = False
-                    If CheckBox2.Checked = True Then
-                        VehOutput = "AddStaticVehicleEx({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
-                    Else
-                        VehOutput = "AddStaticVehicle({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
-                    End If
+                    VehOutput = TextBox42.Text & "[{0}] = AddStaticVehicle({1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
+                End If
+            Else
+                VehArray = False
+                If CheckBox2.Checked = True Then
+                    VehOutput = "AddStaticVehicleEx({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine
+                Else
+                    VehOutput = "AddStaticVehicle({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine
                 End If
             End If
-            Select Case ComboBox3.SelectedIndex
-                Case 0 'SA-MP
-                    For Each line In RichTextBox3.Lines
-                        If line.IndexOf("CreateObject(") > -1 Then
-                            pos = Split(Trim(Mid(Mid(line, line.IndexOf("(") + 2, line.Length - line.IndexOf("(")), 1, line.Length - 3)), ",")
-                            Dim i As Integer = UBound(pos)
-                            pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
-                            If ObjArray Then
-                                ConvertedString += String.Format(ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
-                            Else
-                                ConvertedString += String.Format(ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
-                            End If
-                            oCount += 1
-                        ElseIf line.IndexOf("AddStaticVehicle(") > -1 AndAlso Not CheckBox4.Checked Then
-                            pos = Split(Trim(Mid(Mid(line, line.IndexOf("(") + 2, line.Length - line.IndexOf("(")), 1, line.Length - 3)), ",")
-                            Dim i As Integer = UBound(pos)
-                            pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
-                            If VehArray Then
-                                ConvertedString += String.Format("{0}[{1}] = AddStaticVehicle({2}, {3}, {4}, {5}, {6}, {7}, {8});" & vbNewLine, vCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6))
-                            Else
-                                ConvertedString += String.Format("AddStaticVehicle({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6))
-                            End If
-                            vCount += 1
-                        ElseIf line.IndexOf("AddStaticVehicleEx(") > -1 AndAlso Not CheckBox4.Checked Then
-                            pos = Split(Trim(Mid(Mid(line, line.IndexOf("(") + 2, line.Length - line.IndexOf("(")), 1, line.Length - 3)), ",")
-                            Dim i As Integer = UBound(pos)
-                            pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
-                            If VehArray Then
-                                ConvertedString += String.Format("{0}[{1}] = AddStaticVehicleEx({2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});" & vbNewLine, TextBox42.Text, vCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6), pos(7))
-                            Else
-                                ConvertedString += String.Format("AddStaticVehicleEx({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6), pos(7))
-                            End If
-                            vCount += 1
+        End If
+        Select Case ComboBox3.SelectedIndex
+            Case 0 'SA-MP
+                For Each line In RichTextBox3.Lines
+                    If line.IndexOf("CreateObject(") > -1 Then
+                        pos = Split(Trim(Mid(Mid(line, line.IndexOf("(") + 2, line.Length - line.IndexOf("(")), 1, line.Length - 3)), ",")
+                        Dim i As Integer = UBound(pos)
+                        pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
+                        If ObjArray Then
+                            ConvertedString += String.Format(ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        Else
+                            ConvertedString += String.Format(ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
                         End If
-                    Next
-                    TextBox26.Text = ConvertedString
-                Case 1 'MTA Race
-                    Try
-                        Dim Writer As New StreamWriter(My.Application.Info.DirectoryPath & "\Convert.tmp")
-                        Writer.Write(RichTextBox3.Text)
-                        Writer.Close()
-                        Dim Reader As Xml.XmlTextReader, Obj As ObjectInfo, Veh As VehicleInfo, type As ConvertType
-                        Reader = New Xml.XmlTextReader(My.Application.Info.DirectoryPath & "\Convert.tmp")
-                        Reader.WhitespaceHandling = Xml.WhitespaceHandling.None
-                        Do While Reader.Read()
-                            Select Case Reader.NodeType
-                                Case Xml.XmlNodeType.Element
-                                    Select Case Reader.Name
-                                        Case "object"
-                                            type = ConvertType.Obj
-                                        Case "spawnpoint"
-                                            If CheckBox4.Checked = False Then
-                                                type = ConvertType.Veh
-                                            Else
-                                                type = ConvertType.None
-                                            End If
-                                        Case "position"
-                                            Reader.Read()
-                                            If type = ConvertType.Obj Then
-                                                pos = Split(Reader.Value)
-                                                Obj.X = Convert.ToDecimal(pos(0), New Globalization.CultureInfo("en-US"))
-                                                Obj.Y = Convert.ToDecimal(pos(1), New Globalization.CultureInfo("en-US"))
-                                                Obj.Z = Convert.ToDecimal(pos(2), New Globalization.CultureInfo("en-US"))
-                                            ElseIf type = ConvertType.Veh Then
-                                                pos = Split(Reader.Value)
-                                                Veh.X = Convert.ToDecimal(pos(0), New Globalization.CultureInfo("en-US"))
-                                                Veh.Y = Convert.ToDecimal(pos(1), New Globalization.CultureInfo("en-US"))
-                                                Veh.Z = Convert.ToDecimal(pos(2), New Globalization.CultureInfo("en-US"))
-                                            End If
-                                        Case "rotation"
-                                            Reader.Read()
-                                            If type = ConvertType.Obj Then
-                                                pos = Split(Reader.Value)
-                                                Obj.rX = Convert.ToDecimal(pos(0), New Globalization.CultureInfo("en-US"))
-                                                Obj.rY = Convert.ToDecimal(pos(1), New Globalization.CultureInfo("en-US"))
-                                                Obj.rZ = Convert.ToDecimal(pos(2), New Globalization.CultureInfo("en-US"))
-                                            ElseIf type = ConvertType.Veh Then
-                                                Veh.R = Convert.ToDecimal(Reader.Value, New Globalization.CultureInfo("en-US"))
-                                            End If
-                                        Case "model"
-                                            Reader.Read()
-                                            Obj.Model = Reader.Value
-                                            If CheckBox9.Checked Then
-                                                Select Case Obj.Model
-                                                    Case 14383 To 14483
-                                                        Obj.Model += 4248
-                                                    Case 14770 To 14856
-                                                        Obj.Model += 4063
-                                                    Case 14858 To 14871
-                                                        Obj.Model += 4062
-                                                    Case 18000 To 18036
-                                                        Obj.Model += 934
-                                                    Case 18038 To 18101
-                                                        Obj.Model += 933
-                                                    Case 14872 To 14883
-                                                        Obj.Model += 4163
-                                                    Case 14885 To 14891
-                                                        Obj.Model += 4162
-                                                    Case 13590 To 13667
-                                                        Obj.Model += 5142
-                                                    Case 14500 To 14522
-                                                        Obj.Model += 4310
-                                                    Case 12835 To 12944
-                                                        Obj.Model += 6219
-                                                    Case 16000 To 16143
-                                                        Obj.Model += 3164
-                                                    Case 14892
-                                                        Obj.Model += 5009
-                                                End Select
-                                            End If
-                                        Case "vehicle"
-                                            Reader.Read()
-                                            Veh.Model = Reader.Value
-                                    End Select
-                                Case Xml.XmlNodeType.EndElement
-                                    Select Case Reader.Name
-                                        Case "object"
-                                            If ObjArray Then
-                                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
-                                            Else
-                                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
-                                            End If
-                                            oCount += 1
+                        oCount += 1
+                    ElseIf line.IndexOf("AddStaticVehicle(") > -1 AndAlso Not CheckBox4.Checked Then
+                        pos = Split(Trim(Mid(Mid(line, line.IndexOf("(") + 2, line.Length - line.IndexOf("(")), 1, line.Length - 3)), ",")
+                        Dim i As Integer = UBound(pos)
+                        pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
+                        If VehArray Then
+                            ConvertedString += String.Format("{0}[{1}] = AddStaticVehicle({2}, {3}, {4}, {5}, {6}, {7}, {8});" & vbNewLine, vCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6))
+                        Else
+                            ConvertedString += String.Format("AddStaticVehicle({0}, {1}, {2}, {3}, {4}, {5}, {6});" & vbNewLine, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6))
+                        End If
+                        vCount += 1
+                    ElseIf line.IndexOf("AddStaticVehicleEx(") > -1 AndAlso Not CheckBox4.Checked Then
+                        pos = Split(Trim(Mid(Mid(line, line.IndexOf("(") + 2, line.Length - line.IndexOf("(")), 1, line.Length - 3)), ",")
+                        Dim i As Integer = UBound(pos)
+                        pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
+                        If VehArray Then
+                            ConvertedString += String.Format("{0}[{1}] = AddStaticVehicleEx({2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});" & vbNewLine, TextBox42.Text, vCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6), pos(7))
+                        Else
+                            ConvertedString += String.Format("AddStaticVehicleEx({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7});" & vbNewLine, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), pos(5), pos(6), pos(7))
+                        End If
+                        vCount += 1
+                    End If
+                Next
+                TextBox26.Text = ConvertedString
+            Case 1 'MTA Race
+                Try
+                    Dim Writer As New StreamWriter(My.Application.Info.DirectoryPath & "\Convert.tmp")
+                    Writer.Write(RichTextBox3.Text)
+                    Writer.Close()
+                    Dim Reader As Xml.XmlTextReader, Obj As ObjectInfo, Veh As VehicleInfo, type As ConvertType
+                    Reader = New Xml.XmlTextReader(My.Application.Info.DirectoryPath & "\Convert.tmp")
+                    Reader.WhitespaceHandling = Xml.WhitespaceHandling.None
+                    Do While Reader.Read()
+                        Select Case Reader.NodeType
+                            Case Xml.XmlNodeType.Element
+                                Select Case Reader.Name
+                                    Case "object"
+                                        type = ConvertType.Obj
+                                    Case "spawnpoint"
+                                        If CheckBox4.Checked = False Then
+                                            type = ConvertType.Veh
+                                        Else
                                             type = ConvertType.None
-                                        Case "spawnpoint"
-                                            If CheckBox4.Checked = False Then
-                                                If VehArray Then
-                                                    If CheckBox2.Checked Then
-                                                        ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
-                                                    Else
-                                                        ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
-                                                    End If
+                                        End If
+                                    Case "position"
+                                        Reader.Read()
+                                        If type = ConvertType.Obj Then
+                                            pos = Split(Reader.Value)
+                                            Obj.X = Convert.ToDecimal(pos(0), New Globalization.CultureInfo("en-US"))
+                                            Obj.Y = Convert.ToDecimal(pos(1), New Globalization.CultureInfo("en-US"))
+                                            Obj.Z = Convert.ToDecimal(pos(2), New Globalization.CultureInfo("en-US"))
+                                        ElseIf type = ConvertType.Veh Then
+                                            pos = Split(Reader.Value)
+                                            Veh.X = Convert.ToDecimal(pos(0), New Globalization.CultureInfo("en-US"))
+                                            Veh.Y = Convert.ToDecimal(pos(1), New Globalization.CultureInfo("en-US"))
+                                            Veh.Z = Convert.ToDecimal(pos(2), New Globalization.CultureInfo("en-US"))
+                                        End If
+                                    Case "rotation"
+                                        Reader.Read()
+                                        If type = ConvertType.Obj Then
+                                            pos = Split(Reader.Value)
+                                            Obj.rX = Convert.ToDecimal(pos(0), New Globalization.CultureInfo("en-US"))
+                                            Obj.rY = Convert.ToDecimal(pos(1), New Globalization.CultureInfo("en-US"))
+                                            Obj.rZ = Convert.ToDecimal(pos(2), New Globalization.CultureInfo("en-US"))
+                                        ElseIf type = ConvertType.Veh Then
+                                            Veh.R = Convert.ToDecimal(Reader.Value, New Globalization.CultureInfo("en-US"))
+                                        End If
+                                    Case "model"
+                                        Reader.Read()
+                                        Obj.Model = Reader.Value
+                                        If CheckBox9.Checked Then
+                                            Select Case Obj.Model
+                                                Case 14383 To 14483
+                                                    Obj.Model += 4248
+                                                Case 14770 To 14856
+                                                    Obj.Model += 4063
+                                                Case 14858 To 14871
+                                                    Obj.Model += 4062
+                                                Case 18000 To 18036
+                                                    Obj.Model += 934
+                                                Case 18038 To 18101
+                                                    Obj.Model += 933
+                                                Case 14872 To 14883
+                                                    Obj.Model += 4163
+                                                Case 14885 To 14891
+                                                    Obj.Model += 4162
+                                                Case 13590 To 13667
+                                                    Obj.Model += 5142
+                                                Case 14500 To 14522
+                                                    Obj.Model += 4310
+                                                Case 12835 To 12944
+                                                    Obj.Model += 6219
+                                                Case 16000 To 16143
+                                                    Obj.Model += 3164
+                                                Case 14892
+                                                    Obj.Model += 5009
+                                            End Select
+                                        End If
+                                    Case "vehicle"
+                                        Reader.Read()
+                                        Veh.Model = Reader.Value
+                                End Select
+                            Case Xml.XmlNodeType.EndElement
+                                Select Case Reader.Name
+                                    Case "object"
+                                        If ObjArray Then
+                                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
+                                        Else
+                                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
+                                        End If
+                                        oCount += 1
+                                        type = ConvertType.None
+                                    Case "spawnpoint"
+                                        If CheckBox4.Checked = False Then
+                                            If VehArray Then
+                                                If CheckBox2.Checked Then
+                                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
                                                 Else
-                                                    If CheckBox2.Checked Then
-                                                        ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
-                                                    Else
-                                                        ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
-                                                    End If
+                                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
                                                 End If
-                                                vCount += 1
-                                                type = ConvertType.None
+                                            Else
+                                                If CheckBox2.Checked Then
+                                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
+                                                Else
+                                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
+                                                End If
                                             End If
-                                    End Select
+                                            vCount += 1
+                                            type = ConvertType.None
+                                        End If
+                                End Select
+                        End Select
+                    Loop
+                    Reader.Close()
+                    TextBox26.Text = ConvertedString
+                    File.Delete(My.Application.Info.DirectoryPath & "\Convert.tmp")
+                Catch ex As Exception
+                    File.Delete(My.Application.Info.DirectoryPath & "\Convert.tmp")
+                    MsgBox(ex.Message.ToString)
+                End Try
+            Case 2 'MTA 1.1
+                Dim Obj As ObjectInfo, Veh As VehicleInfo
+                For Each Line In RichTextBox3.Lines
+                    If Line.IndexOf("<object") > -1 Then
+                        Obj.World = -1
+                        Obj.Model = Mid(Line, Line.IndexOf("model=") + 8, Line.IndexOf("""", Line.IndexOf("model=")) - Line.IndexOf("model=") - 3)
+                        If CheckBox9.Checked Then
+                            Select Case Obj.Model
+                                Case 14383 To 14483
+                                    Obj.Model += 4248
+                                Case 14770 To 14856
+                                    Obj.Model += 4063
+                                Case 14858 To 14871
+                                    Obj.Model += 4062
+                                Case 18000 To 18036
+                                    Obj.Model += 934
+                                Case 18038 To 18101
+                                    Obj.Model += 933
+                                Case 14872 To 14883
+                                    Obj.Model += 4163
+                                Case 14885 To 14891
+                                    Obj.Model += 4162
+                                Case 13590 To 13667
+                                    Obj.Model += 5142
+                                Case 14500 To 14522
+                                    Obj.Model += 4310
+                                Case 12835 To 12944
+                                    Obj.Model += 6219
+                                Case 16000 To 16143
+                                    Obj.Model += 3164
+                                Case 14892
+                                    Obj.Model += 5009
                             End Select
-                        Loop
-                        Reader.Close()
-                        TextBox26.Text = ConvertedString
-                        File.Delete(My.Application.Info.DirectoryPath & "\Convert.tmp")
-                    Catch ex As Exception
-                        File.Delete(My.Application.Info.DirectoryPath & "\Convert.tmp")
-                        MsgBox(ex.Message.ToString)
-                    End Try
-                Case 2 'MTA 1.1
-                    Dim Obj As ObjectInfo, Veh As VehicleInfo
-                    For Each Line In RichTextBox3.Lines
-                        If Line.IndexOf("<object") > -1 Then
-                            Obj.World = -1
-                            Obj.Model = Mid(Line, Line.IndexOf("model=") + 8, Line.IndexOf("""", Line.IndexOf("model=")) - Line.IndexOf("model=") - 3)
-                            If CheckBox9.Checked Then
-                                Select Case Obj.Model
-                                    Case 14383 To 14483
-                                        Obj.Model += 4248
-                                    Case 14770 To 14856
-                                        Obj.Model += 4063
-                                    Case 14858 To 14871
-                                        Obj.Model += 4062
-                                    Case 18000 To 18036
-                                        Obj.Model += 934
-                                    Case 18038 To 18101
-                                        Obj.Model += 933
-                                    Case 14872 To 14883
-                                        Obj.Model += 4163
-                                    Case 14885 To 14891
-                                        Obj.Model += 4162
-                                    Case 13590 To 13667
-                                        Obj.Model += 5142
-                                    Case 14500 To 14522
-                                        Obj.Model += 4310
-                                    Case 12835 To 12944
-                                        Obj.Model += 6219
-                                    Case 16000 To 16143
-                                        Obj.Model += 3164
-                                    Case 14892
-                                        Obj.Model += 5009
-                                End Select
-                            End If
-                            Obj.X = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posX=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posX=")) - Line.IndexOf("posX=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posX=")) - Line.IndexOf("posX=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            Obj.Y = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posY=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posY=")) - Line.IndexOf("posY=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posY=")) - Line.IndexOf("posY=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            Obj.Z = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posZ=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posZ=")) - Line.IndexOf("posZ=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posZ=")) - Line.IndexOf("posZ=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            Obj.rX = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("rotX=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("rotX=")) - Line.IndexOf("rotX=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("rotX=")) - Line.IndexOf("rotX=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            Obj.rY = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("rotY=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("rotY=")) - Line.IndexOf("rotY=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("rotY=")) - Line.IndexOf("rotY=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            Obj.rZ = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("rotZ=") + 7, If(Line.IndexOf("""", Line.IndexOf("rotZ=""")) - Line.IndexOf("rotZ=""") - 6 > 0, Line.IndexOf("""", Line.IndexOf("rotZ=""")) - Line.IndexOf("rotZ=""") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            If CheckBox3.Checked Then
-                                Try
-                                    Obj.Interior = Mid(Line, Line.IndexOf("interior=") + 11, If(Line.IndexOf("""", Line.IndexOf("interior=""")) - Line.IndexOf("interior=""") - 6 > 0, Line.IndexOf("""", Line.IndexOf("interior=""")) - Line.IndexOf("interior=""") - 6, 1))
-                                Catch ex As Exception
-                                    Obj.Interior = -1
-                                End Try
-                            End If
-                            If ObjArray Then
-                                If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
-                                Else
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
-                                End If
-                            Else
-                                If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
-                                Else
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
-                                End If
-                            End If
-                            oCount += 1
-                        ElseIf Line.IndexOf("<vehicle") > -1 AndAlso Not CheckBox4.Checked Then
-                            Veh.Model = Mid(Line, Line.IndexOf("model=") + 8, Line.IndexOf("""", Line.IndexOf("model=")) - Line.IndexOf("model=") - 3)
-                            Veh.X = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posX=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posX=")) - Line.IndexOf("posX=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posX=")) - Line.IndexOf("posX=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            Veh.Y = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posY=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posY=")) - Line.IndexOf("posY=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posY=")) - Line.IndexOf("posY=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            Veh.Z = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posZ=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posZ=")) - Line.IndexOf("posZ=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posZ=")) - Line.IndexOf("posZ=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            Veh.R = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("rotZ=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("rotZ=")) - Line.IndexOf("rotZ=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("rotZ=")) - Line.IndexOf("rotZ=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
-                            If Line.IndexOf("color=") > -1 Then
-                                pos = Split(Mid(Line, Line.IndexOf("color=") + 8, Line.IndexOf("""", Line.IndexOf("color=")) - Line.IndexOf("color=") - 1), ",")
-                                Veh.Color1 = pos(0)
-                                Veh.Color2 = pos(1)
-                            Else
-                                Veh.Color1 = 0
-                                Veh.Color2 = 0
-                            End If
-                            If VehArray Then
-                                If CheckBox2.Checked Then
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
-                                Else
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
-                                End If
-                            Else
-                                If CheckBox2.Checked Then
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
-                                Else
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
-                                End If
-                            End If
-                            vCount += 1
                         End If
-                    Next
-                    TextBox26.Text = ConvertedString
-                Case 3, 4 'Incognito's Streamer Plugin & YSI DynamicObject
-                    For Each Line In RichTextBox3.Lines
-                        If Line.IndexOf("CreateDynamicObject(") > -1 Then
-                            pos = Split(Trim(Mid(Mid(Line, Line.IndexOf("(") + 2, Line.Length - Line.IndexOf("(")), 1, Line.Length - 3)), ",")
-                            Dim i As Integer = UBound(pos)
-                            pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
-                            If CheckBox9.Checked Then
-                                Select Case pos(0)
-                                    Case 14383 To 14483
-                                        pos(0) += 4248
-                                    Case 14770 To 14856
-                                        pos(0) += 4063
-                                    Case 14858 To 14871
-                                        pos(0) += 4062
-                                    Case 18000 To 18036
-                                        pos(0) += 934
-                                    Case 18038 To 18101
-                                        pos(0) += 933
-                                    Case 14872 To 14883
-                                        pos(0) += 4163
-                                    Case 14885 To 14891
-                                        pos(0) += 4162
-                                    Case 13590 To 13667
-                                        pos(0) += 5142
-                                    Case 14500 To 14522
-                                        pos(0) += 4310
-                                    Case 12835 To 12944
-                                        pos(0) += 6219
-                                    Case 16000 To 16143
-                                        pos(0) += 3164
-                                    Case 14892
-                                        pos(0) += 5009
-                                End Select
-                            End If
-                            If ObjArray Then
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
-                            Else
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
-                            End If
-                            oCount += 1
+                        Obj.X = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posX=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posX=")) - Line.IndexOf("posX=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posX=")) - Line.IndexOf("posX=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        Obj.Y = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posY=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posY=")) - Line.IndexOf("posY=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posY=")) - Line.IndexOf("posY=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        Obj.Z = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posZ=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posZ=")) - Line.IndexOf("posZ=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posZ=")) - Line.IndexOf("posZ=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        Obj.rX = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("rotX=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("rotX=")) - Line.IndexOf("rotX=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("rotX=")) - Line.IndexOf("rotX=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        Obj.rY = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("rotY=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("rotY=")) - Line.IndexOf("rotY=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("rotY=")) - Line.IndexOf("rotY=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        Obj.rZ = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("rotZ=") + 7, If(Line.IndexOf("""", Line.IndexOf("rotZ=""")) - Line.IndexOf("rotZ=""") - 6 > 0, Line.IndexOf("""", Line.IndexOf("rotZ=""")) - Line.IndexOf("rotZ=""") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        If CheckBox3.Checked Then
+                            Try
+                                Obj.Interior = Mid(Line, Line.IndexOf("interior=") + 11, If(Line.IndexOf("""", Line.IndexOf("interior=""")) - Line.IndexOf("interior=""") - 6 > 0, Line.IndexOf("""", Line.IndexOf("interior=""")) - Line.IndexOf("interior=""") - 6, 1))
+                            Catch ex As Exception
+                                Obj.Interior = -1
+                            End Try
                         End If
-                    Next
-                    TextBox26.Text = ConvertedString
-                Case 5 'xStreamer
-                    For Each Line In RichTextBox3.Lines
-                        If Line.IndexOf("CreateStreamedObject(") > -1 Then
-                            pos = Split(Trim(Mid(Mid(Line, Line.IndexOf("(") + 2, Line.Length - Line.IndexOf("(")), 1, Line.Length - 3)), ",")
-                            Dim i As Integer = UBound(pos)
-                            pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
-                            If CheckBox9.Checked Then
-                                Select Case pos(0)
-                                    Case 14383 To 14483
-                                        pos(0) += 4248
-                                    Case 14770 To 14856
-                                        pos(0) += 4063
-                                    Case 14858 To 14871
-                                        pos(0) += 4062
-                                    Case 18000 To 18036
-                                        pos(0) += 934
-                                    Case 18038 To 18101
-                                        pos(0) += 933
-                                    Case 14872 To 14883
-                                        pos(0) += 4163
-                                    Case 14885 To 14891
-                                        pos(0) += 4162
-                                    Case 13590 To 13667
-                                        pos(0) += 5142
-                                    Case 14500 To 14522
-                                        pos(0) += 4310
-                                    Case 12835 To 12944
-                                        pos(0) += 6219
-                                    Case 16000 To 16143
-                                        pos(0) += 3164
-                                    Case 14892
-                                        pos(0) += 5009
-                                End Select
-                            End If
-                            If ObjArray Then
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        If ObjArray Then
+                            If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                             Else
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                             End If
-                            oCount += 1
-                        End If
-                    Next
-                    TextBox26.Text = ConvertedString
-                Case 6, 7 'MidoStream ObjectInfo & Doble-O ObjectInfo
-                    For Each Line In RichTextBox3.Lines
-                        If Line.IndexOf("CreateStreamObject(") > -1 Then
-                            pos = Split(Trim(Mid(Mid(Line, Line.IndexOf("(") + 2, Line.Length - Line.IndexOf("(")), 1, Line.Length - 3)), ",")
-                            Dim i As Integer = UBound(pos)
-                            pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
-                            If CheckBox9.Checked Then
-                                Select Case pos(0)
-                                    Case 14383 To 14483
-                                        pos(0) += 4248
-                                    Case 14770 To 14856
-                                        pos(0) += 4063
-                                    Case 14858 To 14871
-                                        pos(0) += 4062
-                                    Case 18000 To 18036
-                                        pos(0) += 934
-                                    Case 18038 To 18101
-                                        pos(0) += 933
-                                    Case 14872 To 14883
-                                        pos(0) += 4163
-                                    Case 14885 To 14891
-                                        pos(0) += 4162
-                                    Case 13590 To 13667
-                                        pos(0) += 5142
-                                    Case 14500 To 14522
-                                        pos(0) += 4310
-                                    Case 12835 To 12944
-                                        pos(0) += 6219
-                                    Case 16000 To 16143
-                                        pos(0) += 3164
-                                    Case 14892
-                                        pos(0) += 5009
-                                End Select
-                            End If
-                            If ObjArray Then
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        Else
+                            If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                             Else
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
-                            End If
-                            oCount += 1
-                        End If
-                    Next
-                    TextBox26.Text = ConvertedString
-                Case 8 'Fallout's Object Streamer
-                    For Each Line In RichTextBox3.Lines
-                        If Line.IndexOf("F_CreateObject(") > -1 Then
-                            pos = Split(Trim(Mid(Mid(Line, Line.IndexOf("(") + 2, Line.Length - Line.IndexOf("(")), 1, Line.Length - 3)), ",")
-                            Dim i As Integer = UBound(pos)
-                            pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
-                            If CheckBox9.Checked Then
-                                Select Case pos(0)
-                                    Case 14383 To 14483
-                                        pos(0) += 4248
-                                    Case 14770 To 14856
-                                        pos(0) += 4063
-                                    Case 14858 To 14871
-                                        pos(0) += 4062
-                                    Case 18000 To 18036
-                                        pos(0) += 934
-                                    Case 18038 To 18101
-                                        pos(0) += 933
-                                    Case 14872 To 14883
-                                        pos(0) += 4163
-                                    Case 14885 To 14891
-                                        pos(0) += 4162
-                                    Case 13590 To 13667
-                                        pos(0) += 5142
-                                    Case 14500 To 14522
-                                        pos(0) += 4310
-                                    Case 12835 To 12944
-                                        pos(0) += 6219
-                                    Case 16000 To 16143
-                                        pos(0) += 3164
-                                    Case 14892
-                                        pos(0) += 5009
-                                End Select
-                            End If
-                            If ObjArray Then
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
-                            Else
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
-                            End If
-                            oCount += 1
-                        End If
-                    Next
-                    TextBox26.Text += ConvertedString
-                Case 9 'IPL
-                    Dim i As Integer
-                    For Each Line In RichTextBox3.Lines
-                        If Line.StartsWith("#") OrElse Line = "inst" OrElse Line = "end" Then Continue For
-                        If Line.IndexOf("#") > 0 Then
-                            Dim M As Match = Regex.Match(Line, ".*#")
-                            If M.Success Then
-                                Line = Mid(M.Value, M.Value - 1, 1)
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                             End If
                         End If
-                        pos = Split(Line, ", ")
-                        i = UBound(pos)
+                        oCount += 1
+                    ElseIf Line.IndexOf("<vehicle") > -1 AndAlso Not CheckBox4.Checked Then
+                        Veh.Model = Mid(Line, Line.IndexOf("model=") + 8, Line.IndexOf("""", Line.IndexOf("model=")) - Line.IndexOf("model=") - 3)
+                        Veh.X = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posX=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posX=")) - Line.IndexOf("posX=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posX=")) - Line.IndexOf("posX=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        Veh.Y = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posY=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posY=")) - Line.IndexOf("posY=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posY=")) - Line.IndexOf("posY=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        Veh.Z = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("posZ=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("posZ=")) - Line.IndexOf("posZ=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("posZ=")) - Line.IndexOf("posZ=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        Veh.R = Round(Convert.ToDecimal(Mid(Line, Line.IndexOf("rotZ=") + 7, If(Line.IndexOf(""" ", Line.IndexOf("rotZ=")) - Line.IndexOf("rotZ=") - 6 > 0, Line.IndexOf(""" ", Line.IndexOf("rotZ=")) - Line.IndexOf("rotZ=") - 6, 1)), New Globalization.CultureInfo("en-US")), 6)
+                        If Line.IndexOf("color=") > -1 Then
+                            pos = Split(Mid(Line, Line.IndexOf("color=") + 8, Line.IndexOf("""", Line.IndexOf("color=")) - Line.IndexOf("color=") - 1), ",")
+                            Veh.Color1 = pos(0)
+                            Veh.Color2 = pos(1)
+                        Else
+                            Veh.Color1 = 0
+                            Veh.Color2 = 0
+                        End If
+                        If VehArray Then
+                            If CheckBox2.Checked Then
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
+                            Else
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, vCount, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
+                            End If
+                        Else
+                            If CheckBox2.Checked Then
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2, TextBox43.Text)
+                            Else
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), VehOutput, Veh.Model, Veh.X, Veh.Y, Veh.Z, Veh.R, Veh.Color1, Veh.Color2)
+                            End If
+                        End If
+                        vCount += 1
+                    End If
+                Next
+                TextBox26.Text = ConvertedString
+            Case 3, 4 'Incognito's Streamer Plugin & YSI DynamicObject
+                For Each Line In RichTextBox3.Lines
+                    If Line.IndexOf("CreateDynamicObject(") > -1 Then
+                        pos = Split(Trim(Mid(Mid(Line, Line.IndexOf("(") + 2, Line.Length - Line.IndexOf("(")), 1, Line.Length - 3)), ",")
+                        Dim i As Integer = UBound(pos)
+                        pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
                         If CheckBox9.Checked Then
                             Select Case pos(0)
                                 Case 14383 To 14483
@@ -3527,146 +4213,324 @@ Public Class Tools
                             End Select
                         End If
                         If ObjArray Then
-                            If CheckBox3.Checked AndAlso pos(2) <> -1 Then
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8), pos(2))
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        Else
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        End If
+                        oCount += 1
+                    End If
+                Next
+                TextBox26.Text = ConvertedString
+            Case 5 'xStreamer
+                For Each Line In RichTextBox3.Lines
+                    If Line.IndexOf("CreateStreamedObject(") > -1 Then
+                        pos = Split(Trim(Mid(Mid(Line, Line.IndexOf("(") + 2, Line.Length - Line.IndexOf("(")), 1, Line.Length - 3)), ",")
+                        Dim i As Integer = UBound(pos)
+                        pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
+                        If CheckBox9.Checked Then
+                            Select Case pos(0)
+                                Case 14383 To 14483
+                                    pos(0) += 4248
+                                Case 14770 To 14856
+                                    pos(0) += 4063
+                                Case 14858 To 14871
+                                    pos(0) += 4062
+                                Case 18000 To 18036
+                                    pos(0) += 934
+                                Case 18038 To 18101
+                                    pos(0) += 933
+                                Case 14872 To 14883
+                                    pos(0) += 4163
+                                Case 14885 To 14891
+                                    pos(0) += 4162
+                                Case 13590 To 13667
+                                    pos(0) += 5142
+                                Case 14500 To 14522
+                                    pos(0) += 4310
+                                Case 12835 To 12944
+                                    pos(0) += 6219
+                                Case 16000 To 16143
+                                    pos(0) += 3164
+                                Case 14892
+                                    pos(0) += 5009
+                            End Select
+                        End If
+                        If ObjArray Then
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        Else
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        End If
+                        oCount += 1
+                    End If
+                Next
+                TextBox26.Text = ConvertedString
+            Case 6, 7 'MidoStream ObjectInfo & Doble-O ObjectInfo
+                For Each Line In RichTextBox3.Lines
+                    If Line.IndexOf("CreateStreamObject(") > -1 Then
+                        pos = Split(Trim(Mid(Mid(Line, Line.IndexOf("(") + 2, Line.Length - Line.IndexOf("(")), 1, Line.Length - 3)), ",")
+                        Dim i As Integer = UBound(pos)
+                        pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
+                        If CheckBox9.Checked Then
+                            Select Case pos(0)
+                                Case 14383 To 14483
+                                    pos(0) += 4248
+                                Case 14770 To 14856
+                                    pos(0) += 4063
+                                Case 14858 To 14871
+                                    pos(0) += 4062
+                                Case 18000 To 18036
+                                    pos(0) += 934
+                                Case 18038 To 18101
+                                    pos(0) += 933
+                                Case 14872 To 14883
+                                    pos(0) += 4163
+                                Case 14885 To 14891
+                                    pos(0) += 4162
+                                Case 13590 To 13667
+                                    pos(0) += 5142
+                                Case 14500 To 14522
+                                    pos(0) += 4310
+                                Case 12835 To 12944
+                                    pos(0) += 6219
+                                Case 16000 To 16143
+                                    pos(0) += 3164
+                                Case 14892
+                                    pos(0) += 5009
+                            End Select
+                        End If
+                        If ObjArray Then
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        Else
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        End If
+                        oCount += 1
+                    End If
+                Next
+                TextBox26.Text = ConvertedString
+            Case 8 'Fallout's Object Streamer
+                For Each Line In RichTextBox3.Lines
+                    If Line.IndexOf("F_CreateObject(") > -1 Then
+                        pos = Split(Trim(Mid(Mid(Line, Line.IndexOf("(") + 2, Line.Length - Line.IndexOf("(")), 1, Line.Length - 3)), ",")
+                        Dim i As Integer = UBound(pos)
+                        pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
+                        If CheckBox9.Checked Then
+                            Select Case pos(0)
+                                Case 14383 To 14483
+                                    pos(0) += 4248
+                                Case 14770 To 14856
+                                    pos(0) += 4063
+                                Case 14858 To 14871
+                                    pos(0) += 4062
+                                Case 18000 To 18036
+                                    pos(0) += 934
+                                Case 18038 To 18101
+                                    pos(0) += 933
+                                Case 14872 To 14883
+                                    pos(0) += 4163
+                                Case 14885 To 14891
+                                    pos(0) += 4162
+                                Case 13590 To 13667
+                                    pos(0) += 5142
+                                Case 14500 To 14522
+                                    pos(0) += 4310
+                                Case 12835 To 12944
+                                    pos(0) += 6219
+                                Case 16000 To 16143
+                                    pos(0) += 3164
+                                Case 14892
+                                    pos(0) += 5009
+                            End Select
+                        End If
+                        If ObjArray Then
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        Else
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                        End If
+                        oCount += 1
+                    End If
+                Next
+                TextBox26.Text += ConvertedString
+            Case 9 'IPL
+                Dim i As Integer
+                For Each Line In RichTextBox3.Lines
+                    If Line.StartsWith("#") OrElse Line = "inst" OrElse Line = "end" Then Continue For
+                    If Line.IndexOf("#") > 0 Then
+                        Dim M As Match = Regex.Match(Line, ".*#")
+                        If M.Success Then
+                            Line = Mid(M.Value, M.Value - 1, 1)
+                        End If
+                    End If
+                    pos = Split(Line, ", ")
+                    i = UBound(pos)
+                    If CheckBox9.Checked Then
+                        Select Case pos(0)
+                            Case 14383 To 14483
+                                pos(0) += 4248
+                            Case 14770 To 14856
+                                pos(0) += 4063
+                            Case 14858 To 14871
+                                pos(0) += 4062
+                            Case 18000 To 18036
+                                pos(0) += 934
+                            Case 18038 To 18101
+                                pos(0) += 933
+                            Case 14872 To 14883
+                                pos(0) += 4163
+                            Case 14885 To 14891
+                                pos(0) += 4162
+                            Case 13590 To 13667
+                                pos(0) += 5142
+                            Case 14500 To 14522
+                                pos(0) += 4310
+                            Case 12835 To 12944
+                                pos(0) += 6219
+                            Case 16000 To 16143
+                                pos(0) += 3164
+                            Case 14892
+                                pos(0) += 5009
+                        End Select
+                    End If
+                    If ObjArray Then
+                        If CheckBox3.Checked AndAlso pos(2) <> -1 Then
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8), pos(2))
+                        Else
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8))
+                        End If
+                    Else
+                        If CheckBox3.Checked AndAlso pos(2) <> -1 Then
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8), pos(2))
+                        Else
+                            ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8))
+                        End If
+                    End If
+                    oCount += 1
+                Next
+                TextBox26.Text = ConvertedString
+            Case 10 'Custom...
+                If TextBox47.Text.Length = 0 Then
+                    Select Case Settings.Language
+                        Case Languages.English
+                            MsgBox("You must specify a custom input format.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Español
+                            MsgBox("Debes especificar un formato de entrada.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Portuguêse
+                            MsgBox("Você deve especificar um formato de entrada personalizado.", MsgBoxStyle.Critical, "Erro")
+                        Case Else
+                            MsgBox("Sie müssen ein benutzerdefiniertes Eingabe-Format. Angeben", MsgBoxStyle.Critical, "Error")
+                    End Select
+                    Exit Sub
+                End If
+                Dim cInput As iFormat = FormatAnalizer(TextBox47.Text)
+                If cInput.Format = "INVALID FORMAT" Then
+                    Select Case Settings.Language
+                        Case Languages.English
+                            MsgBox("Invalid input format.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Español
+                            MsgBox("Formato de entrada invalido.", MsgBoxStyle.Critical, "Error")
+                        Case Languages.Portuguêse
+                            MsgBox("Formato de entrada inválida.", MsgBoxStyle.Critical, "Erro")
+                        Case Else
+                            MsgBox("Ungültige Eingabe-Format.", MsgBoxStyle.Critical, "Error")
+                    End Select
+                    Exit Sub
+                End If
+                For Each Line In RichTextBox3.Lines
+                    Dim M As Match = Regex.Match(Line, cInput.Format)
+                    If M.Success Then
+                        Dim Obj As ObjectInfo, tmp As String() = Split(M.Value, cInput.Delimiter)
+                        Obj.Interior = -1
+                        Obj.World = -1
+                        For i = 0 To UBound(tmp)
+                            Select Case i
+                                Case cInput.Model
+                                    Obj.Model = Regex.Replace(tmp(i), "[^\d]+", "")
+                                Case cInput.X
+                                    Obj.X = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                Case cInput.Y
+                                    Obj.Y = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                Case cInput.Z
+                                    Obj.Z = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                Case cInput.Rx
+                                    Obj.rX = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                Case cInput.Ry
+                                    Obj.rY = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                Case cInput.Rz
+                                    Obj.rY = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
+                                Case cInput.I
+                                    Obj.Interior = Regex.Replace(tmp(i), "[^\d]+", "")
+                                Case cInput.W
+                                    Obj.World = Regex.Replace(tmp(i), "[^\d]+", "")
+                            End Select
+                        Next
+                        If CheckBox9.Checked Then
+                            Select Case Obj.Model
+                                Case 14383 To 14483
+                                    Obj.Model += 4248
+                                Case 14770 To 14856
+                                    Obj.Model += 4063
+                                Case 14858 To 14871
+                                    Obj.Model += 4062
+                                Case 18000 To 18036
+                                    Obj.Model += 934
+                                Case 18038 To 18101
+                                    Obj.Model += 933
+                                Case 14872 To 14883
+                                    Obj.Model += 4163
+                                Case 14885 To 14891
+                                    Obj.Model += 4162
+                                Case 13590 To 13667
+                                    Obj.Model += 5142
+                                Case 14500 To 14522
+                                    Obj.Model += 4310
+                                Case 12835 To 12944
+                                    Obj.Model += 6219
+                                Case 16000 To 16143
+                                    Obj.Model += 3164
+                                Case 14892
+                                    Obj.Model += 5009
+                            End Select
+                        End If
+                        If ObjArray Then
+                            If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                             Else
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                             End If
                         Else
-                            If CheckBox3.Checked AndAlso pos(2) <> -1 Then
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8), pos(2))
+                            If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
                             Else
-                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, pos(0), pos(3), pos(4), pos(5), pos(6), pos(7), pos(8))
+                                ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
                             End If
                         End If
                         oCount += 1
-                    Next
-                    TextBox26.Text = ConvertedString
-                Case 10 'Custom...
-                    If TextBox47.Text.Length = 0 Then
-                        Select Case Settings.Language
-                            Case Languages.English
-                                MsgBox("You must specify a custom input format.", MsgBoxStyle.Critical, "Error")
-                            Case Languages.Español
-                                MsgBox("Debes especificar un formato de entrada.", MsgBoxStyle.Critical, "Error")
-                            Case Languages.Portuguêse
-                                MsgBox("Você deve especificar um formato de entrada personalizado.", MsgBoxStyle.Critical, "Erro")
-                            Case Else
-                                MsgBox("Sie müssen ein benutzerdefiniertes Eingabe-Format. Angeben", MsgBoxStyle.Critical, "Error")
-                        End Select
-                        Exit Sub
                     End If
-                    Dim cInput As iFormat = FormatAnalizer(TextBox47.Text)
-                    If cInput.Format = "INVALID FORMAT" Then
-                        Select Case Settings.Language
-                            Case Languages.English
-                                MsgBox("Invalid input format.", MsgBoxStyle.Critical, "Error")
-                            Case Languages.Español
-                                MsgBox("Formato de entrada invalido.", MsgBoxStyle.Critical, "Error")
-                            Case Languages.Portuguêse
-                                MsgBox("Formato de entrada inválida.", MsgBoxStyle.Critical, "Erro")
-                            Case Else
-                                MsgBox("Ungültige Eingabe-Format.", MsgBoxStyle.Critical, "Error")
-                        End Select
-                        Exit Sub
-                    End If
-                    For Each Line In RichTextBox3.Lines
-                        Dim M As Match = Regex.Match(Line, cInput.Format)
-                        If M.Success Then
-                            Dim Obj As ObjectInfo, tmp As String() = Split(M.Value, cInput.Delimiter)
-                            Obj.Interior = -1
-                            Obj.World = -1
-                            For i = 0 To UBound(tmp)
-                                Select Case i
-                                    Case cInput.Model
-                                        Obj.Model = Regex.Replace(tmp(i), "[^\d]+", "")
-                                    Case cInput.X
-                                        Obj.X = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
-                                    Case cInput.Y
-                                        Obj.Y = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
-                                    Case cInput.Z
-                                        Obj.Z = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
-                                    Case cInput.Rx
-                                        Obj.rX = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
-                                    Case cInput.Ry
-                                        Obj.rY = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
-                                    Case cInput.Rz
-                                        Obj.rY = Convert.ToDecimal(Regex.Replace(tmp(i), "[^\d\.]+", ""), New Globalization.CultureInfo("en-US"))
-                                    Case cInput.I
-                                        Obj.Interior = Regex.Replace(tmp(i), "[^\d]+", "")
-                                    Case cInput.W
-                                        Obj.World = Regex.Replace(tmp(i), "[^\d]+", "")
-                                End Select
-                            Next
-                            If CheckBox9.Checked Then
-                                Select Case Obj.Model
-                                    Case 14383 To 14483
-                                        Obj.Model += 4248
-                                    Case 14770 To 14856
-                                        Obj.Model += 4063
-                                    Case 14858 To 14871
-                                        Obj.Model += 4062
-                                    Case 18000 To 18036
-                                        Obj.Model += 934
-                                    Case 18038 To 18101
-                                        Obj.Model += 933
-                                    Case 14872 To 14883
-                                        Obj.Model += 4163
-                                    Case 14885 To 14891
-                                        Obj.Model += 4162
-                                    Case 13590 To 13667
-                                        Obj.Model += 5142
-                                    Case 14500 To 14522
-                                        Obj.Model += 4310
-                                    Case 12835 To 12944
-                                        Obj.Model += 6219
-                                    Case 16000 To 16143
-                                        Obj.Model += 3164
-                                    Case 14892
-                                        Obj.Model += 5009
-                                End Select
-                            End If
-                            If ObjArray Then
-                                If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
-                                Else
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, oCount, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
-                                End If
-                            Else
-                                If CheckBox3.Checked AndAlso (Obj.Interior <> -1 OrElse Obj.World <> -1) Then
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutput, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ, Obj.World, Obj.Interior)
-                                Else
-                                    ConvertedString += String.Format(New Globalization.CultureInfo("en-US"), ObjOutPut2, Obj.Model, Obj.X, Obj.Y, Obj.Z, Obj.rX, Obj.rY, Obj.rZ)
-                                End If
-                            End If
-                            oCount += 1
-                        End If
-                    Next
-                    TextBox26.Text = ConvertedString
-            End Select
-            Select Case Settings.Language
-                Case Languages.English
-                    MsgBox(String.Format("Converted Objects: {0}  -  Converted Vehicles: {1}", oCount, vCount), MsgBoxStyle.OkOnly, "Object converter")
-                Case Languages.Español
-                    MsgBox(String.Format("Objetos convertidos: {0}  -  Vehiculos convertidos: {1}", oCount, vCount), MsgBoxStyle.OkOnly, "Conversor de objetos")
-                Case Languages.Portuguêse
-                    MsgBox(String.Format("Objetos convertidos: {0}", oCount), MsgBoxStyle.OkOnly, "Object Converter")
-                Case Else
-                    MsgBox(String.Format("Konvertierte Objekte: {0}", oCount), MsgBoxStyle.OkOnly, "Object converter")
-            End Select
-        Catch ex As Exception
-            TextBox26.Clear()
-            Select Case Settings.Language
-                Case Languages.English
-                    MsgBox("Conversion Stoped due to an error.", MsgBoxStyle.Critical, "Error")
-                Case Languages.Español
-                    MsgBox("Conversion parada debido a un error.", MsgBoxStyle.Critical, "Error")
-                Case Languages.Portuguêse
-                    MsgBox("conversão parou devido a um erro.", MsgBoxStyle.Critical, "Erro")
-                Case Else
-                    MsgBox("Conversion gestoppt aufgrund eines Fehlers.", MsgBoxStyle.Critical, "Error")
-            End Select
-        End Try
+                Next
+                TextBox26.Text = ConvertedString
+        End Select
+        Select Case Settings.Language
+            Case Languages.English
+                MsgBox(String.Format("Converted Objects: {0}  -  Converted Vehicles: {1}", oCount, vCount), MsgBoxStyle.OkOnly, "Object converter")
+            Case Languages.Español
+                MsgBox(String.Format("Objetos convertidos: {0}  -  Vehiculos convertidos: {1}", oCount, vCount), MsgBoxStyle.OkOnly, "Conversor de objetos")
+            Case Languages.Portuguêse
+                MsgBox(String.Format("Objetos convertidos: {0}", oCount), MsgBoxStyle.OkOnly, "Object Converter")
+            Case Else
+                MsgBox(String.Format("Konvertierte Objekte: {0}", oCount), MsgBoxStyle.OkOnly, "Object converter")
+        End Select
+        'Catch ex As Exception
+        '    TextBox26.Clear()
+        '    Select Case Settings.Language
+        '        Case Languages.English
+        '            MsgBox("Conversion Stoped due to an error.", MsgBoxStyle.Critical, "Error")
+        '        Case Languages.Español
+        '            MsgBox("Conversion parada debido a un error.", MsgBoxStyle.Critical, "Error")
+        '        Case Languages.Portuguêse
+        '            MsgBox("conversão parou devido a um erro.", MsgBoxStyle.Critical, "Erro")
+        '        Case Else
+        '            MsgBox("Conversion gestoppt aufgrund eines Fehlers.", MsgBoxStyle.Critical, "Error")
+        '   End Select
+        'End Try
     End Sub
 
 #End Region
@@ -3706,35 +4570,23 @@ Public Class Tools
     End Sub
 
     Private Sub Button11_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button11.Click
-        If Panel8.Visible Then
-            Panel8.Visible = False
-        Else
-            Panel8.Visible = True
-        End If
+        Panel8.Visible = Not Panel9.Visible
     End Sub
 
     Private Sub Button11_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles Button11.MouseMove
-        If Not Panel8.Visible Then
-            Panel8.Visible = True
-        End If
+        If Not Panel8.Visible Then Panel8.Visible = True
     End Sub
 
     Private Sub TabPage4_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles TabPage4.MouseMove
-        If Panel8.Visible Then
-            Panel8.Visible = False
-        End If
+        If Panel8.Visible Then Panel8.Visible = False
     End Sub
 
     Private Sub RichTextBox3_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles RichTextBox3.MouseMove
-        If Panel8.Visible Then
-            Panel8.Visible = False
-        End If
+        If Panel8.Visible Then Panel8.Visible = False
     End Sub
 
     Private Sub Button20_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles Button20.MouseMove
-        If Panel8.Visible Then
-            Panel8.Visible = False
-        End If
+        If Panel8.Visible Then Panel8.Visible = False
     End Sub
 
     Private Sub PictureBox12_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PictureBox12.MouseDown
@@ -4306,7 +5158,7 @@ Public Class Tools
             Dim found As Boolean, count As Integer
             found = False
             For Each vehicle In Vehicles
-                If vehicle.Name.IndexOf(TextBox53.Text) > -1 Then
+                If vehicle.Name.IndexOf(TextBox53.Text, StringComparison.OrdinalIgnoreCase) > -1 Then
                     If count = VehPos Then
                         Select Case vehicle.Type
                             Case VehicleType.Airplane

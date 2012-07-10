@@ -269,7 +269,9 @@ Public Class Instance
             .IsBraceMatching = True
             .AcceptsTab = True
             .UndoRedo.IsUndoEnabled = False
-            .Encoding = System.Text.Encoding.UTF8
+            .Encoding = Settings.Enc
+            .Indentation.TabWidth = 4
+            .BackColor = Settings.BackColor
             With .Margins
                 .Margin0.Width = 18
                 .Margin0.AutoToggleMarkerNumber = True
@@ -288,6 +290,43 @@ Public Class Instance
                 .UseCompactFolding = True
                 .MarkerScheme = FoldMarkerScheme.BoxPlusMinus
             End With
+            .Styles("NUMBER").BackColor = Settings.H_Numbers.BackColor
+            .Styles("NUMBER").ForeColor = Settings.H_Numbers.ForeColor
+            .Styles("NUMBER").Bold = Settings.H_Numbers.Bold
+            .Styles("NUMBER").Italic = Settings.H_Numbers.Italic
+            .Styles("STRING").BackColor = Settings.H_String.BackColor
+            .Styles("STRING").ForeColor = Settings.H_String.ForeColor
+            .Styles("STRING").Bold = Settings.H_String.Bold
+            .Styles("STRING").Italic = Settings.H_String.Italic
+            .Styles("STRINGEOL").BackColor = Settings.H_String2.BackColor
+            .Styles("STRINGEOL").ForeColor = Settings.H_String2.ForeColor
+            .Styles("STRINGEOL").Bold = Settings.H_String2.Bold
+            .Styles("STRINGEOL").Italic = Settings.H_String2.Italic
+            .Styles("OPERATOR").BackColor = Settings.H_Operator.BackColor
+            .Styles("OPERATOR").ForeColor = Settings.H_Operator.ForeColor
+            .Styles("OPERATOR").Bold = Settings.H_Operator.Bold
+            .Styles("OPERATOR").Italic = Settings.H_Operator.Italic
+            .Styles("CHARACTER").BackColor = Settings.H_Chars.BackColor
+            .Styles("CHARACTER").ForeColor = Settings.H_Chars.ForeColor
+            .Styles("CHARACTER").Bold = Settings.H_Chars.Bold
+            .Styles("CHARACTER").Italic = Settings.H_Chars.Italic
+            .Styles("GLOBALCLASS").BackColor = Settings.H_Class.BackColor
+            .Styles("GLOBALCLASS").ForeColor = Settings.H_Class.ForeColor
+            .Styles("GLOBALCLASS").Font = .Font
+            .Styles("GLOBALCLASS").Bold = Settings.H_Class.Bold
+            .Styles("GLOBALCLASS").Italic = Settings.H_Class.Italic
+            .Styles("COMMENT").BackColor = Settings.H_Comment.BackColor
+            .Styles("COMMENT").ForeColor = Settings.H_Comment.ForeColor
+            .Styles("COMMENT").Bold = Settings.H_Comment.Bold
+            .Styles("COMMENT").Italic = Settings.H_Comment.Italic
+            .Styles("COMMENTLINE").BackColor = Settings.H_Comment.BackColor
+            .Styles("COMMENTLINE").ForeColor = Settings.H_Comment.ForeColor
+            .Styles("COMMENTLINE").Bold = Settings.H_Comment.Bold
+            .Styles("COMMENTLINE").Italic = Settings.H_Comment.Italic
+            .Styles("COMMENTDOC").BackColor = Settings.H_Comment.BackColor
+            .Styles("COMMENTDOC").ForeColor = Settings.H_Comment.ForeColor
+            .Styles("COMMENTDOC").Bold = Settings.H_Comment.Bold
+            .Styles("COMMENTDOC").Italic = Settings.H_Comment.Italic
         End With
         With InfoText
             .Text = ""
@@ -1583,7 +1622,11 @@ Public Class Instance
                     End If
                 Else
                     If func.IndexOf(")(") = -1 Then
-                        func = func.Remove(func.LastIndexOf(")"), func.IndexOf("(") + 1)
+                        If func.EndsWith("fi") Then
+                            func = func.Remove(func.LastIndexOf(")"))
+                        Else
+                            func = func.Remove(func.LastIndexOf(")"), func.IndexOf("(") - func.LastIndexOf(")") + 1)
+                        End If
                     Else
                         func = func.Remove(func.IndexOf(")"), func.Length - func.IndexOf(")"))
                     End If
@@ -1603,6 +1646,7 @@ Public Class Instance
                         If func.StartsWith("(") Then
                             func = func.Remove(0, 1)
                         ElseIf must Then
+                            lastcall = GetTickCount()
                             Return ""
                         End If
                     Else
@@ -1617,6 +1661,7 @@ Public Class Instance
                     End If
                 End If
             ElseIf must Then
+                lastcall = GetTickCount()
                 Return ""
             End If
             lastcall = GetTickCount()

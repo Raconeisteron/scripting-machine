@@ -1794,16 +1794,21 @@ Public Class Instance
                         Continue For
                     End If
                     If Line.Text.IndexOf("#include") > -1 Then
-                        Dim file As String
+                        Dim file As String, path As String
                         If Line.Text.IndexOf("<") > -1 Then
                             file = Mid(Line.Text, Line.Text.IndexOf("<") + 2, Line.Text.IndexOf(">") - Line.Text.IndexOf("<") - 1)
-                            file += ".inc"
+                            path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                         Else
-                            file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.IndexOf("""") - Line.Text.IndexOf("""", Line.Text.IndexOf("""")))
-                            If file.IndexOf(".inc") = -1 Then file += ".inc"
+                            If Line.Text.IndexOf("..") = -1 Then
+                                file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1)
+                                path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                            Else
+                                file = Mid(Line.Text, Line.Text.IndexOf("..") + 3, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1).Replace("/", "\")
+                                path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                            End If
                         End If
-                        If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file) Then
-                            Dim fLine As String, Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file)
+                        If IO.File.Exists(path) Then
+                            Dim fLine As String, Reader As New StreamReader(path)
                             fLine = Reader.ReadLine()
                             Do Until fLine Is Nothing
                                 If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
@@ -1827,16 +1832,22 @@ Public Class Instance
                                     If pos = -1 Then pos = fLine.IndexOf("public")
                                 End If
                                 If fLine.IndexOf("#include") > -1 Then
-                                    Dim file2 As String, cNode2 As New TreeNode()
+                                    Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                                     If fLine.IndexOf("<") > -1 Then
                                         file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        file2 += ".inc"
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                                     Else
-                                        file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.IndexOf("""") - fLine.IndexOf("""", fLine.IndexOf("""")))
-                                        If file2.IndexOf(".inc") = -1 Then file2 += ".inc"
+                                        If fLine.IndexOf("..") = -1 Then
+                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                        Else
+                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                        End If
                                     End If
-                                    If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file2) Then
-                                        Dim Reader2 As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file2)
+                                    Dim count As Integer
+                                    If IO.File.Exists(path2) Then
+                                        Dim Reader2 As New StreamReader(path2)
                                         fLine = Reader2.ReadLine()
                                         Do Until fLine Is Nothing
                                             If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
@@ -1880,19 +1891,25 @@ Public Class Instance
                                         Reader2.Close()
                                     Else
                                         Errors.Clear()
-                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file2 & """"}, 0))
+                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 0))
                                     End If
                                 ElseIf fLine.IndexOf("#tryinclude") > -1 Then
-                                    Dim file2 As String
+                                    Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                                     If fLine.IndexOf("<") > -1 Then
                                         file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        file2 += ".inc"
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                                     Else
-                                        file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.IndexOf("""") - fLine.IndexOf("""", fLine.IndexOf("""")))
-                                        If file2.IndexOf(".inc") = -1 Then file2 += ".inc"
+                                        If fLine.IndexOf("..") = -1 Then
+                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                        Else
+                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                        End If
                                     End If
-                                    If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file2) Then
-                                        Dim Reader2 As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file2)
+                                    Dim count As Integer
+                                    If IO.File.Exists(path2) Then
+                                        Dim Reader2 As New StreamReader(path2)
                                         fLine = Reader2.ReadLine()
                                         Do Until fLine Is Nothing
                                             If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
@@ -1936,7 +1953,7 @@ Public Class Instance
                                         Reader2.Close()
                                     Else
                                         Errors.Clear()
-                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
+                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
                                     End If
                                 ElseIf pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                     Dim params As New List(Of String)
@@ -1959,19 +1976,24 @@ Public Class Instance
                             Reader.Close()
                         Else
                             Errors.Clear()
-                            Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file & """"}, 0))
+                            Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file & """"}, 0))
                         End If
                     ElseIf Line.Text.IndexOf("#tryinclude") > -1 Then
-                        Dim file As String
+                        Dim file As String, path As String
                         If Line.Text.IndexOf("<") > -1 Then
                             file = Mid(Line.Text, Line.Text.IndexOf("<") + 2, Line.Text.IndexOf(">") - Line.Text.IndexOf("<") - 1)
-                            file += ".inc"
+                            path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                         Else
-                            file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.IndexOf("""") - Line.Text.IndexOf("""", Line.Text.IndexOf("""")))
-                            If file.IndexOf(".inc") = -1 Then file += ".inc"
+                            If Line.Text.IndexOf("..") = -1 Then
+                                file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1)
+                                path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                            Else
+                                file = Mid(Line.Text, Line.Text.IndexOf("..") + 3, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1).Replace("/", "\")
+                                path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                            End If
                         End If
-                        If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file) Then
-                            Dim fLine As String, Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file)
+                        If IO.File.Exists(path) Then
+                            Dim fLine As String, Reader As New StreamReader(path)
                             fLine = Reader.ReadLine()
                             Do Until fLine Is Nothing
                                 If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
@@ -2048,7 +2070,7 @@ Public Class Instance
                                         Reader2.Close()
                                     Else
                                         Errors.Clear()
-                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file2 & """"}, 0))
+                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 0))
                                     End If
                                 ElseIf fLine.IndexOf("#tryinclude") > -1 Then
                                     Dim file2 As String
@@ -2104,7 +2126,7 @@ Public Class Instance
                                         Reader2.Close()
                                     Else
                                         Errors.Clear()
-                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
+                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
                                     End If
                                 ElseIf pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                     Dim params As New List(Of String)
@@ -2127,7 +2149,7 @@ Public Class Instance
                             Reader.Close()
                         Else
                             Errors.Clear()
-                            Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file & """"}, 1))
+                            Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file & """"}, 1))
                         End If
                     End If
                 Next
@@ -2482,6 +2504,7 @@ Public Class Instance
             .Texts.Clear()
             .Texts2.Clear()
         End With
+        Errors.Clear()
         For Each line As ScintillaNet.Line In If(SyntaxHandle.InvokeRequired, SyntaxHandle.Invoke(LinesDelegate, New Object() {SyntaxHandle}), SyntaxHandle.Lines)
             If line.Text.Length = 0 OrElse line.Text = "{" OrElse line.Text = "}" OrElse line.Text = ";" Then Continue For
             If line.Text.IndexOf("//") > -1 Then
@@ -2501,16 +2524,21 @@ Public Class Instance
                 If spos = -1 Then spos = line.Text.IndexOf("public")
             End If
             If line.Text.IndexOf("#include") > -1 Then
-                Dim file As String
+                Dim file As String, path As String
                 If line.Text.IndexOf("<") > -1 Then
                     file = Mid(line.Text, line.Text.IndexOf("<") + 2, line.Text.IndexOf(">") - line.Text.IndexOf("<") - 1)
-                    file += ".inc"
+                    path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                 Else
-                    file = Mid(line.Text, line.Text.IndexOf("""") + 2, line.Text.IndexOf("""") - line.Text.IndexOf("""", line.Text.IndexOf("""")))
-                    If file.IndexOf(".inc") = -1 Then file += ".inc"
+                    If line.Text.IndexOf("..") = -1 Then
+                        file = Mid(line.Text, line.Text.IndexOf("""") + 2, line.Text.LastIndexOf("""") - line.Text.IndexOf("""") - 1)
+                        path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    Else
+                        file = Mid(line.Text, line.Text.IndexOf("..") + 3, line.Text.LastIndexOf("""") - line.Text.IndexOf("""") - 1).Replace("/", "\")
+                        path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    End If
                 End If
-                If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file) Then
-                    Dim fLine As String, Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file)
+                If IO.File.Exists(path) Then
+                    Dim fLine As String, Reader As New StreamReader(path)
                     fLine = Reader.ReadLine()
                     Do Until fLine Is Nothing
                         If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
@@ -2534,17 +2562,22 @@ Public Class Instance
                             If spos = -1 Then spos = fLine.IndexOf("public")
                         End If
                         If fLine.IndexOf("#include") > -1 Then
-                            Dim file2 As String, cNode2 As New TreeNode()
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                file2 += ".inc"
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                             Else
-                                file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.IndexOf("""") - fLine.IndexOf("""", fLine.IndexOf("""")))
-                                If file2.IndexOf(".inc") = -1 Then file2 += ".inc"
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                End If
                             End If
                             Dim count As Integer
-                            If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file2) Then
-                                Dim Reader2 As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file2)
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
                                 fLine = Reader2.ReadLine()
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
@@ -2813,17 +2846,22 @@ Public Class Instance
                                 Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 0))
                             End If
                         ElseIf fLine.IndexOf("#tryinclude") > -1 Then
-                            Dim file2 As String
+                            Dim file2 As String, path2 As String
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                file2 += ".inc"
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                             Else
-                                file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.IndexOf("""") - fLine.IndexOf("""", fLine.IndexOf("""")))
-                                If file2.IndexOf(".inc") = -1 Then file2 += ".inc"
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                End If
                             End If
                             Dim count As Integer
-                            If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file2) Then
-                                Dim Reader2 As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file2)
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
                                 fLine = Reader2.ReadLine()
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
@@ -3342,16 +3380,21 @@ Public Class Instance
                     Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file & """"}, 0))
                 End If
             ElseIf line.Text.IndexOf("#tryinclude") > -1 Then
-                Dim file As String
+                Dim file As String, path As String
                 If line.Text.IndexOf("<") > -1 Then
                     file = Mid(line.Text, line.Text.IndexOf("<") + 2, line.Text.IndexOf(">") - line.Text.IndexOf("<") - 1)
-                    file += ".inc"
+                    path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                 Else
-                    file = Mid(line.Text, line.Text.IndexOf("""") + 2, line.Text.IndexOf("""") - line.Text.IndexOf("""", line.Text.IndexOf("""")))
-                    If file.IndexOf(".inc") = -1 Then file += ".inc"
+                    If line.Text.IndexOf("..") = -1 Then
+                        file = Mid(line.Text, line.Text.IndexOf("""") + 2, line.Text.LastIndexOf("""") - line.Text.IndexOf("""") - 1)
+                        path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    Else
+                        file = Mid(line.Text, line.Text.IndexOf("..") + 3, line.Text.LastIndexOf("""") - line.Text.IndexOf("""") - 1).Replace("/", "\")
+                        path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    End If
                 End If
-                If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file) Then
-                    Dim fLine As String, Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file)
+                If IO.File.Exists(path) Then
+                    Dim fLine As String, Reader As New StreamReader(path)
                     fLine = Reader.ReadLine()
                     Do Until fLine Is Nothing
                         If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
@@ -3375,17 +3418,22 @@ Public Class Instance
                             If spos = -1 Then spos = fLine.IndexOf("public")
                         End If
                         If fLine.IndexOf("#include") > -1 Then
-                            Dim file2 As String, cNode2 As New TreeNode()
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                file2 += ".inc"
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                             Else
-                                file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.IndexOf("""") - fLine.IndexOf("""", fLine.IndexOf("""")))
-                                If file2.IndexOf(".inc") = -1 Then file2 += ".inc"
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                End If
                             End If
                             Dim count As Integer
-                            If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file2) Then
-                                Dim Reader2 As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file2)
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
                                 fLine = Reader2.ReadLine()
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
@@ -3654,17 +3702,22 @@ Public Class Instance
                                 Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 0))
                             End If
                         ElseIf fLine.IndexOf("#tryinclude") > -1 Then
-                            Dim file2 As String
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                file2 += ".inc"
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
                             Else
-                                file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.IndexOf("""") - fLine.IndexOf("""", fLine.IndexOf("""")))
-                                If file2.IndexOf(".inc") = -1 Then file2 += ".inc"
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                End If
                             End If
                             Dim count As Integer
-                            If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file2) Then
-                                Dim Reader2 As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file2)
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
                                 fLine = Reader2.ReadLine()
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then

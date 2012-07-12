@@ -94,6 +94,15 @@ Public Class Main
                     Reader.Close()
                 End If
             End Try
+            Dim cMenu As New ContextMenu, i(2) As MenuItem
+            i(0) = New MenuItem("Copy selected row")
+            i(1) = New MenuItem("Copy all")
+            i(2) = New MenuItem("Clear")
+            For p = 0 To 2
+                AddHandler i(p).Click, AddressOf ContextMenuHandler
+                cMenu.MenuItems.Add(i(p))
+            Next
+            ListView1.ContextMenu = cMenu
             Me.Visible = True
         Catch ex As Exception
             Splash.Label1.Invoke(sLabel, New Object() {"Error", Splash})
@@ -201,6 +210,7 @@ Public Class Main
                 TabControl1.SelectedIndex = index
                 Reader.Close()
                 Me.WindowState = FormWindowState.Maximized
+                Me.Focus()
             Catch ex As Exception
 
             End Try
@@ -386,7 +396,6 @@ Public Class Main
                     Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591), True)
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
-                    .Name = name
                     .Path = OFD.FileName
                 End With
             End If
@@ -627,7 +636,7 @@ Public Class Main
                 If er.Length > 0 Then
                     Try
                         tmp = Split(er, " : ")
-                        .Errors.Add(New ListViewItem(New String() {"", Trim(System.Text.RegularExpressions.Regex.Replace(Mid(tmp(1), 1, tmp(1).IndexOf(":")), "[A-z]", "")), Mid(tmp(0), tmp(0).LastIndexOf("\") + 2, tmp(0).LastIndexOf(".") - tmp(0).LastIndexOf("\") - 1), Regex.Replace(Mid(tmp(0), tmp(0).IndexOf("(") + 2, tmp(0).IndexOf(")") - tmp(0).IndexOf("(") - 1), "[A-z]", ""), Mid(tmp(1), tmp(1).IndexOf(":") + 3, tmp(1).Length - tmp(1).IndexOf(":") - 1)}, If(tmp(1).IndexOf("error") > -1, 0, 1)))
+                        .Errors.Add(New ListViewItem(New String() {"", Trim(System.Text.RegularExpressions.Regex.Replace(Mid(tmp(1), 1, tmp(1).IndexOf(":")), "[A-z]", "")), Mid(tmp(0), tmp(0).LastIndexOf("\") + 2, tmp(0).LastIndexOf(".") - tmp(0).LastIndexOf("\") - 1), Regex.Match(tmp(0), "\([\d\s-]+\)").Value.Replace("(", "").Replace(")", ""), Mid(tmp(1), tmp(1).IndexOf(":") + 3, tmp(1).Length - tmp(1).IndexOf(":") - 1)}, If(tmp(1).IndexOf("error") > -1, 0, 1)))
                     Catch ex As Exception
 
                     End Try
@@ -877,7 +886,6 @@ Public Class Main
                     Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591))
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
-                    .Name = name
                     .Path = OFD.FileName
                 End With
             End If
@@ -1069,7 +1077,7 @@ Public Class Main
                 If er.Length > 0 Then
                     Try
                         tmp = Split(er, " : ")
-                        .Errors.Add(New ListViewItem(New String() {"", Trim(System.Text.RegularExpressions.Regex.Replace(Mid(tmp(1), 1, tmp(1).IndexOf(":")), "[A-z]", "")), Mid(tmp(0), tmp(0).LastIndexOf("\") + 2, tmp(0).LastIndexOf(".") - tmp(0).LastIndexOf("\") - 1), Regex.Replace(Mid(tmp(0), tmp(0).IndexOf("(") + 2, tmp(0).IndexOf(")") - tmp(0).IndexOf("(") - 1), "[A-z]", ""), Mid(tmp(1), tmp(1).IndexOf(":") + 3, tmp(1).Length - tmp(1).IndexOf(":") - 1)}, If(tmp(1).IndexOf("error") > -1, 0, 1)))
+                        .Errors.Add(New ListViewItem(New String() {"", Trim(System.Text.RegularExpressions.Regex.Replace(Mid(tmp(1), 1, tmp(1).IndexOf(":")), "[A-z]", "")), Mid(tmp(0), tmp(0).LastIndexOf("\") + 2, tmp(0).LastIndexOf(".") - tmp(0).LastIndexOf("\") - 1), Regex.Match(tmp(0), "\([\d\s-]+\)").Value.Replace("(", "").Replace(")", ""), Mid(tmp(1), tmp(1).IndexOf(":") + 3, tmp(1).Length - tmp(1).IndexOf(":") - 1)}, If(tmp(1).IndexOf("error") > -1, 0, 1)))
                     Catch ex As Exception
                     End Try
                 End If
@@ -1334,9 +1342,9 @@ Public Class Main
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
     ''' <remarks></remarks>
-    Private Sub TabControl1_Selected(ByVal sender As Object, ByVal e As System.Windows.Forms.TabControlEventArgs) Handles TabControl1.Selected
+    Private Sub TabControl1_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TabControl1.SelectedIndexChanged
         On Error Resume Next
-        With Instances(e.TabPageIndex)
+        With Instances(TabControl1.SelectedIndex)
             If .Saved Then
                 ToolStripButton3.Enabled = False
                 SaveAsToolStripMenuItem.Enabled = False
@@ -1360,6 +1368,7 @@ Public Class Main
             End If
             If .Errors.Count Then
                 Dim Header As Boolean() = New Boolean() {True, True, True}
+                ListView1.Items.Clear()
                 For Each item As ListViewItem In .Errors
                     ListView1.Items.Add(item)
                     If Not Header(0) AndAlso ListView1.Columns(1).Text.Length <= item.SubItems(1).Text.Length Then Header(0) = False
@@ -1367,7 +1376,6 @@ Public Class Main
                     If Not Header(2) AndAlso ListView1.Columns(3).Text.Length <= item.SubItems(3).Text.Length Then Header(2) = False
                 Next
                 With ListView1
-                    .Items.Clear()
                     .Columns(0).Width = 25
                     .Columns(1).Width = If(Header(0), -2, -1)
                     .Columns(2).Width = If(Header(1), -2, -1)
@@ -1462,28 +1470,97 @@ Public Class Main
 
 #Region "Errors List"
 
+    Private Sub ListView1_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles ListView1.MouseClick
+        If e.Button = Windows.Forms.MouseButtons.Right Then
+
+        End If
+    End Sub
+
     Private Sub ListView1_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ListView1.SelectedIndexChanged
         If Not ListView1.FocusedItem Is Nothing AndAlso ListView1.FocusedItem.SubItems(3).Text <> "" Then
-            With Instances(TabControl1.SelectedIndex).SyntaxHandle
-                .Focus()
-                If IsNumeric(ListView1.FocusedItem.SubItems(3).Text) Then
-                    .GoTo.Line(ListView1.FocusedItem.SubItems(3).Text - 1)
-                    .Selection.Start = .Lines(ListView1.FocusedItem.SubItems(3).Text - 1).SelectionStartPosition
-                    .Selection.Length = .Lines(ListView1.FocusedItem.SubItems(3).Text - 1).Text.Length
-                Else
-                    If ListView1.FocusedItem.SubItems(3).Text.IndexOf("--") > -1 Then
-                        Dim i As Integer, tmp As String = vbNullString
-                        While ListView1.FocusedItem.SubItems(3).Text(i) <> " "
-                            tmp += ListView1.FocusedItem.SubItems(3).Text(i)
-                            i += 1
-                        End While
-                        .GoTo.Line(tmp - 1)
-                        .Selection.Start = .Lines(tmp - 1).SelectionStartPosition
-                        .Selection.Length = .Lines(tmp - 1).Text.Length
-                    End If
+            Dim line As String, index = -1
+            line = ListView1.FocusedItem.SubItems(3).Text
+            For i = 0 To Instances.Count - 1
+                If Instances(i).Name = ListView1.FocusedItem.SubItems(2).Text Then
+                    index = i
+                    Exit For
                 End If
-            End With
+            Next
+            If index <> -1 Then
+                With Instances(index)
+                    TabControl1.SelectedIndex = index
+                    TabControl1.Select()
+                    With .SyntaxHandle
+                        If IsNumeric(line) Then
+                            line -= 1
+                            .GoTo.Line(line)
+                            .Selection.Start = .Lines(line).SelectionStartPosition
+                            .Selection.Length = .Lines(line).Text.Length
+                        ElseIf line.IndexOf("--") > -1 Then
+                            Dim i As Integer, tmp As String = vbNullString
+                            While line(i) <> " "
+                                tmp += line(i)
+                                i += 1
+                            End While
+                            tmp -= 1
+                            .GoTo.Line(tmp)
+                            .Selection.Start = .Lines(tmp).SelectionStartPosition
+                            .Selection.Length = .Lines(tmp).Text.Length
+                        End If
+                    End With
+                End With
+            Else
+                If File.Exists(My.Application.Info.DirectoryPath & "\Include\" & ListView1.FocusedItem.SubItems(2).Text & ".inc") Then
+                    Instances.Add(New Instance(ListView1.FocusedItem.SubItems(2).Text))
+                    With Instances(GetInstanceByName(ListView1.FocusedItem.SubItems(2).Text))
+                        .Path = My.Application.Info.DirectoryPath & "\Include\" & .Name & ".inc"
+                        TabControl1.SelectedTab = .TabHandle
+                        Dim Reader As New StreamReader(.Path, System.Text.Encoding.GetEncoding(28591), True)
+                        .SyntaxHandle.Text = Reader.ReadToEnd()
+                        Reader.Close()
+                        .SyntaxHandle.Focus()
+                        If IsNumeric(line) Then
+                            line -= 1
+                            .SyntaxHandle.GoTo.Line(line)
+                            .SyntaxHandle.Selection.Start = .SyntaxHandle.Lines(line).SelectionStartPosition
+                            .SyntaxHandle.Selection.Length = .SyntaxHandle.Lines(line).Text.Length
+                        ElseIf line.IndexOf("--") > -1 Then
+                            Dim i As Integer, tmp As String = vbNullString
+                            While line(i) <> " "
+                                tmp += line(i)
+                                i += 1
+                            End While
+                            tmp -= 1
+                            .SyntaxHandle.GoTo.Line(tmp)
+                            .SyntaxHandle.Selection.Start = .SyntaxHandle.Lines(tmp).SelectionStartPosition
+                            .SyntaxHandle.Selection.Length = .SyntaxHandle.Lines(tmp).Text.Length
+                        End If
+                    End With
+                End If
+            End If
         End If
+    End Sub
+
+    Private Sub ContextMenuHandler(ByVal Sender As Object, ByVal e As EventArgs)
+        On Error Resume Next
+        Dim mI As MenuItem = DirectCast(Sender, MenuItem)
+        Select Case mI.Text
+            Case "Copy selected row"
+                If Not ListView1.FocusedItem Is Nothing Then
+                    Dim tmp As String
+                    tmp = ListView1.FocusedItem.SubItems(1).Text & vbTab & ListView1.FocusedItem.SubItems(2).Text & vbTab & ListView1.FocusedItem.SubItems(3).Text & vbTab & """" & ListView1.FocusedItem.SubItems(4).Text & """"
+                    Clipboard.SetText(tmp)
+                End If
+            Case "Copy all"
+                Dim tmp As String = vbNullString
+                For Each L As ListViewItem In Instances(TabControl1.SelectedIndex).Errors
+                    tmp += L.SubItems(1).Text & vbTab & L.SubItems(2).Text & vbTab & L.SubItems(3).Text & vbTab & """" & L.SubItems(4).Text & """" & vbNewLine
+                Next
+                Clipboard.SetText(tmp)
+            Case "Clear"
+                Instances(TabControl1.SelectedIndex).Errors.Clear()
+                ListView1.Items.Clear()
+        End Select
     End Sub
 
 #End Region

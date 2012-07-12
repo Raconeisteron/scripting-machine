@@ -1307,404 +1307,403 @@ Public Class Tools
                 End Select
                 Exit Sub
             End If
-        Else
-            If TextBox60.Text = TextBox59.Text Then RadioButton17.Checked = True
-            If RadioButton22.Checked Then 'Different commands
-                If TextBox60.Text.Length = 0 Then
-                    Select Case Settings.Language
-                        Case Languages.English
-                            MsgBox("You must enter the name of the command to open the door.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Español
-                            MsgBox("Debes ingresar el nombre del comando para abrir la puerta.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Portuguêse
-                            MsgBox("Você deve digitar o nome do comando para abrir a porta.", MsgBoxStyle.Critical, "Error")
-                        Case Else
-                            MsgBox("Du musst einen Befehl zum Öffnen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
-                    End Select
-                    Exit Sub
-                ElseIf TextBox59.Text.Length = 0 Then
-                    Select Case Settings.Language
-                        Case Languages.English
-                            MsgBox("You must enter the name of the command to close the door.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Español
-                            MsgBox("Debes ingresar el nombre del comando para cerrar la puerta.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Portuguêse
-                            MsgBox("Você deve digitar o nome do comando para trancar a porta.", MsgBoxStyle.Critical, "Error")
-                        Case Else
-                            MsgBox("Du musst einen Befehl zum Schließen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
-                    End Select
-                    Exit Sub
-                Else 'Different commands
-                    TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
-                        "new Gate;" & vbNewLine & vbNewLine
-                    If CheckBox12.Checked Then
-                        TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
-                    Else
-                        TextBox75.Text += "public OnGameModeInit()" & vbNewLine
-                    End If
-                    TextBox75.Text += "{" & vbNewLine & _
-                        vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
-                        vbTab & "return 1;" & vbNewLine & _
-                        "}" & vbNewLine & vbNewLine
-                    If RadioButton16.Checked Then 'No cmd processor
-                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "if(!strcmp(cmdtext, ""/" & TextBox60.Text & """, true)" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
-                            vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                        If CheckBox11.Checked Then
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
-                            vbTab & "}" & vbNewLine & _
-                            vbTab & "else if(!strcmp(cmdtext, ""/" & TextBox59.Text & """, true)" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
-                            vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
-                        If CheckBox7.Checked Then
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
-                            vbTab & "}" & vbNewLine & _
-                            vbTab & "return 0;" & vbNewLine & _
-                            "}"
-                    ElseIf RadioButton15.Checked Then 'DCMD
-                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "dcmd(" & TextBox60.Text & ", " & TextBox60.Text.Length & ", cmdtext);" & vbNewLine & _
-                            vbTab & "dcmd(" & TextBox59.Text & ", " & TextBox59.Text.Length & ", cmdtext);" & vbNewLine & _
-                            vbTab & "return 0;" & vbNewLine & _
-                            "}" & vbNewLine & vbNewLine & _
-                            "dcmd_" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                             vbTab & "#pragma unused params" & vbNewLine & _
-                             vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
-                             vbTab & "{" & vbNewLine & _
-                             vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                        If CheckBox11.Checked Then
-                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & "}" & vbNewLine & _
-                            "}" & vbNewLine & vbNewLine & _
-                            "dcmd_" & TextBox59.Text & "(playerid, params[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "#pragma unused params" & vbNewLine & _
-                            vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
-                        If CheckBox7.Checked Then
-                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & "}" & vbNewLine & _
-                            "}"
-                    Else 'ZCMD
-                        TextBox75.Text += "CMD:" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                             vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
-                             vbTab & "{" & vbNewLine & _
-                             vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                        If CheckBox11.Checked Then
-                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & "}" & vbNewLine & _
-                            "}" & vbNewLine & vbNewLine & _
-                            "CMD:" & TextBox59.Text & "(playerid, params[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
-                        If CheckBox7.Checked Then
-                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & "}" & vbNewLine & _
-                            "}"
-                    End If
-                End If
-            ElseIf RadioButton17.Checked Then 'Same command
-                If TextBox60.Text.Length = 0 Then
-                    Select Case Settings.Language
-                        Case Languages.English
-                            MsgBox("You must enter the name of the command to open and close the door.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Español
-                            MsgBox("Debe introducir el nombre del comando para abrir y cerrar la puerta.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Portuguêse
-                            MsgBox("Você deve digitar o nome do comando para abrir e fechar a porta.", MsgBoxStyle.Critical, "Erro")
-                        Case Else
-                            MsgBox("Sie müssen den Namen des Befehls zu öffnen, betreten und die Tür schließen.", MsgBoxStyle.Critical, "Error")
-                    End Select
-                    Exit Sub
+        End If
+        If TextBox60.Text = TextBox59.Text Then RadioButton17.Checked = True
+        If RadioButton22.Checked Then 'Different commands
+            If TextBox60.Text.Length = 0 Then
+                Select Case Settings.Language
+                    Case Languages.English
+                        MsgBox("You must enter the name of the command to open the door.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Español
+                        MsgBox("Debes ingresar el nombre del comando para abrir la puerta.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Portuguêse
+                        MsgBox("Você deve digitar o nome do comando para abrir a porta.", MsgBoxStyle.Critical, "Error")
+                    Case Else
+                        MsgBox("Du musst einen Befehl zum Öffnen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
+                End Select
+                Exit Sub
+            ElseIf TextBox59.Text.Length = 0 Then
+                Select Case Settings.Language
+                    Case Languages.English
+                        MsgBox("You must enter the name of the command to close the door.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Español
+                        MsgBox("Debes ingresar el nombre del comando para cerrar la puerta.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Portuguêse
+                        MsgBox("Você deve digitar o nome do comando para trancar a porta.", MsgBoxStyle.Critical, "Error")
+                    Case Else
+                        MsgBox("Du musst einen Befehl zum Schließen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
+                End Select
+                Exit Sub
+            Else 'Different commands
+                TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
+                    "new Gate;" & vbNewLine & vbNewLine
+                If CheckBox12.Checked Then
+                    TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
                 Else
-                    TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
-                        "new Gate, bool:GateClosed = true;" & vbNewLine & vbNewLine
-                    If CheckBox12.Checked Then
-                        TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
+                    TextBox75.Text += "public OnGameModeInit()" & vbNewLine
+                End If
+                TextBox75.Text += "{" & vbNewLine & _
+                    vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
+                    vbTab & "return 1;" & vbNewLine & _
+                    "}" & vbNewLine & vbNewLine
+                If RadioButton16.Checked Then 'No cmd processor
+                    TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "if(!strcmp(cmdtext, ""/" & TextBox60.Text & """, true)" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                        vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
                     Else
-                        TextBox75.Text += "public OnGameModeInit()" & vbNewLine
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
                     End If
-                    TextBox75.Text += "{" & vbNewLine & _
-                        vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
-                        vbTab & "return 1;" & vbNewLine & _
-                        "}" & vbNewLine & vbNewLine
-                    If RadioButton16.Checked Then 'No cmd processor
-                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "if(!strcmp(cmdtext, """ & TextBox60.Text & """, true))" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "if(GateClosed)" & vbNewLine & _
-                            vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
-                            vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                        If CheckBox11.Checked Then
-                            TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & vbTab & vbTab & "}" & vbNewLine & _
-                            vbTab & vbTab & "}" & vbNewLine & _
-                            vbTab & vbTab & "else" & vbNewLine & _
-                            vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & vbTab & "GateClosed = true" & vbNewLine & _
-                            vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
-                        If CheckBox7.Checked Then
-                            TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & vbTab & vbTab & "}" & vbNewLine & _
-                        vbTab & vbTab & "}" & vbNewLine & _
+                    TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & "}" & vbNewLine & _
+                        vbTab & "else if(!strcmp(cmdtext, ""/" & TextBox59.Text & """, true)" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                        vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                    If CheckBox7.Checked Then
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
                         vbTab & "}" & vbNewLine & _
                         vbTab & "return 0;" & vbNewLine & _
                         "}"
-                    ElseIf RadioButton15.Checked Then 'DCMD
-                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
-                            "{" & vbNewLine & vbNewLine & _
-                            vbTab & "dcmd(" & TextBox60.Text & ", " & TextBox60.Text.Length & ", cmdtext);" & vbNewLine & _
-                            vbTab & "return 0;" & vbNewLine & _
-                            "}" & vbNewLine & vbNewLine & _
-                            "dcmd_" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "#pragma unused params" & vbNewLine & _
-                            vbTab & "if(GateClosed)" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
-                            vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                        If CheckBox11.Checked Then
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
-                            vbTab & "}" & vbNewLine & _
-                            vbTab & "else" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
-                            vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "GateClosed = true" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
-                        If CheckBox7.Checked Then
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
-                        vbTab & "}" & vbNewLine & _
-                            "}"
-                    Else 'ZCMD
-                        TextBox75.Text += "CMD:" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "if(GateClosed)" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
-                            vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                        If CheckBox11.Checked Then
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
-                            vbTab & "}" & vbNewLine & _
-                            vbTab & "else" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
-                            vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "GateClosed = true" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
-                        If CheckBox7.Checked Then
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
-                        vbTab & "}" & vbNewLine & _
-                            "}"
-                    End If
-                End If
-            ElseIf RadioButton21.Checked Then 'Semi automatic 
-                If TextBox60.Text.Length = 0 Then
-                    Select Case Settings.Language
-                        Case Languages.English
-                            MsgBox("You must enter the name of the command to open the door.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Español
-                            MsgBox("Debes ingresar el nombre del comando para abrir la puerta.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Portuguêse
-                            MsgBox("Você deve digitar o nome do comando para abrir a porta.", MsgBoxStyle.Critical, "Error")
-                        Case Else
-                            MsgBox("Du musst einen Befehl zum Öffnen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
-                    End Select
-                    Exit Sub
-                ElseIf TextBox48.Text.Length = 0 Then
-                    Select Case Settings.Language
-                        Case Languages.English
-                            MsgBox("You must enter a valid time to close the door.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Español
-                            MsgBox("Debes ingresar un tiempo valido para cerrar la puerta.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Portuguêse
-                            MsgBox("Você deve inserir um tempo válido para fechar a porta.", MsgBoxStyle.Critical, "Error")
-                        Case Else
-                            MsgBox("Du musst eine gültige Zeit zum Öffnen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
-                    End Select
-                    Exit Sub
-                Else
-                    TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
-                        "new Gate;" & vbNewLine & vbNewLine
-                    If CheckBox12.Checked Then
-                        TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
-                    Else
-                        TextBox75.Text += "public OnGameModeInit()" & vbNewLine
-                    End If
-                    TextBox75.Text += "{" & vbNewLine & _
-                        vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
-                        vbTab & "return 1;" & vbNewLine & _
-                        "}" & vbNewLine & vbNewLine
-                    If RadioButton16.Checked Then 'No cmd processor
-                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "if(!strcmp(cmdtext, """ & TextBox60.Text & ", true))" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
-                            vbTab & vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "SetTimerEx(""CloseGate"", " & TextBox48.Text & ", false, ""i"", playerid);" & vbNewLine & _
-                            vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                        If CheckBox11.Checked Then
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
-                            vbTab & "}" & vbNewLine & _
-                            "}" & vbNewLine & vbNewLine
-                    ElseIf RadioButton15.Checked Then 'DCMD
-                        TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "dcmd(" & TextBox60.Text & ", " & TextBox60.Text.Length & ", cmdtext);" & vbNewLine & _
-                            vbTab & "return 0;" & vbNewLine & _
-                            "}" & vbNewLine & vbNewLine & _
-                            "dcmd_" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            "#pragma unused params" & vbNewLine & _
-                            vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "SetTimerEx(""CloseGate"", " & TextBox48.Text & ", false, ""i"", playerid);" & vbNewLine & _
-                            vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                        If CheckBox11.Checked Then
-                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & "}" & vbNewLine & _
-                            "}" & vbNewLine & vbNewLine
-                    Else 'ZCMD
-                        TextBox75.Text += "CMD:" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
-                            "{" & vbNewLine & _
-                            vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
-                            vbTab & "{" & vbNewLine & _
-                            vbTab & vbTab & "SetTimerEx(""CloseGate"", " & TextBox48.Text & ", false, ""i"", playerid);" & vbNewLine & _
-                            vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                        If CheckBox11.Checked Then
-                            TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                        Else
-                            TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
-                        End If
-                        TextBox75.Text += vbTab & "}" & vbNewLine & _
-                            "}" & vbNewLine & vbNewLine
-                    End If
-                    TextBox75.Text += "forward CloseGate(playerid);" & vbNewLine & _
-                        "public CloseGate(playerid)" & vbNewLine & _
+                ElseIf RadioButton15.Checked Then 'DCMD
+                    TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
                         "{" & vbNewLine & _
-                        vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox79.Text & ");" & vbNewLine
-                    If CheckBox7.Checked Then TextBox75.Text += vbTab & "SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
-                    TextBox75.Text += "}"
-                End If
-            Else
-                If TextBox48.Text.Length = 0 Then
-                    Select Case Settings.Language
-                        Case Languages.English
-                            MsgBox("You must enter a valid time to oepn and close the door.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Español
-                            MsgBox("Debe introducir un tiempo válido para oepn y cierre la puerta.", MsgBoxStyle.Critical, "Error")
-                        Case Languages.Portuguêse
-                            MsgBox("Você deve digitar uma hora válida para oepn e feche a porta.", MsgBoxStyle.Critical, "Erro")
-                        Case Else
-                            MsgBox("Sie müssen eine gültige Zeit zu oepn und schließen Sie die Tür einzutreten.", MsgBoxStyle.Critical, "Error")
-                    End Select
-                    Exit Sub
-                Else
-                    TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
-                        "new Gatebool:GateClosed = true;" & vbNewLine & vbNewLine
-                    If CheckBox12.Checked Then
-                        TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
-                    Else
-                        TextBox75.Text += "public OnGameModeInit()" & vbNewLine
-                    End If
-                    TextBox75.Text += """{" & vbNewLine & _
-                        vbTab & "Gate = CreateObject(" & TextBox24.Text & ", " & TextBox21.Text & ", " & TextBox20.Text & ", " & TextBox19.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox17.Text & ", 100.0);" & vbNewLine & _
-                        vbTab & "SetTimer(""GateCheck"", " & TextBox28.Text & ", true);" & vbNewLine & _
-                        vbTab & "return 1;" & vbNewLine & _
+                        vbTab & "dcmd(" & TextBox60.Text & ", " & TextBox60.Text.Length & ", cmdtext);" & vbNewLine & _
+                        vbTab & "dcmd(" & TextBox59.Text & ", " & TextBox59.Text.Length & ", cmdtext);" & vbNewLine & _
+                        vbTab & "return 0;" & vbNewLine & _
                         "}" & vbNewLine & vbNewLine & _
-                        "forward GateCheck();" & vbNewLine & _
-                        "public GateCheck()" & vbNewLine & _
+                        "dcmd_" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
                         "{" & vbNewLine & _
-                        vbTab & "if(!IsObjectMoving(Gate)){" & vbNewLine & _
-                        vbTab & vbTab & "for(new i; i<GetMaxPlayers(); i++){" & vbNewLine & _
-                        vbTab & vbTab & vbTab & "if(IsPlayerConnected(i) && " & TextBox86.Text.Replace("{P}", "i") & " == " & TextBox87.Text & " && IsPlayerInRangeOfPoint(i, " & TextBox14.Text & ", " & TextBox21.Text & ", " & TextBox20.Text & ", " & TextBox19.Text & ")){" & vbNewLine & _
-                        vbTab & vbTab & vbTab & vbTab & "if(GateClosed){" & vbNewLine & _
-                        vbTab & vbTab & vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
-                        vbTab & vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
-                    If CheckBox11.Checked Then TextBox75.Text += "SendClientMessage(i, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
-                    TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "}" & vbNewLine & _
-                        vbTab & vbTab & vbTab & vbTab & "else{" & vbNewLine & _
-                        vbTab & vbTab & vbTab & vbTab & vbTab & "GateClosed = true;" & vbNewLine & _
-                        vbTab & vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox79.Text & ");" & vbNewLine
-                    If CheckBox7.Checked Then TextBox75.Text += "SendClientMessage(i, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
-                    TextBox75.Text += vbTab & vbTab & vbTab & "}" & vbNewLine & _
-                        vbTab & vbTab & vbTab & "}" & vbNewLine & _
-                        vbTab & vbTab & "}" & vbNewLine & _
-                        vbTab & "}" & vbNewLine & _
+                         vbTab & "#pragma unused params" & vbNewLine & _
+                         vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                         vbTab & "{" & vbNewLine & _
+                         vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then
+                        TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & "}" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine & _
+                        "dcmd_" & TextBox59.Text & "(playerid, params[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "#pragma unused params" & vbNewLine & _
+                        vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                    If CheckBox7.Checked Then
+                        TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & "}" & vbNewLine & _
+                        "}"
+                Else 'ZCMD
+                    TextBox75.Text += "CMD:" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                         vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                         vbTab & "{" & vbNewLine & _
+                         vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then
+                        TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & "}" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine & _
+                        "CMD:" & TextBox59.Text & "(playerid, params[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                    If CheckBox7.Checked Then
+                        TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & "}" & vbNewLine & _
                         "}"
                 End If
+            End If
+        ElseIf RadioButton17.Checked Then 'Same command
+            If TextBox60.Text.Length = 0 Then
+                Select Case Settings.Language
+                    Case Languages.English
+                        MsgBox("You must enter the name of the command to open and close the door.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Español
+                        MsgBox("Debe introducir el nombre del comando para abrir y cerrar la puerta.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Portuguêse
+                        MsgBox("Você deve digitar o nome do comando para abrir e fechar a porta.", MsgBoxStyle.Critical, "Erro")
+                    Case Else
+                        MsgBox("Sie müssen den Namen des Befehls zu öffnen, betreten und die Tür schließen.", MsgBoxStyle.Critical, "Error")
+                End Select
+                Exit Sub
+            Else
+                TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
+                    "new Gate, bool:GateClosed = true;" & vbNewLine & vbNewLine
+                If CheckBox12.Checked Then
+                    TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
+                Else
+                    TextBox75.Text += "public OnGameModeInit()" & vbNewLine
+                End If
+                TextBox75.Text += "{" & vbNewLine & _
+                    vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
+                    vbTab & "return 1;" & vbNewLine & _
+                    "}" & vbNewLine & vbNewLine
+                If RadioButton16.Checked Then 'No cmd processor
+                    TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "if(!strcmp(cmdtext, """ & TextBox60.Text & """, true))" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "if(GateClosed)" & vbNewLine & _
+                        vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then
+                        TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & vbTab & "else" & vbNewLine & _
+                        vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & "GateClosed = true" & vbNewLine & _
+                        vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                    If CheckBox7.Checked Then
+                        TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                    vbTab & vbTab & "}" & vbNewLine & _
+                    vbTab & "}" & vbNewLine & _
+                    vbTab & "return 0;" & vbNewLine & _
+                    "}"
+                ElseIf RadioButton15.Checked Then 'DCMD
+                    TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                        "{" & vbNewLine & vbNewLine & _
+                        vbTab & "dcmd(" & TextBox60.Text & ", " & TextBox60.Text.Length & ", cmdtext);" & vbNewLine & _
+                        vbTab & "return 0;" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine & _
+                        "dcmd_" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "#pragma unused params" & vbNewLine & _
+                        vbTab & "if(GateClosed)" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                        vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & "}" & vbNewLine & _
+                        vbTab & "else" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                        vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "GateClosed = true" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                    If CheckBox7.Checked Then
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                    vbTab & "}" & vbNewLine & _
+                        "}"
+                Else 'ZCMD
+                    TextBox75.Text += "CMD:" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "if(GateClosed)" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                        vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & "}" & vbNewLine & _
+                        vbTab & "else" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox82.Text & ", " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & "))" & vbNewLine & _
+                        vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "GateClosed = true" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ");" & vbNewLine
+                    If CheckBox7.Checked Then
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                    vbTab & "}" & vbNewLine & _
+                        "}"
+                End If
+            End If
+        ElseIf RadioButton21.Checked Then 'Semi automatic 
+            If TextBox60.Text.Length = 0 Then
+                Select Case Settings.Language
+                    Case Languages.English
+                        MsgBox("You must enter the name of the command to open the door.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Español
+                        MsgBox("Debes ingresar el nombre del comando para abrir la puerta.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Portuguêse
+                        MsgBox("Você deve digitar o nome do comando para abrir a porta.", MsgBoxStyle.Critical, "Error")
+                    Case Else
+                        MsgBox("Du musst einen Befehl zum Öffnen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
+                End Select
+                Exit Sub
+            ElseIf TextBox48.Text.Length = 0 Then
+                Select Case Settings.Language
+                    Case Languages.English
+                        MsgBox("You must enter a valid time to close the door.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Español
+                        MsgBox("Debes ingresar un tiempo valido para cerrar la puerta.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Portuguêse
+                        MsgBox("Você deve inserir um tempo válido para fechar a porta.", MsgBoxStyle.Critical, "Error")
+                    Case Else
+                        MsgBox("Du musst eine gültige Zeit zum Öffnen der Tür angeben.", MsgBoxStyle.Critical, "Fehler")
+                End Select
+                Exit Sub
+            Else
+                TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
+                    "new Gate;" & vbNewLine & vbNewLine
+                If CheckBox12.Checked Then
+                    TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
+                Else
+                    TextBox75.Text += "public OnGameModeInit()" & vbNewLine
+                End If
+                TextBox75.Text += "{" & vbNewLine & _
+                    vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
+                    vbTab & "return 1;" & vbNewLine & _
+                    "}" & vbNewLine & vbNewLine
+                If RadioButton16.Checked Then 'No cmd processor
+                    TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "if(!strcmp(cmdtext, """ & TextBox60.Text & ", true))" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                        vbTab & vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "SetTimerEx(""CloseGate"", " & TextBox48.Text & ", false, ""i"", playerid);" & vbNewLine & _
+                        vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & vbTab & "}" & vbNewLine & _
+                        vbTab & "}" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine
+                ElseIf RadioButton15.Checked Then 'DCMD
+                    TextBox75.Text += "public OnPlayerCommandText(playerid, cmdtext[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "dcmd(" & TextBox60.Text & ", " & TextBox60.Text.Length & ", cmdtext);" & vbNewLine & _
+                        vbTab & "return 0;" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine & _
+                        "dcmd_" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        "#pragma unused params" & vbNewLine & _
+                        vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "SetTimerEx(""CloseGate"", " & TextBox48.Text & ", false, ""i"", playerid);" & vbNewLine & _
+                        vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then
+                        TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & "}" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine
+                Else 'ZCMD
+                    TextBox75.Text += "CMD:" & TextBox60.Text & "(playerid, params[])" & vbNewLine & _
+                        "{" & vbNewLine & _
+                        vbTab & "if(" & TextBox86.Text.Replace("{P}", "playerid") & " == " & TextBox87.Text & " && !IsObjectMoving(Gate) && IsPlayerInRangeOfPoint(playerid, " & TextBox61.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & "))" & vbNewLine & _
+                        vbTab & "{" & vbNewLine & _
+                        vbTab & vbTab & "SetTimerEx(""CloseGate"", " & TextBox48.Text & ", false, ""i"", playerid);" & vbNewLine & _
+                        vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                    If CheckBox11.Checked Then
+                        TextBox75.Text += vbTab & vbTab & "return SendClientMessage(playerid, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                    Else
+                        TextBox75.Text += vbTab & vbTab & "return 1;" & vbNewLine
+                    End If
+                    TextBox75.Text += vbTab & "}" & vbNewLine & _
+                        "}" & vbNewLine & vbNewLine
+                End If
+                TextBox75.Text += "forward CloseGate(playerid);" & vbNewLine & _
+                    "public CloseGate(playerid)" & vbNewLine & _
+                    "{" & vbNewLine & _
+                    vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox79.Text & ");" & vbNewLine
+                If CheckBox7.Checked Then TextBox75.Text += vbTab & "SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                TextBox75.Text += "}"
+            End If
+        Else
+            If TextBox48.Text.Length = 0 Then
+                Select Case Settings.Language
+                    Case Languages.English
+                        MsgBox("You must enter a valid time to oepn and close the door.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Español
+                        MsgBox("Debe introducir un tiempo válido para oepn y cierre la puerta.", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Portuguêse
+                        MsgBox("Você deve digitar uma hora válida para oepn e feche a porta.", MsgBoxStyle.Critical, "Erro")
+                    Case Else
+                        MsgBox("Sie müssen eine gültige Zeit zu oepn und schließen Sie die Tür einzutreten.", MsgBoxStyle.Critical, "Error")
+                End Select
+                Exit Sub
+            Else
+                TextBox75.Text = "#include <a_samp>" & vbNewLine & vbNewLine & _
+                    "new Gatebool:GateClosed = true;" & vbNewLine & vbNewLine
+                If CheckBox12.Checked Then
+                    TextBox75.Text += "public OnFilterScriptInit()" & vbNewLine
+                Else
+                    TextBox75.Text += "public OnGameModeInit()" & vbNewLine
+                End If
+                TextBox75.Text += """{" & vbNewLine & _
+                    vbTab & "Gate = CreateObject(" & TextBox24.Text & ", " & TextBox21.Text & ", " & TextBox20.Text & ", " & TextBox19.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox17.Text & ", 100.0);" & vbNewLine & _
+                    vbTab & "SetTimer(""GateCheck"", " & TextBox28.Text & ", true);" & vbNewLine & _
+                    vbTab & "return 1;" & vbNewLine & _
+                    "}" & vbNewLine & vbNewLine & _
+                    "forward GateCheck();" & vbNewLine & _
+                    "public GateCheck()" & vbNewLine & _
+                    "{" & vbNewLine & _
+                    vbTab & "if(!IsObjectMoving(Gate)){" & vbNewLine & _
+                    vbTab & vbTab & "for(new i; i<GetMaxPlayers(); i++){" & vbNewLine & _
+                    vbTab & vbTab & vbTab & "if(IsPlayerConnected(i) && " & TextBox86.Text.Replace("{P}", "i") & " == " & TextBox87.Text & " && IsPlayerInRangeOfPoint(i, " & TextBox14.Text & ", " & TextBox21.Text & ", " & TextBox20.Text & ", " & TextBox19.Text & ")){" & vbNewLine & _
+                    vbTab & vbTab & vbTab & vbTab & "if(GateClosed){" & vbNewLine & _
+                    vbTab & vbTab & vbTab & vbTab & vbTab & "GateClosed = false;" & vbNewLine & _
+                    vbTab & vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox68.Text & ", " & TextBox63.Text & ", " & TextBox62.Text & ", " & TextBox49.Text & ", " & TextBox79.Text & ", " & TextBox78.Text & ", " & TextBox77.Text & ");" & vbNewLine
+                If CheckBox11.Checked Then TextBox75.Text += "SendClientMessage(i, " & Settings.G_Open_Color.Name & ", " & TextBox51.Text & ");" & vbNewLine
+                TextBox75.Text += vbTab & vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                    vbTab & vbTab & vbTab & vbTab & "else{" & vbNewLine & _
+                    vbTab & vbTab & vbTab & vbTab & vbTab & "GateClosed = true;" & vbNewLine & _
+                    vbTab & vbTab & vbTab & vbTab & vbTab & "MoveObject(Gate, " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox49.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox79.Text & ");" & vbNewLine
+                If CheckBox7.Checked Then TextBox75.Text += "SendClientMessage(i, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
+                TextBox75.Text += vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                    vbTab & vbTab & vbTab & "}" & vbNewLine & _
+                    vbTab & vbTab & "}" & vbNewLine & _
+                    vbTab & "}" & vbNewLine & _
+                    "}"
             End If
         End If
     End Sub

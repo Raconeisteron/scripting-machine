@@ -78,6 +78,7 @@ Partial Class Main
         Me.ColorPickerToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ConverterToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.DialogsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.GatesToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.TeleportsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.InfoToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.AnimsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -141,7 +142,6 @@ Partial Class Main
         Me.TabPage5 = New System.Windows.Forms.TabPage()
         Me.TextBox1 = New System.Windows.Forms.TextBox()
         Me.TabControl1 = New Scripting_Machine.TabControlEx.TabCtlEx()
-        Me.GatesToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.MenuStrip1.SuspendLayout()
         Me.TabControl2.SuspendLayout()
         Me.TabPage3.SuspendLayout()
@@ -385,38 +385,44 @@ Partial Class Main
         'AreasToolStripMenuItem
         '
         Me.AreasToolStripMenuItem.Name = "AreasToolStripMenuItem"
-        Me.AreasToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.AreasToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
         Me.AreasToolStripMenuItem.Text = "Areas"
         '
         'ColorPickerToolStripMenuItem
         '
         Me.ColorPickerToolStripMenuItem.Name = "ColorPickerToolStripMenuItem"
-        Me.ColorPickerToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.ColorPickerToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
         Me.ColorPickerToolStripMenuItem.Text = "Color Picker"
         '
         'ConverterToolStripMenuItem
         '
         Me.ConverterToolStripMenuItem.Name = "ConverterToolStripMenuItem"
-        Me.ConverterToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.ConverterToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
         Me.ConverterToolStripMenuItem.Text = "Converter"
         '
         'DialogsToolStripMenuItem
         '
         Me.DialogsToolStripMenuItem.Name = "DialogsToolStripMenuItem"
-        Me.DialogsToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.DialogsToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
         Me.DialogsToolStripMenuItem.Text = "Dialogs"
+        '
+        'GatesToolStripMenuItem
+        '
+        Me.GatesToolStripMenuItem.Name = "GatesToolStripMenuItem"
+        Me.GatesToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
+        Me.GatesToolStripMenuItem.Text = "Gates"
         '
         'TeleportsToolStripMenuItem
         '
         Me.TeleportsToolStripMenuItem.Name = "TeleportsToolStripMenuItem"
-        Me.TeleportsToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.TeleportsToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
         Me.TeleportsToolStripMenuItem.Text = "Teleports"
         '
         'InfoToolStripMenuItem
         '
         Me.InfoToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AnimsToolStripMenuItem, Me.MapIconsToolStripMenuItem, Me.SkinsToolStripMenuItem, Me.SoundsToolStripMenuItem, Me.SpritesToolStripMenuItem, Me.VehiclesToolStripMenuItem, Me.WeaponsToolStripMenuItem})
         Me.InfoToolStripMenuItem.Name = "InfoToolStripMenuItem"
-        Me.InfoToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.InfoToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
         Me.InfoToolStripMenuItem.Text = "Info"
         '
         'AnimsToolStripMenuItem
@@ -588,14 +594,14 @@ Partial Class Main
         Me.TreeView2.Location = New System.Drawing.Point(0, 0)
         Me.TreeView2.Margin = New System.Windows.Forms.Padding(4)
         Me.TreeView2.Name = "TreeView2"
-        Me.TreeView2.Size = New System.Drawing.Size(174, 435)
+        Me.TreeView2.Size = New System.Drawing.Size(174, 433)
         Me.TreeView2.TabIndex = 7
         '
         'Button1
         '
         Me.Button1.Dock = System.Windows.Forms.DockStyle.Bottom
         Me.Button1.Image = Global.Scripting_Machine.My.Resources.Resources.refresh
-        Me.Button1.Location = New System.Drawing.Point(0, 435)
+        Me.Button1.Location = New System.Drawing.Point(0, 433)
         Me.Button1.Margin = New System.Windows.Forms.Padding(4)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(174, 26)
@@ -905,7 +911,7 @@ Partial Class Main
         Me.TextBox1.Multiline = True
         Me.TextBox1.Name = "TextBox1"
         Me.TextBox1.ReadOnly = True
-        Me.TextBox1.Size = New System.Drawing.Size(629, 90)
+        Me.TextBox1.Size = New System.Drawing.Size(629, 88)
         Me.TextBox1.TabIndex = 0
         '
         'TabControl1
@@ -922,12 +928,6 @@ Partial Class Main
         Me.TabControl1.Size = New System.Drawing.Size(645, 363)
         Me.TabControl1.TabIndex = 31
         Me.TabControl1.TabStop = False
-        '
-        'GatesToolStripMenuItem
-        '
-        Me.GatesToolStripMenuItem.Name = "GatesToolStripMenuItem"
-        Me.GatesToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
-        Me.GatesToolStripMenuItem.Text = "Gates"
         '
         'Main
         '

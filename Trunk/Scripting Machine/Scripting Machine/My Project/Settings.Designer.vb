@@ -471,6 +471,30 @@ Namespace My
                 Me("BackColor") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("False")>  _
+        Public Property ApplyAll() As Boolean
+            Get
+                Return CType(Me("ApplyAll"),Boolean)
+            End Get
+            Set
+                Me("ApplyAll") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Default")>  _
+        Public Property H_Preproc() As String
+            Get
+                Return CType(Me("H_Preproc"),String)
+            End Get
+            Set
+                Me("H_Preproc") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

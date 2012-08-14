@@ -120,7 +120,7 @@ Public Class eColor
 
     Private Sub TextBox2_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox2.TextChanged
         TextBox2.Text = Regex.Replace(TextBox2.Text, BadChars, "")
-        If Val(TextBox2.Text) <> TrackBar1.Value Then
+        If Val(TextBox2.Text) <> TrackBar2.Value Then
             If Val(TextBox2.Text) > 255 Then TextBox2.Text = 255
             If Val(TextBox2.Text) < 0 Then TextBox2.Text = 0
             TrackBar2.Value = Val(TextBox2.Text)
@@ -134,7 +134,7 @@ Public Class eColor
 
     Private Sub TextBox3_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox3.TextChanged
         TextBox3.Text = Regex.Replace(TextBox3.Text, BadChars, "")
-        If Val(TextBox3.Text) <> TrackBar1.Value Then
+        If Val(TextBox3.Text) <> TrackBar3.Value Then
             If Val(TextBox3.Text) > 255 Then TextBox3.Text = 255
             If Val(TextBox3.Text) < 0 Then TextBox3.Text = 0
             TrackBar3.Value = Val(TextBox3.Text)
@@ -223,6 +223,12 @@ Public Class eColor
             Case CC.H_CMF
                 If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel13.BackColor = Panel1.BackColor
+            Case CC.H_PRE_B
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
+                Options.Panel17.BackColor = Panel1.BackColor
+            Case CC.H_PRE_F
+                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
+                Options.Panel16.BackColor = Panel1.BackColor
             Case CC.G_Open
                 Tools.Panel10.BackColor = Panel1.BackColor
                 Settings.G_Open_Color.Hex = Panel1.BackColor
@@ -231,7 +237,7 @@ Public Class eColor
                 Tools.Panel9.BackColor = Panel1.BackColor
                 Settings.G_Close_Color.Hex = Panel1.BackColor
                 Settings.G_Close_Color.Name = tmp
-            Case CC.Back
+            Case (CC.Back)
                 If TrackBar4.Value = 0 Then TrackBar4.Value = 1
                 Options.Panel15.BackColor = Panel1.BackColor
         End Select

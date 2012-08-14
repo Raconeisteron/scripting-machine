@@ -23,27 +23,29 @@ Public Class Instance
 
 #Region "Private"
 
-    Dim _Saved As Boolean
-    Dim _Name As String
-    Dim _Path As String
-    Dim _Created As Boolean
-    Dim _Ext As String
-    Dim _Rate As Integer
-    Dim _Font As Font = Settings.cFont
-    Dim _ShowingInfoText As Boolean
-    Dim wait As Boolean
-    Dim first As Boolean
-    Dim WithEvents Tim As New Timers.Timer(1000)
-    Dim MarginUpdater As New uMargin(AddressOf UpdateMargin)
+    Private _Saved As Boolean, _
+        _Name As String, _
+        _Path As String, _
+        _Created As Boolean, _
+        _Ext As String, _
+        _Rate As Integer, _
+        _Font As Font = Settings.cFont, _
+        _ShowingInfoText As Boolean, _
+        _index As Integer, _
+        wait As Boolean, _
+        first As Boolean, _
+        MarginUpdater As New uMargin(AddressOf UpdateMargin),
+        justreloaded As Boolean
+    Private WithEvents Tim As New Timers.Timer(1000)
 
 #End Region
 
 #Region "Public"
 
-    Public ACLists As AutoCompleteLists
-    Public Errors As New List(Of ListViewItem)
-    Public DataUpdater As New uData(AddressOf UpdateData)
-    Public DataUpdaterEx As New uDataEx(AddressOf UpdateDataEx)
+    Public ACLists As AutoCompleteLists, _
+        Errors As New List(Of ListViewItem), _
+        DataUpdater As New uData(AddressOf UpdateData), _
+        DataUpdaterEx As New uDataEx(AddressOf UpdateDataEx)
 
 #End Region
 
@@ -63,26 +65,27 @@ Public Class Instance
 #Region "Strutctures"
 
     Public Structure AutoCompleteLists
-        Public Functions As List(Of PawnFunction)
-        Public Callbacks As List(Of PawnFunction)
-        Public Colors As List(Of PawnColor)
-        Public eColors As List(Of PawnColor)
-        Public Files As List(Of String)
-        Public Dbs As List(Of String)
-        Public DbRes As List(Of String)
-        Public Menus As List(Of String)
-        Public Texts As List(Of String)
-        Public Texts2 As List(Of String)
-        Public Floats As List(Of String)
+        Public Functions As List(Of PawnFunction), _
+            Callbacks As List(Of PawnFunction), _
+            Colors As List(Of PawnColor), _
+            eColors As List(Of PawnColor), _
+            Files As List(Of String), _
+            Dbs As List(Of String), _
+            DbRes As List(Of String), _
+            Menus As List(Of String), _
+            Texts As List(Of String), _
+            Texts2 As List(Of String), _
+            Floats As List(Of String), _
+            UserDefinedPublics As List(Of CustomUserPublics)
     End Structure
 
 #End Region
 
 #Region "Components"
 
-    Friend WithEvents TabHandle As TabPageEx.TabPageEx
-    Friend WithEvents SyntaxHandle As Scintilla
-    Friend WithEvents InfoText As RichTextBox
+    Friend WithEvents TabHandle As TabPageEx.TabPageEx, _
+        SyntaxHandle As Scintilla, _
+        InfoText As RichTextBox
 
 #End Region
 
@@ -178,6 +181,12 @@ Public Class Instance
         End Get
     End Property
 
+    Public ReadOnly Property Index As Integer
+        Get
+            Index = _index
+        End Get
+    End Property
+
     Public Property Ext As String
         Get
             Ext = _Ext
@@ -242,8 +251,9 @@ Public Class Instance
 
 #Region "Methods"
 
-    Public Sub New(ByVal name As String, Optional ByVal iwait As Boolean = True)
+    Public Sub New(ByVal name As String, ByVal index As Integer, Optional ByVal iwait As Boolean = True)
         _Name = name
+        _index = index
         TabHandle = New TabPageEx.TabPageEx()
         SyntaxHandle = New Scintilla()
         InfoText = New RichTextBox()
@@ -259,9 +269,10 @@ Public Class Instance
             .Texts = New List(Of String)
             .Texts2 = New List(Of String)
             .Floats = New List(Of String)
+            .UserDefinedPublics = New List(Of CustomUserPublics)
         End With
         With SyntaxHandle
-            name = "SyntaxHandle" & If(Instances.Count = 0, "", Instances.Count)
+            If index <> 0 Then name = "SyntaxHandle_" & index
             .Font = Settings.cFont
             .Dock = DockStyle.Fill
             .LineWrap.Mode = WrapMode.None
@@ -290,43 +301,125 @@ Public Class Instance
                 .UseCompactFolding = True
                 .MarkerScheme = FoldMarkerScheme.BoxPlusMinus
             End With
-            .Styles("NUMBER").BackColor = Settings.H_Numbers.BackColor
-            .Styles("NUMBER").ForeColor = Settings.H_Numbers.ForeColor
-            .Styles("NUMBER").Bold = Settings.H_Numbers.Bold
-            .Styles("NUMBER").Italic = Settings.H_Numbers.Italic
-            .Styles("STRING").BackColor = Settings.H_String.BackColor
-            .Styles("STRING").ForeColor = Settings.H_String.ForeColor
-            .Styles("STRING").Bold = Settings.H_String.Bold
-            .Styles("STRING").Italic = Settings.H_String.Italic
-            .Styles("STRINGEOL").BackColor = Settings.H_String2.BackColor
-            .Styles("STRINGEOL").ForeColor = Settings.H_String2.ForeColor
-            .Styles("STRINGEOL").Bold = Settings.H_String2.Bold
-            .Styles("STRINGEOL").Italic = Settings.H_String2.Italic
-            .Styles("OPERATOR").BackColor = Settings.H_Operator.BackColor
-            .Styles("OPERATOR").ForeColor = Settings.H_Operator.ForeColor
-            .Styles("OPERATOR").Bold = Settings.H_Operator.Bold
-            .Styles("OPERATOR").Italic = Settings.H_Operator.Italic
-            .Styles("CHARACTER").BackColor = Settings.H_Chars.BackColor
-            .Styles("CHARACTER").ForeColor = Settings.H_Chars.ForeColor
-            .Styles("CHARACTER").Bold = Settings.H_Chars.Bold
-            .Styles("CHARACTER").Italic = Settings.H_Chars.Italic
-            .Styles("GLOBALCLASS").BackColor = Settings.H_Class.BackColor
-            .Styles("GLOBALCLASS").ForeColor = Settings.H_Class.ForeColor
-            .Styles("GLOBALCLASS").Font = .Font
-            .Styles("GLOBALCLASS").Bold = Settings.H_Class.Bold
-            .Styles("GLOBALCLASS").Italic = Settings.H_Class.Italic
-            .Styles("COMMENT").BackColor = Settings.H_Comment.BackColor
-            .Styles("COMMENT").ForeColor = Settings.H_Comment.ForeColor
-            .Styles("COMMENT").Bold = Settings.H_Comment.Bold
-            .Styles("COMMENT").Italic = Settings.H_Comment.Italic
-            .Styles("COMMENTLINE").BackColor = Settings.H_Comment.BackColor
-            .Styles("COMMENTLINE").ForeColor = Settings.H_Comment.ForeColor
-            .Styles("COMMENTLINE").Bold = Settings.H_Comment.Bold
-            .Styles("COMMENTLINE").Italic = Settings.H_Comment.Italic
-            .Styles("COMMENTDOC").BackColor = Settings.H_Comment.BackColor
-            .Styles("COMMENTDOC").ForeColor = Settings.H_Comment.ForeColor
-            .Styles("COMMENTDOC").Bold = Settings.H_Comment.Bold
-            .Styles("COMMENTDOC").Italic = Settings.H_Comment.Italic
+            Dim inverted As Color = Color.FromArgb(255 - Settings.BackColor.A, 255 - Settings.BackColor.R, 255 - Settings.BackColor.G, 255 - Settings.BackColor.B)
+            .BackColor = Settings.BackColor
+            .Caret.Color = inverted
+            If Settings.All Then
+                For i = 0 To 19
+                    Select Case i
+                        Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                        Case Else
+                            .Styles(i).ForeColor = inverted
+                    End Select
+                    .Styles(i).BackColor = Settings.BackColor
+                Next
+                .Styles("NUMBER").ForeColor = Settings.H_Numbers.ForeColor
+                .Styles("NUMBER").Bold = Settings.H_Numbers.Bold
+                .Styles("NUMBER").Italic = Settings.H_Numbers.Italic
+                .Styles("STRING").ForeColor = Settings.H_String.ForeColor
+                .Styles("STRING").Bold = Settings.H_String.Bold
+                .Styles("STRING").Italic = Settings.H_String.Italic
+                .Styles("STRINGEOL").ForeColor = Settings.H_String2.ForeColor
+                .Styles("STRINGEOL").Bold = Settings.H_String2.Bold
+                .Styles("STRINGEOL").Italic = Settings.H_String2.Italic
+                .Styles("OPERATOR").ForeColor = Settings.H_Operator.ForeColor
+                .Styles("OPERATOR").Bold = Settings.H_Operator.Bold
+                .Styles("OPERATOR").Italic = Settings.H_Operator.Italic
+                .Styles("CHARACTER").ForeColor = Settings.H_Chars.ForeColor
+                .Styles("CHARACTER").Bold = Settings.H_Chars.Bold
+                .Styles("CHARACTER").Italic = Settings.H_Chars.Italic
+                .Styles("GLOBALCLASS").ForeColor = Settings.H_Class.ForeColor
+                .Styles("GLOBALCLASS").Font = Font
+                .Styles("GLOBALCLASS").Bold = Settings.H_Class.Bold
+                .Styles("GLOBALCLASS").Italic = Settings.H_Class.Italic
+                .Styles("PREPROCESSOR").ForeColor = Settings.H_Preproc.ForeColor
+                .Styles("PREPROCESSOR").Font = Font
+                .Styles("PREPROCESSOR").Bold = Settings.H_Preproc.Bold
+                .Styles("PREPROCESSOR").Italic = Settings.H_Preproc.Italic
+                .Styles("COMMENT").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENT").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENT").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTLINE").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTLINE").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTLINE").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTDOC").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTDOC").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTDOC").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTLINEDOC").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTLINEDOC").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTLINEDOC").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTDOCKEYWORD").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTDOCKEYWORD").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTDOCKEYWORD").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTDOCKEYWORDERROR").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTDOCKEYWORDERROR").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTDOCKEYWORDERROR").Italic = Settings.H_Comment.Italic
+                .Lexing.Colorize()
+            Else
+                For i = 0 To 19
+                    Select Case i
+                        Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                        Case Else
+                            .Styles(i).ForeColor = inverted
+                    End Select
+                    .Styles(i).BackColor = .BackColor
+                Next
+                .Styles("NUMBER").BackColor = Settings.H_Numbers.BackColor
+                .Styles("NUMBER").ForeColor = Settings.H_Numbers.ForeColor
+                .Styles("NUMBER").Bold = Settings.H_Numbers.Bold
+                .Styles("NUMBER").Italic = Settings.H_Numbers.Italic
+                .Styles("STRING").BackColor = Settings.H_String.BackColor
+                .Styles("STRING").ForeColor = Settings.H_String.ForeColor
+                .Styles("STRING").Bold = Settings.H_String.Bold
+                .Styles("STRING").Italic = Settings.H_String.Italic
+                .Styles("STRINGEOL").BackColor = Settings.H_String2.BackColor
+                .Styles("STRINGEOL").ForeColor = Settings.H_String2.ForeColor
+                .Styles("STRINGEOL").Bold = Settings.H_String2.Bold
+                .Styles("STRINGEOL").Italic = Settings.H_String2.Italic
+                .Styles("OPERATOR").BackColor = Settings.H_Operator.BackColor
+                .Styles("OPERATOR").ForeColor = Settings.H_Operator.ForeColor
+                .Styles("OPERATOR").Bold = Settings.H_Operator.Bold
+                .Styles("OPERATOR").Italic = Settings.H_Operator.Italic
+                .Styles("CHARACTER").BackColor = Settings.H_Chars.BackColor
+                .Styles("CHARACTER").ForeColor = Settings.H_Chars.ForeColor
+                .Styles("CHARACTER").Bold = Settings.H_Chars.Bold
+                .Styles("CHARACTER").Italic = Settings.H_Chars.Italic
+                .Styles("GLOBALCLASS").BackColor = Settings.H_Class.BackColor
+                .Styles("GLOBALCLASS").ForeColor = Settings.H_Class.ForeColor
+                .Styles("GLOBALCLASS").Font = Font
+                .Styles("GLOBALCLASS").Bold = Settings.H_Class.Bold
+                .Styles("GLOBALCLASS").Italic = Settings.H_Class.Italic
+                .Styles("PREPROCESSOR").BackColor = Settings.H_Preproc.BackColor
+                .Styles("PREPROCESSOR").ForeColor = Settings.H_Preproc.ForeColor
+                .Styles("PREPROCESSOR").Font = Font
+                .Styles("PREPROCESSOR").Bold = Settings.H_Preproc.Bold
+                .Styles("PREPROCESSOR").Italic = Settings.H_Preproc.Italic
+                .Styles("COMMENT").BackColor = Settings.H_Comment.BackColor
+                .Styles("COMMENT").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENT").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENT").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTLINE").BackColor = Settings.H_Comment.BackColor
+                .Styles("COMMENTLINE").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTLINE").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTLINE").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTDOC").BackColor = Settings.H_Comment.BackColor
+                .Styles("COMMENTDOC").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTDOC").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTDOC").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTLINEDOC").BackColor = Settings.H_Comment.BackColor
+                .Styles("COMMENTLINEDOC").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTLINEDOC").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTLINEDOC").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTDOCKEYWORD").BackColor = Settings.H_Comment.BackColor
+                .Styles("COMMENTDOCKEYWORD").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTDOCKEYWORD").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTDOCKEYWORD").Italic = Settings.H_Comment.Italic
+                .Styles("COMMENTDOCKEYWORDERROR").BackColor = Settings.H_Comment.BackColor
+                .Styles("COMMENTDOCKEYWORDERROR").ForeColor = Settings.H_Comment.ForeColor
+                .Styles("COMMENTDOCKEYWORDERROR").Bold = Settings.H_Comment.Bold
+                .Styles("COMMENTDOCKEYWORDERROR").Italic = Settings.H_Comment.Italic
+                .Lexing.Colorize()
+            End If
         End With
         With InfoText
             .Text = ""
@@ -343,6 +436,7 @@ Public Class Instance
             With .Menu.MenuItems
                 .Add("Save", AddressOf SaveMenuItem_Click)
                 .Add("Save As...", AddressOf SaveAsMenuItem_Click)
+                .Add("Reload File", AddressOf ReloadFileMenuItem_Click)
             End With
             With .Controls
                 .Add(SyntaxHandle)
@@ -454,6 +548,7 @@ Public Class Instance
     End Sub
 
     Private Sub SyntaxHandle_CharAdded(ByVal sender As Object, ByVal e As ScintillaNet.CharAddedEventArgs) Handles SyntaxHandle.CharAdded
+        On Error Resume Next
         Select Case e.Ch
             Case "#"
                 Dim CommentedChar As Boolean, pos As Integer
@@ -1197,11 +1292,11 @@ Public Class Instance
         Select Case e.KeyData
             Case Keys.Oemcomma
                 If e.Shift Then
-                    If SyntaxHandle.Lines.Current.Text.IndexOf("#in") > -1 Then
+                    If SyntaxHandle.Lines.Current.Text.IndexOf("#inc") > -1 Then
                         SyntaxHandle.Invoke(DataUpdaterEx, New Object() {UpdateType.Includes, If(SyntaxHandle.Lines.Current.Number > 2, SyntaxHandle.Lines.Current.Number - 2, SyntaxHandle.Lines.Current.Number), If(SyntaxHandle.Lines.Current.Number + 1 < SyntaxHandle.Lines.Count, If(SyntaxHandle.Lines.Current.Number + 2 < SyntaxHandle.Lines.Count, SyntaxHandle.Lines.Current.Number + 2, SyntaxHandle.Lines.Current.Number + 1), SyntaxHandle.Lines.Current.Number)})
                     ElseIf (SyntaxHandle.Lines.Current.Text.IndexOf("stock") > -1 Or SyntaxHandle.Lines.Current.Text.IndexOf("public") > -1) AndAlso SyntaxHandle.Lines.Current.Text.IndexOf("(") > -1 AndAlso SyntaxHandle.Lines.Current.Text.IndexOf(")") > -1 Then
                         SyntaxHandle.Invoke(DataUpdaterEx, New Object() {UpdateType.Functions_Callbacks, If(SyntaxHandle.Lines.Current.Number > 2, SyntaxHandle.Lines.Current.Number - 2, SyntaxHandle.Lines.Current.Number), If(SyntaxHandle.Lines.Current.Number + 1 < SyntaxHandle.Lines.Count, If(SyntaxHandle.Lines.Current.Number + 2 < SyntaxHandle.Lines.Count, SyntaxHandle.Lines.Current.Number + 2, SyntaxHandle.Lines.Current.Number + 1), SyntaxHandle.Lines.Current.Number)})
-                    ElseIf SyntaxHandle.Lines.Current.Text.IndexOf("#de") > -1 Then
+                    ElseIf SyntaxHandle.Lines.Current.Text.IndexOf("#def") > -1 Then
                         SyntaxHandle.Invoke(DataUpdaterEx, New Object() {UpdateType.Colors, If(SyntaxHandle.Lines.Current.Number > 2, SyntaxHandle.Lines.Current.Number - 2, SyntaxHandle.Lines.Current.Number), If(SyntaxHandle.Lines.Current.Number + 1 < SyntaxHandle.Lines.Count, If(SyntaxHandle.Lines.Current.Number + 2 < SyntaxHandle.Lines.Count, SyntaxHandle.Lines.Current.Number + 2, SyntaxHandle.Lines.Current.Number + 1), SyntaxHandle.Lines.Current.Number)})
                     ElseIf SyntaxHandle.Lines.Current.Text.IndexOf("new") > -1 Then
                         SyntaxHandle.Invoke(DataUpdaterEx, New Object() {UpdateType.Other, If(SyntaxHandle.Lines.Current.Number > 2, SyntaxHandle.Lines.Current.Number - 2, SyntaxHandle.Lines.Current.Number), If(SyntaxHandle.Lines.Current.Number + 1 < SyntaxHandle.Lines.Count, If(SyntaxHandle.Lines.Current.Number + 2 < SyntaxHandle.Lines.Count, SyntaxHandle.Lines.Current.Number + 2, SyntaxHandle.Lines.Current.Number + 1), SyntaxHandle.Lines.Current.Number)})
@@ -1504,7 +1599,10 @@ Public Class Instance
                 wait = False
                 .Invoke(MarginUpdater)
                 .Invoke(DataUpdater)
-                SyntaxHandle.UndoRedo.IsUndoEnabled = True
+                .UndoRedo.IsUndoEnabled = True
+                For Each Line As ScintillaNet.Line In .Lines
+                    If Line.IsFoldPoint AndAlso Line.FoldExpanded Then Line.ToggleFoldExpanded()
+                Next
             Else
                 If .UndoRedo.CanUndo Then
                     Main.ToolStripButton7.Enabled = True
@@ -1520,7 +1618,7 @@ Public Class Instance
                     Main.ToolStripButton8.Enabled = False
                     Main.RedoToolStripMenuItem.Enabled = False
                 End If
-                Saved = False
+                Saved = If(justreloaded, True, False)
             End If
         End With
     End Sub
@@ -1561,6 +1659,68 @@ Public Class Instance
         End With
     End Sub
 
+    Private Sub ReloadFileMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
+        If Not _Saved Then
+            Dim Res As MsgBoxResult
+            Select Case Settings.Language
+                Case Languages.English
+                    Res = MsgBox("Do you want to save changes from """ & _Name & """?", MsgBoxStyle.YesNoCancel, "Closing")
+                Case Languages.Español
+                    Res = MsgBox("¿Quieres guardar los cambios de """ & _Name & """?", MsgBoxStyle.YesNoCancel, "Closing")
+                Case Languages.Portuguêse
+                    Res = MsgBox("Você deseja salvar as alterações de """ & _Name & """?", MsgBoxStyle.YesNoCancel, "Closing")
+                Case Else
+                    Res = MsgBox("Wollen Sie Änderungen von """ & _Name & """ zu retten?""", MsgBoxStyle.YesNoCancel, "Closing")
+            End Select
+            Select Case Res
+                Case MsgBoxResult.Yes
+                    If Not _Path Is Nothing AndAlso _Path.Length > 0 Then
+                        Dim Writer As New StreamWriter(_Path, False, System.Text.Encoding.GetEncoding(28591))
+                        Writer.Write(SyntaxHandle.Text)
+                        Writer.Close()
+                        _Saved = True
+                    Else
+                        Main.SFD.InitialDirectory = Settings.DefaultPath
+                        Main.SFD.ShowDialog()
+                        If Not Main.SFD.FileName Is Nothing AndAlso Main.SFD.FileName.Length > 0 Then
+                            Dim Writer As New StreamWriter(Main.SFD.FileName, False, System.Text.Encoding.GetEncoding(28591))
+                            Writer.Write(SyntaxHandle.Text)
+                            Writer.Close()
+                            _Saved = True
+                            _Path = Main.SFD.FileName
+                            _Name = Mid(Main.SFD.FileName, Main.SFD.FileName.LastIndexOf("\") + 2, Main.SFD.FileName.LastIndexOf(".") - Main.SFD.FileName.LastIndexOf("\") - 1)
+                        End If
+                    End If
+                Case MsgBoxResult.Cancel
+                    Exit Sub
+            End Select
+            If _Path <> "{Empty Doc}" Then
+                Dim Reader As New StreamReader(_Path, System.Text.Encoding.GetEncoding(28591), True)
+                SyntaxHandle.Text = Reader.ReadToEnd()
+                Reader.Close()
+            Else
+                SyntaxHandle.Text = ""
+            End If
+        Else
+            If _Path <> "{Empty Doc}" Then
+                Dim Reader As New StreamReader(_Path, System.Text.Encoding.GetEncoding(28591), True)
+                With SyntaxHandle
+                    .Text = Reader.ReadToEnd()
+                    .Invoke(MarginUpdater)
+                    .Invoke(DataUpdater)
+                    .UndoRedo.IsUndoEnabled = True
+                    For Each Line As ScintillaNet.Line In .Lines
+                        If Line.IsFoldPoint AndAlso Line.FoldExpanded Then Line.ToggleFoldExpanded()
+                    Next
+                End With
+                Reader.Close()
+            Else
+                SyntaxHandle.Text = ""
+            End If
+        End If
+        justreloaded = True
+    End Sub
+
     Private Sub Tim_Tick(ByVal sender As Object, ByVal e As Timers.ElapsedEventArgs) Handles Tim.Elapsed
         Dim hWnd As IntPtr = FindWindow(vbNullString, "Scripting Machine")
         PostMessageA(hWnd, WM_HOTKEY, 9303, vbNull)
@@ -1572,6 +1732,7 @@ Public Class Instance
 #Region "Functions"
 
     Private Function GetCurrentFunction(ByVal StartPos As Integer, Optional ByVal remove As Boolean = False, Optional ByVal must As Boolean = False) As String
+        On Error Resume Next
         Static func As String, lastcall As Long
         Dim calrest As Long = GetTickCount() - lastcall
         If lastcall = 0 OrElse (calrest) > 3000 Then
@@ -1589,15 +1750,33 @@ Public Class Instance
             If tpos > -1 Then
                 tpos = func.IndexOf("""", tpos + 1)
                 If tpos > -1 Then
-                    While tpos > -1
-                        func = func.Remove(func.IndexOf(""""), tpos - func.IndexOf("""") + 1)
-                        tpos = func.IndexOf("""")
-                        If tpos > -1 Then
-                            tpos = func.IndexOf("""", tpos + 1)
+                    If func(tpos - 1) = "\" Then
+                        If func.IndexOf("""", tpos + 1) = -1 Then
+                            func = func.Remove(0, tpos + 1)
                         Else
-                            Exit While
+                            tpos = func.IndexOf("""", tpos + 1)
+                            While tpos > -1
+                                If func(tpos - 1) = "\" Then tpos = func.IndexOf("""", tpos + 1)
+                                func = func.Remove(func.IndexOf(""""), tpos - func.IndexOf("""") + 1)
+                                tpos = func.IndexOf("""")
+                                If tpos > -1 OrElse func(tpos - 1) = "\" Then
+                                    tpos = func.IndexOf("""", tpos + 1)
+                                Else
+                                    Exit While
+                                End If
+                            End While
                         End If
-                    End While
+                    Else
+                        While tpos > -1
+                            func = func.Remove(func.IndexOf(""""), tpos - func.IndexOf("""") + 1)
+                            tpos = func.IndexOf("""")
+                            If tpos > -1 Then
+                                tpos = func.IndexOf("""", tpos + 1)
+                            Else
+                                Exit While
+                            End If
+                        End While
+                    End If
                 Else
                     func = func.Remove(0, func.IndexOf("""") + 1)
                 End If
@@ -1675,34 +1854,29 @@ Public Class Instance
         If GetCurrentFunction(GetLineCursorPosition(True), True) = "" Then Return -1
         Static index As Integer, lastcall As Long
         If lastcall = 0 OrElse (GetTickCount() - lastcall) > 500 Then
-            'Try
-            Dim tmp(1) As String, pos(1) As Integer
-            tmp(1) = Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length)
-            pos(0) = GetLineCursorPosition()
-            tmp(1) = tmp(1).Remove(pos(0), tmp(1).Length - pos(0))
-            tmp(0) = StrReverse(Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length))
-            'While tmp(0).IndexOf("(") > -1 AndAlso tmp(0).IndexOf(")") > -1
-            '     pos(0) = tmp(0).IndexOf(")")
-            '     pos(1) = tmp(0).IndexOf(",", tmp(0).IndexOf("(", tmp(0).IndexOf(")")))
-            '     tmp(0) = tmp(0).Remove(pos(0), pos(1) - pos(0))
-            'End While
-            Dim Ms As MatchCollection = Regex.Matches(tmp(0), "\(.*\)")
-            For Each M As Match In Ms
-                tmp(0) = tmp(0).Remove(M.Index, M.Length)
-            Next
-            If tmp(0).IndexOf(",") = -1 Then Return 0
-            If remove AndAlso tmp(0).StartsWith("(") Then tmp(0) = tmp(0).Remove(0, 1)
-            If tmp(0).IndexOf("(", tmp(0).IndexOf("(") + 1) > -1 Then
-                pos(0) = tmp(0).IndexOf(",", tmp(0).IndexOf("("))
-                tmp(0) = tmp(0).Remove(pos(0), tmp(0).Length - pos(0))
-            End If
-            tmp(0) = Trim(StrReverse(tmp(0)))
-            index = CountEqualCharsFromString(tmp(0), ",", tmp(0).IndexOf(tmp(1)))
-            lastcall = GetTickCount()
-            Return If(fix, index - 1, index)
-            'Catch ex As Exception
-            '    Return -1
-            'End Try
+            Try
+                Dim tmp(1) As String, pos(1) As Integer
+                tmp(1) = Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length)
+                pos(0) = GetLineCursorPosition()
+                tmp(1) = tmp(1).Remove(pos(0), tmp(1).Length - pos(0))
+                tmp(0) = StrReverse(Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length))
+                Dim Ms As MatchCollection = Regex.Matches(tmp(0), "\(.*\)")
+                For Each M As Match In Ms
+                    tmp(0) = tmp(0).Remove(M.Index, M.Length)
+                Next
+                If tmp(0).IndexOf(",") = -1 Then Return 0
+                If remove AndAlso tmp(0).StartsWith("(") Then tmp(0) = tmp(0).Remove(0, 1)
+                If tmp(0).IndexOf("(", tmp(0).IndexOf("(") + 1) > -1 Then
+                    pos(0) = tmp(0).IndexOf(",", tmp(0).IndexOf("("))
+                    tmp(0) = tmp(0).Remove(pos(0), tmp(0).Length - pos(0))
+                End If
+                tmp(0) = Trim(StrReverse(tmp(0)))
+                index = CountEqualCharsFromString(tmp(0), ",", tmp(0).IndexOf(tmp(1)))
+                lastcall = GetTickCount()
+                Return If(fix, index - 1, index)
+            Catch ex As Exception
+                Return -1
+            End Try
         Else
             Return If(fix, index - 1, index)
         End If
@@ -1711,6 +1885,403 @@ Public Class Instance
     Private Function GetLineCursorPosition(Optional ByVal fixed As Boolean = False) As Integer
         Return If(fixed, SyntaxHandle.Selection.Start - SyntaxHandle.Lines.Current.IndentPosition + 1, SyntaxHandle.Selection.Start - SyntaxHandle.Lines.Current.IndentPosition)
     End Function
+
+#End Region
+
+#Region "Subs"
+
+    Private Sub ParseCode()
+        ACLists.UserDefinedPublics.Clear()
+        Dim CommentedLine As Boolean, CommentedSection As Boolean
+        For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
+            If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
+                Continue For
+            ElseIf Line.Text.StartsWith("//") Then
+                CommentedLine = True
+            ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
+                CommentedSection = True
+                Continue For
+            ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
+                CommentedSection = False
+                Continue For
+            ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
+                CommentedSection = True
+            ElseIf Line.Text.IndexOf("*/") > -1 Then
+                CommentedSection = False
+            End If
+            If CommentedLine Or CommentedSection Then
+                CommentedLine = False
+                Continue For
+            End If
+            If Line.Text.IndexOf("#include") > -1 Then
+                Dim file As String, path As String
+                If Line.Text.IndexOf("<") > -1 Then
+                    file = Mid(Line.Text, Line.Text.IndexOf("<") + 2, Line.Text.IndexOf(">") - Line.Text.IndexOf("<") - 1)
+                    path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                Else
+                    If Line.Text.IndexOf("..") = -1 Then
+                        file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1)
+                        path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    Else
+                        file = Mid(Line.Text, Line.Text.IndexOf("..") + 3, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1).Replace("/", "\")
+                        path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    End If
+                End If
+                If IO.File.Exists(path) Then
+                    Dim fLine As String, Reader As New StreamReader(path)
+                    fLine = Reader.ReadLine()
+                    Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
+                    Do Until fLine Is Nothing
+                        If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine.StartsWith("//") Then
+                            CommentedLine2 = True
+                        ElseIf fLine = "/*" OrElse fLine = " /*" OrElse fLine = " /*" Then
+                            CommentedSection2 = True
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine = "*/" OrElse fLine = " */" OrElse fLine = " */" Then
+                            CommentedSection2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                            CommentedSection2 = True
+                        ElseIf fLine.IndexOf("*/") > -1 Then
+                            CommentedSection2 = False
+                        End If
+                        If CommentedLine2 Or CommentedSection2 Then
+                            CommentedLine2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        End If
+                        If fLine.IndexOf("#include") > -1 Then
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                            If fLine.IndexOf("<") > -1 Then
+                                file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                            Else
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                End If
+                            End If
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
+                                fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                Do Until fLine Is Nothing
+                                    If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.StartsWith("//") Then
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    End If
+                                    If fLine.IndexOf("#define") > -1 AndAlso fLine.IndexOf("public") > -1 OrElse fLine.IndexOf("forward") > -1 Then
+                                        Dim M As Match
+                                        M = Regex.Match(fLine, "#define [^\s]+[\s]public[\s]?")
+                                        If M.Success Then
+                                            Dim tmp2 As New CustomUserPublics(Regex.Replace(M.Value.Remove(0, 8), "public[\s]?", ""), CustomUserPublics.Macro_Type.Macro_Type_Definition)
+                                            If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                        Else
+                                            M = Regex.Match(fLine, "#define [^\s]+")
+                                            If M.Success Then
+                                                Dim tmp2 As New CustomUserPublics(Regex.Unescape(Regex.Replace(M.Value.Remove(0, 8), "%[0-9]", ".+")), CustomUserPublics.Macro_Type.Macro_Type_Function, Regex.Matches(M.Value, "%[0-9]").Count)
+                                                If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                            End If
+                                        End If
+                                    End If
+                                    fLine = Reader.ReadLine()
+                                Loop
+                            End If
+                        ElseIf fLine.IndexOf("#tryinclude") > -1 Then
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                            If fLine.IndexOf("<") > -1 Then
+                                file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                            Else
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                End If
+                            End If
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
+                                fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                Do Until fLine Is Nothing
+                                    If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.StartsWith("//") Then
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    End If
+                                    If fLine.IndexOf("#define") > -1 AndAlso fLine.IndexOf("public") > -1 OrElse fLine.IndexOf("forward") > -1 Then
+                                        Dim M As Match
+                                        M = Regex.Match(fLine, "#define [^\s]+[\s]public[\s]?")
+                                        If M.Success Then
+                                            Dim tmp2 As New CustomUserPublics(Regex.Replace(M.Value.Remove(0, 8), "public[\s]?", ""), CustomUserPublics.Macro_Type.Macro_Type_Definition)
+                                            If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                        Else
+                                            M = Regex.Match(fLine, "#define [^\s]+")
+                                            If M.Success Then
+                                                Dim tmp2 As New CustomUserPublics(Regex.Unescape(Regex.Replace(M.Value.Remove(0, 8), "%[0-9]", ".+")), CustomUserPublics.Macro_Type.Macro_Type_Function, Regex.Matches(M.Value, "%[0-9]").Count)
+                                                If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                            End If
+                                        End If
+                                    End If
+                                    fLine = Reader.ReadLine()
+                                Loop
+                            End If
+                        ElseIf fLine.IndexOf("#define") > -1 AndAlso fLine.IndexOf("public") > -1 OrElse fLine.IndexOf("forward") > -1 Then
+                            Dim M As Match = Regex.Match(fLine, "#define [^\s]+[\s]public[\s]?")
+                            If M.Success Then
+                                Dim tmp2 As New CustomUserPublics(Regex.Replace(M.Value.Remove(0, 8), "public[\s]?", ""), CustomUserPublics.Macro_Type.Macro_Type_Definition)
+                                If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                            Else
+                                M = Regex.Match(fLine, "#define [^\s]+")
+                                If M.Success Then
+                                    Dim tmp2 As New CustomUserPublics(Regex.Unescape(Regex.Replace(M.Value.Remove(0, 8), "%[0-9]", ".+")), CustomUserPublics.Macro_Type.Macro_Type_Function, Regex.Matches(M.Value, "%[0-9]").Count)
+                                    If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                End If
+                            End If
+                        End If
+                        fLine = Reader.ReadLine()
+                    Loop
+                End If
+            ElseIf Line.Text.IndexOf("#tryinclude") > -1 Then
+                Dim file As String, path As String
+                If Line.Text.IndexOf("<") > -1 Then
+                    file = Mid(Line.Text, Line.Text.IndexOf("<") + 2, Line.Text.IndexOf(">") - Line.Text.IndexOf("<") - 1)
+                    path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                Else
+                    If Line.Text.IndexOf("..") = -1 Then
+                        file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1)
+                        path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    Else
+                        file = Mid(Line.Text, Line.Text.IndexOf("..") + 3, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1).Replace("/", "\")
+                        path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    End If
+                End If
+                If IO.File.Exists(path) Then
+                    Dim fLine As String, Reader As New StreamReader(path)
+                    fLine = Reader.ReadLine()
+                    Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
+                    Do Until fLine Is Nothing
+                        If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine.StartsWith("//") Then
+                            CommentedLine2 = True
+                        ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                            CommentedSection2 = True
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine = "*/" OrElse fLine = " */" Then
+                            CommentedSection2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                            CommentedSection2 = True
+                        ElseIf fLine.IndexOf("*/") > -1 Then
+                            CommentedSection2 = False
+                        End If
+                        If CommentedLine2 Or CommentedSection2 Then
+                            CommentedLine2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        End If
+                        If fLine.IndexOf("#include") > -1 Then
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                            If fLine.IndexOf("<") > -1 Then
+                                file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                            Else
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                End If
+                            End If
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
+                                fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                Do Until fLine Is Nothing
+                                    If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.StartsWith("//") Then
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    End If
+                                    If fLine.IndexOf("#define") > -1 AndAlso fLine.IndexOf("public") > -1 OrElse fLine.IndexOf("forward") > -1 Then
+                                        Dim M As Match
+                                        M = Regex.Match(fLine, "#define [^\s]+[\s]public[\s]?")
+                                        If M.Success Then
+                                            Dim tmp2 As New CustomUserPublics(Regex.Replace(M.Value.Remove(0, 8), "public[\s]?", ""), CustomUserPublics.Macro_Type.Macro_Type_Definition)
+                                            If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                        Else
+                                            M = Regex.Match(fLine, "#define [^\s]+")
+                                            If M.Success Then
+                                                Dim tmp2 As New CustomUserPublics(Regex.Unescape(Regex.Replace(M.Value.Remove(0, 8), "%[0-9]", ".+")), CustomUserPublics.Macro_Type.Macro_Type_Function, Regex.Matches(M.Value, "%[0-9]").Count)
+                                                If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                            End If
+                                        End If
+                                    End If
+                                    fLine = Reader.ReadLine()
+                                Loop
+                            End If
+                        ElseIf fLine.IndexOf("#tryinclude") > -1 Then
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                            If fLine.IndexOf("<") > -1 Then
+                                file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                            Else
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                End If
+                            End If
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
+                                fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                Do Until fLine Is Nothing
+                                    If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.StartsWith("//") Then
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection = True
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    End If
+                                    If fLine.IndexOf("#define") > -1 AndAlso fLine.IndexOf("public") > -1 OrElse fLine.IndexOf("forward") > -1 Then
+                                        Dim M As Match
+                                        M = Regex.Match(fLine, "#define [^\s]+[\s]public[\s]?")
+                                        If M.Success Then
+                                            Dim tmp2 As New CustomUserPublics(Regex.Replace(M.Value.Remove(0, 8), "public[\s]?", ""), CustomUserPublics.Macro_Type.Macro_Type_Definition)
+                                            If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                        Else
+                                            M = Regex.Match(fLine, "#define [^\s]+")
+                                            If M.Success Then
+                                                Dim tmp2 As New CustomUserPublics(Regex.Unescape(Regex.Replace(M.Value.Remove(0, 8), "%[0-9]", ".+")), CustomUserPublics.Macro_Type.Macro_Type_Function, Regex.Matches(M.Value, "%[0-9]").Count)
+                                                If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                            End If
+                                        End If
+                                    End If
+                                    fLine = Reader.ReadLine()
+                                Loop
+                            End If
+                        ElseIf fLine.IndexOf("#define") > -1 AndAlso fLine.IndexOf("public") > -1 OrElse fLine.IndexOf("forward") > -1 Then
+                            Dim M As Match
+                            M = Regex.Match(fLine, "#define [^\s]+[\s]public[\s]?")
+                            If M.Success Then
+                                Dim tmp2 As New CustomUserPublics(Regex.Replace(M.Value.Remove(0, 8), "public[\s]?", ""), CustomUserPublics.Macro_Type.Macro_Type_Definition)
+                                If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                            Else
+                                M = Regex.Match(fLine, "#define [^\s]+")
+                                If M.Success Then
+                                    Dim tmp2 As New CustomUserPublics(Regex.Unescape(Regex.Replace(M.Value.Remove(0, 8), "%[0-9]", ".+")), CustomUserPublics.Macro_Type.Macro_Type_Function, Regex.Matches(M.Value, "%[0-9]").Count)
+                                    If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                                End If
+                            End If
+                        End If
+                        fLine = Reader.ReadLine()
+                    Loop
+                End If
+            ElseIf Line.Text.IndexOf("#define") > -1 AndAlso Line.Text.IndexOf("public") > -1 OrElse Line.Text.IndexOf("forward") > -1 Then
+                Dim M As Match
+                M = Regex.Match(Line.Text, "#define [^\s]+[\s]public[\s]?")
+                If M.Success Then
+                    Dim tmp2 As New CustomUserPublics(Regex.Replace(M.Value.Remove(0, 8), "public[\s]?", ""), CustomUserPublics.Macro_Type.Macro_Type_Definition)
+                    If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                Else
+                    M = Regex.Match(Line.Text, "#define [^\s]+")
+                    If M.Success Then
+                        Dim tmp2 As New CustomUserPublics(Regex.Unescape(Regex.Replace(M.Value.Remove(0, 8), "%[0-9]", ".+")), CustomUserPublics.Macro_Type.Macro_Type_Function, Regex.Matches(M.Value, "%[0-9]").Count)
+                        If tmp2.Regex.Length > 0 AndAlso Not TrueContainsuPublic(ACLists.UserDefinedPublics, tmp2) Then ACLists.UserDefinedPublics.Add(tmp2)
+                    End If
+                End If
+            End If
+        Next
+    End Sub
 
 #End Region
 
@@ -1781,15 +2352,23 @@ Public Class Instance
                 Next
                 For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
                     If Line.Number > endline Then Exit For
-                    If Line.Text.Length = 0 OrElse Line.Number < startline OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then Continue For
-                    If Line.Text.IndexOf("//") > -1 Then
+                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
+                        Continue For
+                    ElseIf Line.Text.StartsWith("//") Then
                         CommentedLine = True
+                        Continue For
+                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
+                        CommentedSection = True
+                        Continue For
+                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
+                        CommentedSection = False
+                        Continue For
                     ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
                         CommentedSection = True
                     ElseIf Line.Text.IndexOf("*/") > -1 Then
                         CommentedSection = False
                     End If
-                    If CommentedLine OrElse CommentedSection Then
+                    If CommentedLine Or CommentedSection Then
                         CommentedLine = False
                         Continue For
                     End If
@@ -1810,19 +2389,28 @@ Public Class Instance
                         If IO.File.Exists(path) Then
                             Dim fLine As String, Reader As New StreamReader(path)
                             fLine = Reader.ReadLine()
+                            Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
                             Do Until fLine Is Nothing
                                 If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                     fLine = Reader.ReadLine()
                                     Continue Do
                                 ElseIf fLine.StartsWith("//") Then
-                                    CommentedLine = True
+                                    CommentedLine2 = True
+                                ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                    CommentedSection2 = True
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                    CommentedSection2 = False
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
                                 ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                    CommentedSection = True
+                                    CommentedSection2 = True
                                 ElseIf fLine.IndexOf("*/") > -1 Then
-                                    CommentedSection = False
+                                    CommentedSection2 = False
                                 End If
-                                If CommentedLine Or CommentedSection Then
-                                    CommentedLine = False
+                                If CommentedLine2 Or CommentedSection2 Then
+                                    CommentedLine2 = False
                                     fLine = Reader.ReadLine()
                                     Continue Do
                                 End If
@@ -1835,34 +2423,47 @@ Public Class Instance
                                     Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                                     If fLine.IndexOf("<") > -1 Then
                                         file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
                                     Else
                                         If fLine.IndexOf("..") = -1 Then
                                             file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                         Else
                                             file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                         End If
                                     End If
                                     Dim count As Integer
                                     If IO.File.Exists(path2) Then
                                         Dim Reader2 As New StreamReader(path2)
                                         fLine = Reader2.ReadLine()
+                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                         Do Until fLine Is Nothing
                                             If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                                fLine = Reader2.ReadLine()
+                                                count += 1
+                                                fLine = Reader.ReadLine()
                                                 Continue Do
                                             ElseIf fLine.StartsWith("//") Then
-                                                CommentedLine = True
+                                                CommentedLine3 = True
+                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                                CommentedSection3 = True
+                                                count += 1
+                                                fLine = Reader.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                                CommentedSection3 = False
+                                                count += 1
+                                                fLine = Reader.ReadLine()
+                                                Continue Do
                                             ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                                CommentedSection = True
+                                                CommentedSection3 = True
                                             ElseIf fLine.IndexOf("*/") > -1 Then
-                                                CommentedSection = False
+                                                CommentedSection3 = False
                                             End If
-                                            If CommentedLine Or CommentedSection Then
-                                                CommentedLine = False
-                                                fLine = Reader2.ReadLine()
+                                            If CommentedLine3 Or CommentedSection3 Then
+                                                CommentedLine3 = False
+                                                count += 1
+                                                fLine = Reader.ReadLine()
                                                 Continue Do
                                             End If
                                             pos = fLine.IndexOf("native")
@@ -1885,6 +2486,23 @@ Public Class Instance
                                             ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                                 Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                                 If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                            Else
+                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
+                                                    If M.Success Then
+                                                        tDef = def.Regex
+                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                        tDef = tDef.Remove(0, 2)
+                                                        tmp = tmp.Replace(name, "")
+                                                        name = name.Remove(name.Length - 1, 1)
+                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                                    End If
+                                                Next
                                             End If
                                             fLine = Reader2.ReadLine()
                                         Loop
@@ -1897,34 +2515,47 @@ Public Class Instance
                                     Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                                     If fLine.IndexOf("<") > -1 Then
                                         file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
                                     Else
                                         If fLine.IndexOf("..") = -1 Then
                                             file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                         Else
                                             file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                         End If
                                     End If
                                     Dim count As Integer
                                     If IO.File.Exists(path2) Then
                                         Dim Reader2 As New StreamReader(path2)
                                         fLine = Reader2.ReadLine()
+                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                         Do Until fLine Is Nothing
                                             If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                                fLine = Reader2.ReadLine()
+                                                count += 1
+                                                fLine = Reader.ReadLine()
                                                 Continue Do
                                             ElseIf fLine.StartsWith("//") Then
-                                                CommentedLine = True
+                                                CommentedLine3 = True
+                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                                CommentedSection3 = True
+                                                count += 1
+                                                fLine = Reader.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                                count += 1
+                                                CommentedSection3 = False
+                                                fLine = Reader.ReadLine()
+                                                Continue Do
                                             ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                                CommentedSection = True
+                                                CommentedSection3 = True
                                             ElseIf fLine.IndexOf("*/") > -1 Then
-                                                CommentedSection = False
+                                                CommentedSection3 = False
                                             End If
-                                            If CommentedLine Or CommentedSection Then
-                                                CommentedLine = False
-                                                fLine = Reader2.ReadLine()
+                                            If CommentedLine3 Or CommentedSection3 Then
+                                                CommentedLine3 = False
+                                                count += 1
+                                                fLine = Reader.ReadLine()
                                                 Continue Do
                                             End If
                                             pos = fLine.IndexOf("native")
@@ -1947,6 +2578,23 @@ Public Class Instance
                                             ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                                 Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                                 If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                            Else
+                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
+                                                    If M.Success Then
+                                                        tDef = def.Regex
+                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                        tDef = tDef.Remove(0, 2)
+                                                        tmp = tmp.Replace(name, "")
+                                                        name = name.Remove(name.Length - 1, 1)
+                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                                    End If
+                                                Next
                                             End If
                                             fLine = Reader2.ReadLine()
                                         Loop
@@ -1970,6 +2618,23 @@ Public Class Instance
                                 ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                     Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                     If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                Else
+                                    Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                    For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                        Dim M As Match = Regex.Match(fLine, def.Regex)
+                                        If M.Success Then
+                                            tDef = def.Regex
+                                            tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                            tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                            name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                            tDef = tDef.Remove(0, 2)
+                                            tmp = tmp.Replace(name, "")
+                                            name = name.Remove(name.Length - 1, 1)
+                                            params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                            func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                            If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                        End If
+                                    Next
                                 End If
                                 fLine = Reader.ReadLine()
                             Loop
@@ -1995,16 +2660,30 @@ Public Class Instance
                         If IO.File.Exists(path) Then
                             Dim fLine As String, Reader As New StreamReader(path)
                             fLine = Reader.ReadLine()
+                            Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
                             Do Until fLine Is Nothing
                                 If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                     fLine = Reader.ReadLine()
                                     Continue Do
                                 ElseIf fLine.StartsWith("//") Then
-                                    CommentedLine = True
+                                    CommentedLine2 = True
+                                ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                    CommentedSection2 = True
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                    CommentedSection2 = False
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
                                 ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                    CommentedSection = True
+                                    CommentedSection2 = True
                                 ElseIf fLine.IndexOf("*/") > -1 Then
-                                    CommentedSection = False
+                                    CommentedSection2 = False
+                                End If
+                                If CommentedLine2 Or CommentedSection2 Then
+                                    CommentedLine2 = False
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
                                 End If
                                 If CommentedLine Or CommentedSection Then
                                     CommentedLine = False
@@ -2017,31 +2696,45 @@ Public Class Instance
                                     If pos = -1 Then pos = fLine.IndexOf("public")
                                 End If
                                 If fLine.IndexOf("#include") > -1 Then
-                                    Dim file2 As String, cNode2 As New TreeNode()
+                                    Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                                     If fLine.IndexOf("<") > -1 Then
                                         file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        file2 += ".inc"
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
                                     Else
-                                        file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.IndexOf("""") - fLine.IndexOf("""", fLine.IndexOf("""")))
-                                        If file2.IndexOf(".inc") = -1 Then file2 += ".inc"
+                                        If fLine.IndexOf("..") = -1 Then
+                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        Else
+                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        End If
                                     End If
-                                    If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file2) Then
-                                        Dim Reader2 As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file2)
+                                    If IO.File.Exists(path2) Then
+                                        Dim Reader2 As New StreamReader(path2)
                                         fLine = Reader2.ReadLine()
+                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                         Do Until fLine Is Nothing
                                             If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                                fLine = Reader2.ReadLine()
+                                                fLine = Reader.ReadLine()
                                                 Continue Do
                                             ElseIf fLine.StartsWith("//") Then
-                                                CommentedLine = True
+                                                CommentedLine3 = True
+                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                                CommentedSection3 = True
+                                                fLine = Reader.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                                CommentedSection3 = False
+                                                fLine = Reader.ReadLine()
+                                                Continue Do
                                             ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                                CommentedSection = True
+                                                CommentedSection3 = True
                                             ElseIf fLine.IndexOf("*/") > -1 Then
-                                                CommentedSection = False
+                                                CommentedSection3 = False
                                             End If
-                                            If CommentedLine Or CommentedSection Then
-                                                CommentedLine = False
-                                                fLine = Reader2.ReadLine()
+                                            If CommentedLine3 Or CommentedSection3 Then
+                                                CommentedLine3 = False
+                                                fLine = Reader.ReadLine()
                                                 Continue Do
                                             End If
                                             pos = fLine.IndexOf("native")
@@ -2064,6 +2757,23 @@ Public Class Instance
                                             ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                                 Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                                 If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                            Else
+                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
+                                                    If M.Success Then
+                                                        tDef = def.Regex
+                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                        tDef = tDef.Remove(0, 2)
+                                                        tmp = tmp.Replace(name, "")
+                                                        name = name.Remove(name.Length - 1, 1)
+                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                                    End If
+                                                Next
                                             End If
                                             fLine = Reader2.ReadLine()
                                         Loop
@@ -2073,31 +2783,45 @@ Public Class Instance
                                         Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 0))
                                     End If
                                 ElseIf fLine.IndexOf("#tryinclude") > -1 Then
-                                    Dim file2 As String
+                                    Dim file2 As String, path2 As String
                                     If fLine.IndexOf("<") > -1 Then
                                         file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        file2 += ".inc"
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
                                     Else
-                                        file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.IndexOf("""") - fLine.IndexOf("""", fLine.IndexOf("""")))
-                                        If file2.IndexOf(".inc") = -1 Then file2 += ".inc"
+                                        If fLine.IndexOf("..") = -1 Then
+                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        Else
+                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        End If
                                     End If
-                                    If IO.File.Exists(My.Application.Info.DirectoryPath & "\Include\" & file2) Then
-                                        Dim Reader2 As New StreamReader(My.Application.Info.DirectoryPath & "\Include\" & file2)
+                                    If IO.File.Exists(path2) Then
+                                        Dim Reader2 As New StreamReader(path2)
                                         fLine = Reader2.ReadLine()
+                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                         Do Until fLine Is Nothing
                                             If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                                fLine = Reader2.ReadLine()
+                                                fLine = Reader.ReadLine()
                                                 Continue Do
                                             ElseIf fLine.StartsWith("//") Then
-                                                CommentedLine = True
+                                                CommentedLine3 = True
+                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                                CommentedSection3 = True
+                                                fLine = Reader.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                                CommentedSection3 = False
+                                                fLine = Reader.ReadLine()
+                                                Continue Do
                                             ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                                CommentedSection = True
+                                                CommentedSection3 = True
                                             ElseIf fLine.IndexOf("*/") > -1 Then
-                                                CommentedSection = False
+                                                CommentedSection3 = False
                                             End If
-                                            If CommentedLine Or CommentedSection Then
-                                                CommentedLine = False
-                                                fLine = Reader2.ReadLine()
+                                            If CommentedLine3 Or CommentedSection3 Then
+                                                CommentedLine3 = False
+                                                fLine = Reader.ReadLine()
                                                 Continue Do
                                             End If
                                             pos = fLine.IndexOf("native")
@@ -2120,6 +2844,23 @@ Public Class Instance
                                             ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                                 Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                                 If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                            Else
+                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
+                                                    If M.Success Then
+                                                        tDef = def.Regex
+                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                        tDef = tDef.Remove(0, 2)
+                                                        tmp = tmp.Replace(name, "")
+                                                        name = name.Remove(name.Length - 1, 1)
+                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                                    End If
+                                                Next
                                             End If
                                             fLine = Reader2.ReadLine()
                                         Loop
@@ -2143,6 +2884,23 @@ Public Class Instance
                                 ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
                                     Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                     If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                Else
+                                    Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                    For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                        Dim M As Match = Regex.Match(fLine, def.Regex)
+                                        If M.Success Then
+                                            tDef = def.Regex
+                                            tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                            tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                            name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                            tDef = tDef.Remove(0, 2)
+                                            tmp = tmp.Replace(name, "")
+                                            name = name.Remove(name.Length - 1, 1)
+                                            params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                            func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                            If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                        End If
+                                    Next
                                 End If
                                 fLine = Reader.ReadLine()
                             Loop
@@ -2168,15 +2926,22 @@ Public Class Instance
                 Next
                 For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
                     If Line.Number > endline Then Exit For
-                    If Line.Text.Length = 0 OrElse Line.Number < startline OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then Continue For
-                    If Line.Text.IndexOf("//") > -1 Then
+                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
+                        Continue For
+                    ElseIf Line.Text.StartsWith("//") Then
                         CommentedLine = True
+                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
+                        CommentedSection = True
+                        Continue For
+                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
+                        CommentedSection = False
+                        Continue For
                     ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
                         CommentedSection = True
                     ElseIf Line.Text.IndexOf("*/") > -1 Then
                         CommentedSection = False
                     End If
-                    If CommentedLine OrElse CommentedSection Then
+                    If CommentedLine Or CommentedSection Then
                         CommentedLine = False
                         Continue For
                     End If
@@ -2195,11 +2960,28 @@ Public Class Instance
                                 Continue For
                             End If
                         Next
-                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ", pos) + 2, Line.Text.IndexOf("(") - Line.Text.IndexOf(" ", pos) - 1)), Name.Replace(".inc", ":"), -1, params.ToArray)
+                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ", pos) + 2, Line.Text.IndexOf("(") - Line.Text.IndexOf(" ", pos) - 1)), _Name.Replace(".inc", ":"), -1, params.ToArray)
                         If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
                     ElseIf Line.Text.IndexOf("forward") > -1 AndAlso Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 Then
-                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ") + 1, Line.Text.IndexOf("(") - Line.Text.IndexOf(" "))), Name.Replace(".inc", ":"), -1, Split(Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 2, Line.Text.IndexOf(")") - Line.Text.IndexOf("(") - 1)), ","))
+                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ") + 1, Line.Text.IndexOf("(") - Line.Text.IndexOf(" "))), _Name.Replace(".inc", ":"), -1, Split(Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 2, Line.Text.IndexOf(")") - Line.Text.IndexOf("(") - 1)), ","))
                         If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                    Else
+                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                            Dim M As Match = Regex.Match(Line.Text, def.Regex)
+                            If M.Success Then
+                                tDef = def.Regex
+                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                tDef = tDef.Remove(0, 2)
+                                tmp = tmp.Replace(name, "")
+                                name = name.Remove(name.Length - 1, 1)
+                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                            End If
+                        Next
                     End If
                 Next
                 For Each func As PawnFunction In ACLists.Functions
@@ -2217,15 +2999,22 @@ Public Class Instance
                 Next
                 For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
                     If Line.Number > endline Then Exit For
-                    If Line.Text.Length = 0 OrElse Line.Number < startline OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then Continue For
-                    If Line.Text.IndexOf("//") > -1 Then
+                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
+                        Continue For
+                    ElseIf Line.Text.StartsWith("//") Then
                         CommentedLine = True
+                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
+                        CommentedSection = True
+                        Continue For
+                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
+                        CommentedSection = False
+                        Continue For
                     ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
                         CommentedSection = True
                     ElseIf Line.Text.IndexOf("*/") > -1 Then
                         CommentedSection = False
                     End If
-                    If CommentedLine OrElse CommentedSection Then
+                    If CommentedLine Or CommentedSection Then
                         CommentedLine = False
                         Continue For
                     End If
@@ -2272,15 +3061,22 @@ Public Class Instance
             Case Else
                 For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
                     If Line.Number > endline Then Exit For
-                    If Line.Text.Length = 0 OrElse Line.Number < startline OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then Continue For
-                    If Line.Text.IndexOf("//") > -1 Then
+                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
+                        Continue For
+                    ElseIf Line.Text.StartsWith("//") Then
                         CommentedLine = True
+                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
+                        CommentedSection = True
+                        Continue For
+                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
+                        CommentedSection = False
+                        Continue For
                     ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
                         CommentedSection = True
                     ElseIf Line.Text.IndexOf("*/") > -1 Then
                         CommentedSection = False
                     End If
-                    If CommentedLine OrElse CommentedSection Then
+                    If CommentedLine Or CommentedSection Then
                         CommentedLine = False
                         Continue For
                     End If
@@ -2482,11 +3278,166 @@ Public Class Instance
             tmpstring += item.Name & " "
         Next
         SyntaxHandle.Lexing.Keywords(3) = tmpstring
-        SyntaxHandle.Lexing.Colorize()
+        With Settings
+            Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
+            If .All Then
+                SyntaxHandle.BackColor = .BackColor
+                SyntaxHandle.Caret.Color = inverted
+                For i = 0 To 19
+                    Select Case i
+                        Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                        Case Else
+                            SyntaxHandle.Styles(i).ForeColor = inverted
+                    End Select
+                    SyntaxHandle.Styles(i).BackColor = .BackColor
+                Next
+                With .H_Numbers
+                    SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                    SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                End With
+                With .H_String
+                    SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("STRING").Bold = .Bold
+                    SyntaxHandle.Styles("STRING").Italic = .Italic
+                End With
+                With .H_String2
+                    SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                    SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                End With
+                With .H_Operator
+                    SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                    SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                End With
+                With .H_Chars
+                    SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                    SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                End With
+                With .H_Class
+                    SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("GLOBALCLASS").Font = Font
+                    SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                    SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                End With
+                With .H_Preproc
+                    SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("PREPROCESSOR").Font = Font
+                    SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                    SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                End With
+                With .H_Comment
+                    SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                End With
+                SyntaxHandle.Lexing.Colorize()
+            Else
+                Font = .cFont
+                SyntaxHandle.Encoding = .Enc
+                SyntaxHandle.BackColor = .BackColor
+                SyntaxHandle.Caret.Color = inverted
+                For i = 0 To 19
+                    Select Case i
+                        Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                        Case Else
+                            SyntaxHandle.Styles(i).ForeColor = inverted
+                    End Select
+                    SyntaxHandle.Styles(i).BackColor = .BackColor
+                Next
+                With .H_Numbers
+                    SyntaxHandle.Styles("NUMBER").BackColor = .BackColor
+                    SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                    SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                End With
+                With .H_String
+                    SyntaxHandle.Styles("STRING").BackColor = .BackColor
+                    SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("STRING").Bold = .Bold
+                    SyntaxHandle.Styles("STRING").Italic = .Italic
+                End With
+                With .H_String2
+                    SyntaxHandle.Styles("STRINGEOL").BackColor = .BackColor
+                    SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                    SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                End With
+                With .H_Operator
+                    SyntaxHandle.Styles("OPERATOR").BackColor = .BackColor
+                    SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                    SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                End With
+                With .H_Chars
+                    SyntaxHandle.Styles("CHARACTER").BackColor = .BackColor
+                    SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                    SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                End With
+                With .H_Class
+                    SyntaxHandle.Styles("GLOBALCLASS").BackColor = .BackColor
+                    SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("GLOBALCLASS").Font = Font
+                    SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                    SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                End With
+                With .H_Preproc
+                    SyntaxHandle.Styles("PREPROCESSOR").BackColor = .BackColor
+                    SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("PREPROCESSOR").Font = Font
+                    SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                    SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                End With
+                With .H_Comment
+                    SyntaxHandle.Styles("COMMENT").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTLINE").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOC").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTLINEDOC").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                End With
+                SyntaxHandle.Lexing.Colorize()
+            End If
+        End With
     End Sub
 
     Private Sub UpdateData()
-        On Error Resume Next
         Static lastcall As Long = -1
         If lastcall <> -1 AndAlso GetTickCount() - lastcall < 30000 Then Exit Sub
         Static TreeDelegate As New AddTreeNode(AddressOf AddNode), FirstTreeDelegate As New AddFirstTreeNode(AddressOf AddFirstNode), _
@@ -2505,10 +3456,18 @@ Public Class Instance
             .Texts2.Clear()
         End With
         Errors.Clear()
+        ParseCode()
         For Each line As ScintillaNet.Line In If(SyntaxHandle.InvokeRequired, SyntaxHandle.Invoke(LinesDelegate, New Object() {SyntaxHandle}), SyntaxHandle.Lines)
-            If line.Text.Length = 0 OrElse line.Text = "{" OrElse line.Text = "}" OrElse line.Text = ";" Then Continue For
-            If line.Text.IndexOf("//") > -1 Then
+            If line.Text.Length = 0 OrElse line.Text = "{" OrElse line.Text = "}" OrElse line.Text = ";" Then
+                Continue For
+            ElseIf line.Text.StartsWith("//") Then
                 CommentedLine = True
+            ElseIf line.Text = "/*" Then
+                CommentedSection = True
+                Continue For
+            ElseIf line.Text = "*/" Then
+                CommentedSection = False
+                Continue For
             ElseIf line.Text.IndexOf("/*") > -1 AndAlso line.Text.IndexOf("*/") = -1 Then
                 CommentedSection = True
             ElseIf line.Text.IndexOf("*/") > -1 Then
@@ -2540,19 +3499,28 @@ Public Class Instance
                 If IO.File.Exists(path) Then
                     Dim fLine As String, Reader As New StreamReader(path)
                     fLine = Reader.ReadLine()
+                    Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
                     Do Until fLine Is Nothing
                         If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                             fLine = Reader.ReadLine()
                             Continue Do
                         ElseIf fLine.StartsWith("//") Then
-                            CommentedLine = True
+                            CommentedLine2 = True
+                        ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                            CommentedSection2 = True
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine = "*/" OrElse fLine = " */" Then
+                            CommentedSection2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
                         ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                            CommentedSection = True
+                            CommentedSection2 = True
                         ElseIf fLine.IndexOf("*/") > -1 Then
-                            CommentedSection = False
+                            CommentedSection2 = False
                         End If
-                        If CommentedLine Or CommentedSection Then
-                            CommentedLine = False
+                        If CommentedLine2 Or CommentedSection2 Then
+                            CommentedLine2 = False
                             fLine = Reader.ReadLine()
                             Continue Do
                         End If
@@ -2565,42 +3533,55 @@ Public Class Instance
                             Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
                             Else
                                 If fLine.IndexOf("..") = -1 Then
                                     file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 Else
                                     file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 End If
                             End If
                             Dim count As Integer
                             If IO.File.Exists(path2) Then
                                 Dim Reader2 As New StreamReader(path2)
                                 fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                         count += 1
-                                        fLine = Reader2.ReadLine()
+                                        fLine = Reader.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
-                                        CommentedLine = True
-                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                        CommentedSection = True
-                                    ElseIf fLine.IndexOf("*/") > -1 Then
-                                        CommentedSection = False
-                                    End If
-                                    If CommentedLine Or CommentedSection Then
-                                        CommentedLine = False
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
                                         count += 1
-                                        fLine = Reader2.ReadLine()
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        count += 1
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        count += 1
+                                        fLine = Reader.ReadLine()
                                         Continue Do
                                     End If
                                     spos = fLine.IndexOf("native")
                                     If spos = -1 Then
                                         spos = fLine.IndexOf("stock")
-                                        If spos = -1 Then spos = fLine.IndexOf("public")
+                                        If spos = -1 Then
+                                            spos = fLine.IndexOf("public")
+                                        End If
                                     End If
                                     If spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                         Dim params As New List(Of String)
@@ -2836,6 +3817,23 @@ Public Class Instance
                                                 If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
                                             End If
                                         End If
+                                    Else
+                                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                            Dim M As Match = Regex.Match(fLine, def.Regex)
+                                            If M.Success Then
+                                                tDef = def.Regex
+                                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                tDef = tDef.Remove(0, 2)
+                                                tmp = tmp.Replace(name, "")
+                                                name = name.Remove(name.Length - 1, 1)
+                                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), line.Number, params)
+                                                If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                            End If
+                                        Next
                                     End If
                                     count += 1
                                     fLine = Reader2.ReadLine()
@@ -2849,36 +3847,47 @@ Public Class Instance
                             Dim file2 As String, path2 As String
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
                             Else
                                 If fLine.IndexOf("..") = -1 Then
                                     file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 Else
                                     file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 End If
                             End If
                             Dim count As Integer
                             If IO.File.Exists(path2) Then
                                 Dim Reader2 As New StreamReader(path2)
                                 fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                         count += 1
-                                        fLine = Reader2.ReadLine()
+                                        fLine = Reader.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
-                                        CommentedLine = True
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
+                                        count += 1
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        count += 1
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
                                     ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                        CommentedSection = True
+                                        CommentedSection3 = True
                                     ElseIf fLine.IndexOf("*/") > -1 Then
-                                        CommentedSection = False
+                                        CommentedSection3 = False
                                     End If
-                                    If CommentedLine Or CommentedSection Then
+                                    If CommentedLine3 Or CommentedSection3 Then
                                         CommentedLine = False
                                         count += 1
-                                        fLine = Reader2.ReadLine()
+                                        fLine = Reader.ReadLine()
                                         Continue Do
                                     End If
                                     spos = fLine.IndexOf("native")
@@ -3124,6 +4133,23 @@ Public Class Instance
                                                 If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
                                             End If
                                         End If
+                                    Else
+                                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                            Dim M As Match = Regex.Match(fLine, def.Regex)
+                                            If M.Success Then
+                                                tDef = def.Regex
+                                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                tDef = tDef.Remove(0, 2)
+                                                tmp = tmp.Replace(name, "")
+                                                name = name.Remove(name.Length - 1, 1)
+                                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), line.Number, params)
+                                                If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                            End If
+                                        Next
                                     End If
                                     count += 1
                                     fLine = Reader2.ReadLine()
@@ -3371,6 +4397,23 @@ Public Class Instance
                                     If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
                                 End If
                             End If
+                        Else
+                            Dim tDef As String, name As String, params As String(), func As PawnFunction
+                            For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                Dim M As Match = Regex.Match(fLine, def.Regex)
+                                If M.Success Then
+                                    tDef = def.Regex
+                                    tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                    tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                    name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                    tDef = tDef.Remove(0, 2)
+                                    tmp = tmp.Replace(name, "")
+                                    name = name.Remove(name.Length - 1, 1)
+                                    params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                    func = New PawnFunction(name, _Name.Replace(".inc", ":"), line.Number, params)
+                                    If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                End If
+                            Next
                         End If
                         fLine = Reader.ReadLine()
                     Loop
@@ -3396,19 +4439,28 @@ Public Class Instance
                 If IO.File.Exists(path) Then
                     Dim fLine As String, Reader As New StreamReader(path)
                     fLine = Reader.ReadLine()
+                    Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
                     Do Until fLine Is Nothing
                         If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                             fLine = Reader.ReadLine()
                             Continue Do
                         ElseIf fLine.StartsWith("//") Then
-                            CommentedLine = True
+                            CommentedLine2 = True
+                        ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                            CommentedSection2 = True
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine = "*/" OrElse fLine = " */" Then
+                            CommentedSection2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
                         ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                            CommentedSection = True
+                            CommentedSection2 = True
                         ElseIf fLine.IndexOf("*/") > -1 Then
-                            CommentedSection = False
+                            CommentedSection2 = False
                         End If
-                        If CommentedLine Or CommentedSection Then
-                            CommentedLine = False
+                        If CommentedLine2 Or CommentedSection2 Then
+                            CommentedLine2 = False
                             fLine = Reader.ReadLine()
                             Continue Do
                         End If
@@ -3421,36 +4473,47 @@ Public Class Instance
                             Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
                             Else
                                 If fLine.IndexOf("..") = -1 Then
                                     file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 Else
                                     file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 End If
                             End If
                             Dim count As Integer
                             If IO.File.Exists(path2) Then
                                 Dim Reader2 As New StreamReader(path2)
                                 fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                         count += 1
-                                        fLine = Reader2.ReadLine()
+                                        fLine = Reader.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
-                                        CommentedLine = True
-                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                        CommentedSection = True
-                                    ElseIf fLine.IndexOf("*/") > -1 Then
-                                        CommentedSection = False
-                                    End If
-                                    If CommentedLine Or CommentedSection Then
-                                        CommentedLine = False
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
                                         count += 1
-                                        fLine = Reader2.ReadLine()
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        count += 1
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        count += 1
+                                        fLine = Reader.ReadLine()
                                         Continue Do
                                     End If
                                     spos = fLine.IndexOf("native")
@@ -3692,6 +4755,23 @@ Public Class Instance
                                                 If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
                                             End If
                                         End If
+                                    Else
+                                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                            Dim M As Match = Regex.Match(fLine, def.Regex)
+                                            If M.Success Then
+                                                tDef = def.Regex
+                                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                tDef = tDef.Remove(0, 2)
+                                                tmp = tmp.Replace(name, "")
+                                                name = name.Remove(name.Length - 1, 1)
+                                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), line.Number, params)
+                                                If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                            End If
+                                        Next
                                     End If
                                     count += 1
                                     fLine = Reader2.ReadLine()
@@ -3705,36 +4785,47 @@ Public Class Instance
                             Dim file2 As String, path2 As String, cNode2 As New TreeNode()
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
                             Else
                                 If fLine.IndexOf("..") = -1 Then
                                     file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file.IndexOf(".inc") = -1, ".inc", "")
                                 Else
                                     file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 End If
                             End If
                             Dim count As Integer
                             If IO.File.Exists(path2) Then
                                 Dim Reader2 As New StreamReader(path2)
                                 fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                         count += 1
-                                        fLine = Reader2.ReadLine()
+                                        fLine = Reader.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
-                                        CommentedLine = True
-                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                        CommentedSection = True
-                                    ElseIf fLine.IndexOf("*/") > -1 Then
-                                        CommentedSection = False
-                                    End If
-                                    If CommentedLine Or CommentedSection Then
-                                        CommentedLine = False
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
                                         count += 1
-                                        fLine = Reader2.ReadLine()
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        count += 1
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        count += 1
+                                        fLine = Reader.ReadLine()
                                         Continue Do
                                     End If
                                     spos = fLine.IndexOf("native")
@@ -3980,6 +5071,23 @@ Public Class Instance
                                                 If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
                                             End If
                                         End If
+                                    Else
+                                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                            Dim M As Match = Regex.Match(fLine, def.Regex)
+                                            If M.Success Then
+                                                tDef = def.Regex
+                                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                tDef = tDef.Remove(0, 2)
+                                                tmp = tmp.Replace(name, "")
+                                                name = name.Remove(name.Length - 1, 1)
+                                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), line.Number, params)
+                                                If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                            End If
+                                        Next
                                     End If
                                     count += 1
                                     fLine = Reader2.ReadLine()
@@ -4227,6 +5335,23 @@ Public Class Instance
                                     If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
                                 End If
                             End If
+                        Else
+                            Dim tDef As String, name As String, params As String(), func As PawnFunction
+                            For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                Dim M As Match = Regex.Match(fLine, def.Regex)
+                                If M.Success Then
+                                    tDef = def.Regex
+                                    tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                    tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                    name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                    tDef = tDef.Remove(0, 2)
+                                    tmp = tmp.Replace(name, "")
+                                    name = name.Remove(name.Length - 1, 1)
+                                    params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                    func = New PawnFunction(name, _Name.Replace(".inc", ":"), line.Number, params)
+                                    If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                End If
+                            Next
                         End If
                         fLine = Reader.ReadLine()
                     Loop
@@ -4235,7 +5360,7 @@ Public Class Instance
                     Errors.Clear()
                     Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file & """"}, 1))
                 End If
-            ElseIf spos > -1 AndAlso line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 AndAlso line.Text.IndexOf("operator") = -1 Then
+            ElseIf spos > -1 AndAlso line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 AndAlso line.Text.IndexOf("operator") = -1 AndAlso line.Text.IndexOf("#define") = -1 Then
                 Dim params As New List(Of String)
                 params.AddRange(Split(Trim(Mid(line.Text, line.Text.IndexOf("(") + 2, line.Text.IndexOf(")") - line.Text.IndexOf("(") - 1)), ","))
                 For i = 0 To params.Count - 1
@@ -4245,10 +5370,10 @@ Public Class Instance
                         Continue For
                     End If
                 Next
-                Dim func As PawnFunction = New PawnFunction(Trim(Mid(line.Text, line.Text.IndexOf(" ", spos) + 2, line.Text.IndexOf("(") - line.Text.IndexOf(" ", spos) - 1)), Name.Replace(".inc", ":"), -1, params.ToArray)
+                Dim func As PawnFunction = New PawnFunction(Trim(Mid(line.Text, line.Text.IndexOf(" ", spos) + 2, line.Text.IndexOf("(") - line.Text.IndexOf(" ", spos) - 1)), _Name.Replace(".inc", ":"), -1, params.ToArray)
                 If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
-            ElseIf line.Text.IndexOf("forward") > -1 AndAlso line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 Then
-                Dim func As PawnFunction = New PawnFunction(Trim(Mid(line.Text, line.Text.IndexOf(" ") + 1, line.Text.IndexOf("(") - line.Text.IndexOf(" "))), Name.Replace(".inc", ":"), -1, Split(Trim(Mid(line.Text, line.Text.IndexOf("(") + 2, line.Text.IndexOf(")") - line.Text.IndexOf("(") - 1)), ","))
+            ElseIf line.Text.IndexOf("forward") > -1 AndAlso line.Text.IndexOf("#define") = -1 AndAlso line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 Then
+                Dim func As PawnFunction = New PawnFunction(Trim(Mid(line.Text, line.Text.IndexOf(" ") + 1, line.Text.IndexOf("(") - line.Text.IndexOf(" "))), _Name.Replace(".inc", ":"), -1, Split(Trim(Mid(line.Text, line.Text.IndexOf("(") + 2, line.Text.IndexOf(")") - line.Text.IndexOf("(") - 1)), ","))
                 If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
             ElseIf line.Text.IndexOf("#define") > -1 Then
                 If line.Text.IndexOf("0x") > -1 Then
@@ -4469,6 +5594,23 @@ Public Class Instance
                         If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
                     End If
                 End If
+            Else
+                Dim tDef As String, name As String, params As String(), func As PawnFunction
+                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                    Dim M As Match = Regex.Match(line.Text, def.Regex)
+                    If M.Success Then
+                        tDef = def.Regex
+                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                        tDef = tDef.Remove(0, 2)
+                        tmp = tmp.Replace(name, "")
+                        name = name.Remove(name.Length - 1, 1)
+                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), line.Number, params)
+                        If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                    End If
+                Next
             End If
         Next
         Dim tmpstring As String = vbNullString
@@ -4476,7 +5618,163 @@ Public Class Instance
             tmpstring += item.Name & " "
         Next
         SyntaxHandle.Lexing.Keywords(3) = tmpstring
-        SyntaxHandle.Lexing.Colorize()
+        With Settings
+            Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
+            If .All Then
+                SyntaxHandle.BackColor = .BackColor
+                SyntaxHandle.Caret.Color = inverted
+                For i = 0 To 19
+                    Select Case i
+                        Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                        Case Else
+                            SyntaxHandle.Styles(i).ForeColor = inverted
+                    End Select
+                    SyntaxHandle.Styles(i).BackColor = .BackColor
+                Next
+                With .H_Numbers
+                    SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                    SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                End With
+                With .H_String
+                    SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("STRING").Bold = .Bold
+                    SyntaxHandle.Styles("STRING").Italic = .Italic
+                End With
+                With .H_String2
+                    SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                    SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                End With
+                With .H_Operator
+                    SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                    SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                End With
+                With .H_Chars
+                    SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                    SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                End With
+                With .H_Class
+                    SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("GLOBALCLASS").Font = Font
+                    SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                    SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                End With
+                With .H_Preproc
+                    SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("PREPROCESSOR").Font = Font
+                    SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                    SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                End With
+                With .H_Comment
+                    SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                End With
+                SyntaxHandle.Lexing.Colorize()
+            Else
+                Font = .cFont
+                SyntaxHandle.Encoding = .Enc
+                SyntaxHandle.BackColor = .BackColor
+                SyntaxHandle.Caret.Color = inverted
+                For i = 0 To 19
+                    Select Case i
+                        Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                        Case Else
+                            SyntaxHandle.Styles(i).ForeColor = inverted
+                    End Select
+                    SyntaxHandle.Styles(i).BackColor = .BackColor
+                Next
+                With .H_Numbers
+                    SyntaxHandle.Styles("NUMBER").BackColor = .BackColor
+                    SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                    SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                End With
+                With .H_String
+                    SyntaxHandle.Styles("STRING").BackColor = .BackColor
+                    SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("STRING").Bold = .Bold
+                    SyntaxHandle.Styles("STRING").Italic = .Italic
+                End With
+                With .H_String2
+                    SyntaxHandle.Styles("STRINGEOL").BackColor = .BackColor
+                    SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                    SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                End With
+                With .H_Operator
+                    SyntaxHandle.Styles("OPERATOR").BackColor = .BackColor
+                    SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                    SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                End With
+                With .H_Chars
+                    SyntaxHandle.Styles("CHARACTER").BackColor = .BackColor
+                    SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                    SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                End With
+                With .H_Class
+                    SyntaxHandle.Styles("GLOBALCLASS").BackColor = .BackColor
+                    SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("GLOBALCLASS").Font = Font
+                    SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                    SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                End With
+                With .H_Preproc
+                    SyntaxHandle.Styles("PREPROCESSOR").BackColor = .BackColor
+                    SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("PREPROCESSOR").Font = Font
+                    SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                    SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                End With
+                With .H_Comment
+                    SyntaxHandle.Styles("COMMENT").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTLINE").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOC").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTLINEDOC").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").BackColor = .BackColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                End With
+                SyntaxHandle.Lexing.Colorize()
+            End If
+        End With
         For Each item In ACLists.Floats
             If item = "cellmin" Then ACLists.Floats.Remove(item)
         Next

@@ -53,13 +53,13 @@ Public Class Main
                         Dim name As String
                         For Each File In Directory.GetFiles(My.Application.Info.DirectoryPath & "\TMP")
                             name = Mid(File, File.LastIndexOf("\") + 2, File.LastIndexOf(".") - File.LastIndexOf("\") - 1)
-                            Instances.Add(New Instance(name))
-                            TabControl1.SelectedTab = Instances(GetInstanceByName(name)).TabHandle
+                            Instances.Add(New Instance(name, Instances.Count))
+                            TabControl1.SelectedTab = Instances(GetInstanceByName(name, Instances.Count - 1)).TabHandle
                             TabControl1.Select()
                             Reader = New StreamReader(File, System.Text.Encoding.GetEncoding(28591))
-                            Instances(GetInstanceByName(name)).SyntaxHandle.Text = Reader.ReadToEnd()
+                            Instances(GetInstanceByName(name, Instances.Count - 1)).SyntaxHandle.Text = Reader.ReadToEnd()
                             Reader.Close()
-                            With Instances(GetInstanceByName(name))
+                            With Instances(GetInstanceByName(name, Instances.Count - 1))
                                 .Path = .SyntaxHandle.Lines(0).Text
                                 .Saved = False
                                 .SyntaxHandle.Lines(0).Text = ""
@@ -77,9 +77,9 @@ Public Class Main
             Try
                 Dim name As String
                 name = Mid(My.Application.CommandLineArgs(0), My.Application.CommandLineArgs(0).LastIndexOf("\") + 2, My.Application.CommandLineArgs(0).LastIndexOf(".") - My.Application.CommandLineArgs(0).LastIndexOf("\") - 1)
-                Instances.Add(New Instance(name))
+                Instances.Add(New Instance(name, Instances.Count))
                 Reader = New StreamReader(My.Application.CommandLineArgs(0), System.Text.Encoding.GetEncoding(28591))
-                With Instances(GetInstanceByName(name))
+                With Instances(GetInstanceByName(name, Instances.Count - 1))
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     .Path = My.Application.CommandLineArgs(0)
                     .Saved = True
@@ -88,9 +88,12 @@ Public Class Main
                 Reader.Close()
             Catch ex As Exception
                 If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
-                    Instances.Add(New Instance("new script"))
+                    Instances.Add(New Instance("new script", Instances.Count))
                     Reader = New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
-                    Instances(GetInstanceByName("new script")).SyntaxHandle.Text = Reader.ReadToEnd()
+                    With Instances(GetInstanceByName("new script", Instances.Count - 1))
+                        .SyntaxHandle.Text = Reader.ReadToEnd()
+                        .Path = My.Application.Info.DirectoryPath & "\Scripts\new.pwn"
+                    End With
                     Reader.Close()
                 End If
             End Try
@@ -198,8 +201,8 @@ Public Class Main
             Try
                 Dim name As String, index As Integer
                 name = Mid(a, a.LastIndexOf("\") + 2, a.LastIndexOf(".") - a.LastIndexOf("\") - 1)
-                Instances.Add(New Instance(name))
-                index = GetInstanceByName(name)
+                Instances.Add(New Instance(name, Instances.Count))
+                index = GetInstanceByName(name, Instances.Count - 1)
                 Dim Reader = New StreamReader(a, System.Text.Encoding.GetEncoding(28591))
                 With Instances(index)
                     .SyntaxHandle.Text = Reader.ReadToEnd()
@@ -276,11 +279,14 @@ Public Class Main
         Else
             name = "new script"
         End If
-        Instances.Add(New Instance(name))
+        Instances.Add(New Instance(name, Instances.Count))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn") Then
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn", System.Text.Encoding.GetEncoding(28591))
-            Dim index As Integer = GetInstanceByName(name)
-            Instances(index).SyntaxHandle.Text = Reader.ReadToEnd()
+            With Instances(GetInstanceByName(name, Instances.Count - 1))
+                .SyntaxHandle.Text = Reader.ReadToEnd()
+                .Path = My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn"
+                TabControl1.SelectedTab = .TabHandle
+            End With
             Reader.Close()
         Else
             Select Case Settings.Language
@@ -294,7 +300,6 @@ Public Class Main
                     MsgBox("Datei konnte nicht gefunden werden.", MsgBoxStyle.Critical, "Error")
             End Select
         End If
-        TabControl1.SelectedTab = Instances(GetInstanceByName(name)).TabHandle
     End Sub
 
     Private Sub FilterscriptToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FilterscriptToolStripMenuItem.Click
@@ -309,11 +314,14 @@ Public Class Main
         Else
             name = "new script" & count
         End If
-        Instances.Add(New Instance(name))
+        Instances.Add(New Instance(name, Instances.Count))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn") Then
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn", System.Text.Encoding.GetEncoding(28591))
-            Dim index As Integer = GetInstanceByName(name)
-            Instances(index).SyntaxHandle.Text = Reader.ReadToEnd()
+            With Instances(GetInstanceByName(name, Instances.Count - 1))
+                .SyntaxHandle.Text = Reader.ReadToEnd()
+                .Path = My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn"
+                TabControl1.SelectedTab = .TabHandle
+            End With
             Reader.Close()
         Else
             Select Case Settings.Language
@@ -327,7 +335,6 @@ Public Class Main
                     MsgBox("Datei konnte nicht gefunden werden.", MsgBoxStyle.Critical, "Error")
             End Select
         End If
-        TabControl1.SelectedTab = Instances(GetInstanceByName(name)).TabHandle
     End Sub
 
     Private Sub NewScriptToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles NewScriptToolStripMenuItem.Click
@@ -343,11 +350,14 @@ Public Class Main
         Else
             name = "new script" & count
         End If
-        Instances.Add(New Instance(name))
+        Instances.Add(New Instance(name, Instances.Count))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
-            Dim index As Integer = GetInstanceByName(name)
-            Instances(index).SyntaxHandle.Text = Reader.ReadToEnd()
+            With Instances(GetInstanceByName(name, Instances.Count - 1))
+                .SyntaxHandle.Text = Reader.ReadToEnd()
+                .Path = My.Application.Info.DirectoryPath & "\Scripts\new.pwn"
+                TabControl1.SelectedTab = .TabHandle
+            End With
             Reader.Close()
         Else
             Select Case Settings.Language
@@ -361,7 +371,6 @@ Public Class Main
                     MsgBox("Datei konnte nicht gefunden werden.", MsgBoxStyle.Critical, "Error")
             End Select
         End If
-        TabControl1.SelectedTab = Instances(GetInstanceByName(name)).TabHandle
     End Sub
 
     Private Sub EmptyDocumentToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles EmptyDocumentToolStripMenuItem.Click
@@ -377,8 +386,11 @@ Public Class Main
         Else
             name = "new script" & count
         End If
-        Instances.Add(New Instance(name))
-        TabControl1.SelectedTab = Instances(GetInstanceByName(name)).TabHandle
+        Instances.Add(New Instance(name, Instances.Count))
+        With Instances(GetInstanceByName(name, Instances.Count - 1))
+            TabControl1.SelectedTab = .TabHandle
+            .Path = "{Empty Doc}"
+        End With
     End Sub
 
 #End Region
@@ -390,13 +402,18 @@ Public Class Main
             If File.Exists(OFD.FileName) Then
                 Dim name As String
                 name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
-                Instances.Add(New Instance(name))
-                With Instances(GetInstanceByName(name))
-                    TabControl1.SelectedTab = .TabHandle
-                    Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591), True)
+                Instances.Add(New Instance(name, Instances.Count))
+                With Instances(GetInstanceByName(name, Instances.Count - 1))
+                    Dim Reader As StreamReader
+                    If OFD.FileName.EndsWith(".pwn") OrElse OFD.FileName.EndsWith(".inc") Then
+                        Reader = New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591), True)
+                    Else
+                        Reader = New StreamReader(OFD.FileName, System.Text.Encoding.UTF8, True)
+                    End If
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
                     .Path = OFD.FileName
+                    TabControl1.SelectedTab = .TabHandle
                 End With
             End If
         End If
@@ -846,11 +863,14 @@ Public Class Main
         Else
             name = "new script" & count
         End If
-        Instances.Add(New Instance(name))
+        Instances.Add(New Instance(name, Instances.Count))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
-            Dim index As Integer = GetInstanceByName(name)
-            Instances(index).SyntaxHandle.Text = Reader.ReadToEnd()
+            With Instances(GetInstanceByName(name, Instances.Count - 1))
+                .SyntaxHandle.Text = Reader.ReadToEnd()
+                .Path = My.Application.Info.DirectoryPath & "\Scripts\new.pwn"
+                TabControl1.SelectedTab = .TabHandle
+            End With
             Reader.Close()
         Else
             Select Case Settings.Language
@@ -864,7 +884,6 @@ Public Class Main
                     MsgBox("Datei konnte nicht gefunden werden.", MsgBoxStyle.Critical, "Error")
             End Select
         End If
-        TabControl1.SelectedTab = Instances(GetInstanceByName(name)).TabHandle
     End Sub
 
     ''' <summary>
@@ -880,10 +899,15 @@ Public Class Main
             If File.Exists(OFD.FileName) Then
                 Dim name As String
                 name = Mid(OFD.FileName, OFD.FileName.LastIndexOf("\") + 2, OFD.FileName.LastIndexOf(".") - OFD.FileName.LastIndexOf("\") - 1)
-                Instances.Add(New Instance(name))
-                With Instances(GetInstanceByName(name))
+                Instances.Add(New Instance(name, Instances.Count))
+                With Instances(GetInstanceByName(name, Instances.Count - 1))
                     TabControl1.SelectedTab = .TabHandle
-                    Dim Reader As New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591))
+                    Dim Reader As StreamReader
+                    If OFD.FileName.EndsWith(".pwn") OrElse OFD.FileName.EndsWith(".inc") Then
+                        Reader = New StreamReader(OFD.FileName, System.Text.Encoding.GetEncoding(28591), True)
+                    Else
+                        Reader = New StreamReader(OFD.FileName, System.Text.Encoding.UTF8, True)
+                    End If
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
                     .Path = OFD.FileName
@@ -1272,7 +1296,7 @@ Public Class Main
     ''' <remarks></remarks>
     Private Sub TabControl1_ControlRemoved(ByVal sender As Object, ByVal e As System.Windows.Forms.ControlEventArgs) Handles TabPage1.ControlRemoved
         If Instances.Count = 0 Then
-            Instances.Add(New Instance("new script"))
+            Instances.Add(New Instance("new script", Instances.Count))
             If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
                 Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
                 Instances(0).SyntaxHandle.Text = Reader.ReadToEnd()
@@ -1295,15 +1319,18 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub TabControl1_OnClose(ByVal sender As Object, ByVal e As TabControlEx.CloseEventArgs) Handles TabControl1.OnClose
-        Dim index As Integer = GetInstanceByName(Trim(TabControl1.TabPages(e.TabIndex).Text))
+        Dim index As Integer = GetInstanceByName(Trim(TabControl1.TabPages(e.TabIndex).Text), Instances.Count - 1)
         Instances(index).destroy()
         Instances.RemoveAt(index)
         TabControl1.Controls.RemoveAt(e.TabIndex)
         If Instances.Count = 0 Then
-            Instances.Add(New Instance("new script"))
+            Instances.Add(New Instance("new script", Instances.Count))
             If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
                 Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
-                Instances(GetInstanceByName("new script")).SyntaxHandle.Text = Reader.ReadToEnd()
+                With Instances(GetInstanceByName("new script", Instances.Count - 1))
+                    .SyntaxHandle.Text = Reader.ReadToEnd()
+                    .Path = My.Application.Info.DirectoryPath & "\Scripts\new.pwn"
+                End With
                 Reader.Close()
             End If
         End If
@@ -1511,8 +1538,8 @@ Public Class Main
                 End With
             Else
                 If File.Exists(My.Application.Info.DirectoryPath & "\Include\" & ListView1.FocusedItem.SubItems(2).Text & ".inc") Then
-                    Instances.Add(New Instance(ListView1.FocusedItem.SubItems(2).Text))
-                    With Instances(GetInstanceByName(ListView1.FocusedItem.SubItems(2).Text))
+                    Instances.Add(New Instance(ListView1.FocusedItem.SubItems(2).Text, Instances.Count))
+                    With Instances(GetInstanceByName(ListView1.FocusedItem.SubItems(2).Text, Instances.Count - 1))
                         .Path = My.Application.Info.DirectoryPath & "\Include\" & .Name & ".inc"
                         TabControl1.SelectedTab = .TabHandle
                         Dim Reader As New StreamReader(.Path, System.Text.Encoding.GetEncoding(28591), True)
@@ -1561,6 +1588,85 @@ Public Class Main
                 Instances(TabControl1.SelectedIndex).Errors.Clear()
                 ListView1.Items.Clear()
         End Select
+    End Sub
+
+#End Region
+
+#Region "Drag & Drop (Files)"
+
+    Private Sub MenuStrip1_DragEnter(sender As Object, e As System.Windows.Forms.DragEventArgs) Handles MenuStrip1.DragEnter
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then e.Effect = DragDropEffects.All
+    End Sub
+
+    Private Sub ToolStrip1_DragEnter(sender As Object, e As System.Windows.Forms.DragEventArgs) Handles ToolStrip1.DragEnter
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then e.Effect = DragDropEffects.All
+    End Sub
+
+    Private Sub TabControl1_DragEnter(sender As Object, e As System.Windows.Forms.DragEventArgs) Handles TabControl1.DragEnter
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then e.Effect = DragDropEffects.All
+    End Sub
+
+    Private Sub MenuStrip1_DragDrop(sender As Object, e As System.Windows.Forms.DragEventArgs) Handles MenuStrip1.DragDrop
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+            For Each path As String In e.Data.GetData(DataFormats.FileDrop)
+                Dim name As String = Mid(path, path.LastIndexOf("\") + 2, path.LastIndexOf(".") - path.LastIndexOf("\") - 1)
+                Instances.Add(New Instance(name, Instances.Count))
+                With Instances(GetInstanceByName(name, Instances.Count - 1))
+                    TabControl1.SelectedTab = .TabHandle
+                    Dim Reader As StreamReader
+                    If path.EndsWith(".pwn") OrElse path.EndsWith(".inc") Then
+                        Reader = New StreamReader(path, System.Text.Encoding.GetEncoding(28591), True)
+                    Else
+                        Reader = New StreamReader(path, System.Text.Encoding.UTF8, True)
+                    End If
+                    .SyntaxHandle.Text = Reader.ReadToEnd()
+                    Reader.Close()
+                    .Path = OFD.FileName
+                End With
+            Next
+        End If
+    End Sub
+
+    Private Sub ToolStrip1_DragDrop(sender As Object, e As System.Windows.Forms.DragEventArgs) Handles ToolStrip1.DragDrop
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+            For Each path As String In e.Data.GetData(DataFormats.FileDrop)
+                Dim name As String = Mid(path, path.LastIndexOf("\") + 2, path.LastIndexOf(".") - path.LastIndexOf("\") - 1)
+                Instances.Add(New Instance(name, Instances.Count))
+                With Instances(GetInstanceByName(name, Instances.Count - 1))
+                    TabControl1.SelectedTab = .TabHandle
+                    Dim Reader As StreamReader
+                    If path.EndsWith(".pwn") OrElse path.EndsWith(".inc") Then
+                        Reader = New StreamReader(path, System.Text.Encoding.GetEncoding(28591), True)
+                    Else
+                        Reader = New StreamReader(path, System.Text.Encoding.UTF8, True)
+                    End If
+                    .SyntaxHandle.Text = Reader.ReadToEnd()
+                    Reader.Close()
+                    .Path = OFD.FileName
+                End With
+            Next
+        End If
+    End Sub
+
+    Private Sub TabControl1_DragDrop(sender As Object, e As System.Windows.Forms.DragEventArgs) Handles TabControl1.DragDrop
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+            For Each path As String In e.Data.GetData(DataFormats.FileDrop)
+                Dim name As String = Mid(path, path.LastIndexOf("\") + 2, path.LastIndexOf(".") - path.LastIndexOf("\") - 1)
+                Instances.Add(New Instance(name, Instances.Count))
+                With Instances(GetInstanceByName(name, Instances.Count - 1))
+                    TabControl1.SelectedTab = .TabHandle
+                    Dim Reader As StreamReader
+                    If path.EndsWith(".pwn") OrElse path.EndsWith(".inc") Then
+                        Reader = New StreamReader(path, System.Text.Encoding.GetEncoding(28591), True)
+                    Else
+                        Reader = New StreamReader(path, System.Text.Encoding.UTF8, True)
+                    End If
+                    .SyntaxHandle.Text = Reader.ReadToEnd()
+                    Reader.Close()
+                    .Path = OFD.FileName
+                End With
+            Next
+        End If
     End Sub
 
 #End Region

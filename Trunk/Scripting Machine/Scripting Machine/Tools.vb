@@ -53,59 +53,59 @@ Public Class Tools
 #Region "Structures"
 
     Public Structure Area
-        Public minX As Integer
-        Public minY As Integer
-        Public maxX As Integer
-        Public maxY As Integer
-        Public xForward As Boolean
-        Public yForward As Boolean
-        Public Lock As Boolean
+        Public minX As Integer, _
+            minY As Integer, _
+            maxX As Integer, _
+            maxY As Integer, _
+            xForward As Boolean, _
+            yForward As Boolean, _
+            Lock As Boolean
     End Structure
 
     Public Structure ObjectInfo
-        Public Model As Integer
-        Public X As Single
-        Public Y As Single
-        Public Z As Single
-        Public rX As Single
-        Public rY As Single
-        Public rZ As Single
-        Public Interior As Integer
-        Public World As Integer
+        Public Model As Integer, _
+            X As Single, _
+            Y As Single, _
+            Z As Single, _
+            rX As Single, _
+            rY As Single, _
+            rZ As Single, _
+            Interior As Integer, _
+            World As Integer
     End Structure
 
     Public Structure VehicleInfo
-        Public Model As Integer
-        Public X As Single
-        Public Y As Single
-        Public Z As Single
-        Public R As Single
-        Public Color1 As Integer
-        Public Color2 As Integer
+        Public Model As Integer, _
+            X As Single, _
+            Y As Single, _
+            Z As Single, _
+            R As Single, _
+            Color1 As Integer, _
+            Color2 As Integer
     End Structure
 
     Public Structure iFormat
-        Public Delimiter As String
-        Public Model As Integer
-        Public X As Integer
-        Public Y As Integer
-        Public Z As Integer
-        Public Rx As Integer
-        Public Ry As Integer
-        Public Rz As Integer
-        Public W As Integer
-        Public I As Integer
-        Public Format As String
+        Public Delimiter As String, _
+            Model As Integer, _
+            X As Integer, _
+            Y As Integer, _
+            Z As Integer, _
+            Rx As Integer, _
+            Ry As Integer, _
+            Rz As Integer, _
+            W As Integer, _
+            I As Integer, _
+            Format As String
     End Structure
 
     Private Structure AreaInfo
-        Public Index As Integer
-        Public Pos As Rectangle
-        Public Min As PointF
-        Public Max As PointF
-        Public Color As PawnColor
-        Public format As AreaFormat
-        Public Res As Integer
+        Public Index As Integer, _
+            Pos As Rectangle, _
+            Min As PointF, _
+            Max As PointF, _
+            Color As PawnColor, _
+            format As AreaFormat, _
+            Res As Integer
     End Structure
 
 #End Region
@@ -1308,7 +1308,7 @@ Public Class Tools
                 Exit Sub
             End If
         End If
-        If TextBox60.Text = TextBox59.Text Then RadioButton17.Checked = True
+        If RadioButton22.Checked AndAlso TextBox60.Text = TextBox59.Text Then RadioButton17.Checked = True
         If RadioButton22.Checked Then 'Different commands
             If TextBox60.Text.Length = 0 Then
                 Select Case Settings.Language
@@ -3551,10 +3551,16 @@ Public Class Tools
                 Else
                     TextBox24.Text = Round(6000 / TrackBar14.Value * .maxX - 3000, 6)
                 End If
-                If .maxY = PictureBox6.Height - 1 Then
-                    TextBox25.Text = 3000 * -1
+                If .maxY = 1 Then
+                    TextBox25.Text = 3000
                 Else
                     TextBox25.Text = Round(6000 / TrackBar14.Value * .maxY - 3000, 6) * -1
+                End If
+                If Single.Parse(TextBox23.Text) > Single.Parse(TextBox25.Text) Then
+                    Dim tmp As String
+                    tmp = TextBox25.Text
+                    TextBox25.Text = TextBox23.Text
+                    TextBox23.Text = tmp
                 End If
                 TextBox22.Text = TextBox22.Text.Replace(",", ".")
                 TextBox23.Text = TextBox23.Text.Replace(",", ".")

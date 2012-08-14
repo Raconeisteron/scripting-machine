@@ -18,11 +18,11 @@ Public Structure PawnFunction
 
 #Region "Arrays"
 
-    Private _name As String
-    Private _params As String()
-    Private _inc As String
-    Private _Line As Integer
-    Private _Exist As Boolean
+    Private _name As String, _
+        _params As String(), _
+        _inc As String, _
+        _Line As Integer, _
+        _Exist As Boolean
 
 #End Region
 

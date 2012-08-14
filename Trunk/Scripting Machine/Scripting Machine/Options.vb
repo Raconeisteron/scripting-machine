@@ -80,6 +80,7 @@ Public Class Options
             .URL_Map = TextBox7.Text
             .URL_Sprite = TextBox8.Text
             .iTabs = CheckBox5.Checked
+            .All = CheckBox23.Checked
             Main.TabControl2.Visible = .iTabs
             If CheckBox6.Checked Then
                 .CompDefPath = True
@@ -110,7 +111,6 @@ Public Class Options
                 Main.TabControl3.Visible = False
             End If
             .aSelect = CheckBox8.Checked
-
             With .H_Numbers
                 .BackColor = Panel2.BackColor
                 .ForeColor = Panel1.BackColor
@@ -147,6 +147,12 @@ Public Class Options
                 .Bold = CheckBox21.Checked
                 .Italic = CheckBox20.Checked
             End With
+            With .H_Preproc
+                .BackColor = Panel17.BackColor
+                .ForeColor = Panel16.BackColor
+                .Bold = CheckBox25.Checked
+                .Italic = CheckBox24.Checked
+            End With
             With .H_Comment
                 .BackColor = Panel14.BackColor
                 .ForeColor = Panel13.BackColor
@@ -164,64 +170,167 @@ Public Class Options
             Else
                 .Enc = System.Text.Encoding.Unicode
             End If
-
-            For Each inst As Instance In Instances
-                inst.Font = .cFont
-                inst.SyntaxHandle.Encoding = .Enc
-                inst.SyntaxHandle.BackColor = .BackColor
-                With .H_Numbers
-                    inst.SyntaxHandle.Styles("NUMBER").BackColor = .BackColor
-                    inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
-                    inst.SyntaxHandle.Styles("NUMBER").Bold = .Bold
-                    inst.SyntaxHandle.Styles("NUMBER").Italic = .Italic
-                End With
-                With .H_String
-                    inst.SyntaxHandle.Styles("STRING").BackColor = .BackColor
-                    inst.SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
-                    inst.SyntaxHandle.Styles("STRING").Bold = .Bold
-                    inst.SyntaxHandle.Styles("STRING").Italic = .Italic
-                End With
-                With .H_String2
-                    inst.SyntaxHandle.Styles("STRINGEOL").BackColor = .BackColor
-                    inst.SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
-                    inst.SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
-                    inst.SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
-                End With
-                With .H_Operator
-                    inst.SyntaxHandle.Styles("OPERATOR").BackColor = .BackColor
-                    inst.SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
-                    inst.SyntaxHandle.Styles("OPERATOR").Bold = .Bold
-                    inst.SyntaxHandle.Styles("OPERATOR").Italic = .Italic
-                End With
-                With .H_Chars
-                    inst.SyntaxHandle.Styles("CHARACTER").BackColor = .BackColor
-                    inst.SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
-                    inst.SyntaxHandle.Styles("CHARACTER").Bold = .Bold
-                    inst.SyntaxHandle.Styles("CHARACTER").Italic = .Italic
-                End With
-                With .H_Class
-                    inst.SyntaxHandle.Styles("GLOBALCLASS").BackColor = .BackColor
-                    inst.SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
-                    inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
-                    inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
-                    inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
-                End With
-                With .H_Comment
-                    inst.SyntaxHandle.Styles("COMMENT").BackColor = .BackColor
-                    inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
-                    inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
-                    inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
-                    inst.SyntaxHandle.Styles("COMMENTLINE").BackColor = .BackColor
-                    inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
-                    inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
-                    inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
-                    inst.SyntaxHandle.Styles("COMMENTDOC").BackColor = .BackColor
-                    inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
-                    inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
-                    inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
-                End With
-                inst.SyntaxHandle.Lexing.Colorize()
-            Next
+            Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
+            If CheckBox23.Checked Then
+                For Each inst As Instance In Instances
+                    inst.Font = .cFont
+                    inst.SyntaxHandle.Encoding = .Enc
+                    inst.SyntaxHandle.BackColor = .BackColor
+                    inst.SyntaxHandle.Caret.Color = inverted
+                    For i = 0 To 19
+                        Select Case i
+                            Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                            Case Else
+                                inst.SyntaxHandle.Styles(i).ForeColor = inverted
+                        End Select
+                        inst.SyntaxHandle.Styles(i).BackColor = .BackColor
+                    Next
+                    With .H_Numbers
+                        inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                        inst.SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                    End With
+                    With .H_String
+                        inst.SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("STRING").Bold = .Bold
+                        inst.SyntaxHandle.Styles("STRING").Italic = .Italic
+                    End With
+                    With .H_String2
+                        inst.SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                        inst.SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                    End With
+                    With .H_Operator
+                        inst.SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                    End With
+                    With .H_Chars
+                        inst.SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                        inst.SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                    End With
+                    With .H_Class
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                    End With
+                    With .H_Preproc
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Font = inst.Font
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                    End With
+                    With .H_Comment
+                        inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                    End With
+                    inst.SyntaxHandle.Lexing.Colorize()
+                Next
+            Else
+                For Each inst As Instance In Instances
+                    inst.Font = .cFont
+                    inst.SyntaxHandle.Encoding = .Enc
+                    inst.SyntaxHandle.BackColor = .BackColor
+                    inst.SyntaxHandle.Caret.Color = inverted
+                    For i = 0 To 19
+                        Select Case i
+                            Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                            Case Else
+                                inst.SyntaxHandle.Styles(i).ForeColor = inverted
+                        End Select
+                        inst.SyntaxHandle.Styles(i).BackColor = .BackColor
+                    Next
+                    With .H_Numbers
+                        inst.SyntaxHandle.Styles("NUMBER").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                        inst.SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                    End With
+                    With .H_String
+                        inst.SyntaxHandle.Styles("STRING").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("STRING").Bold = .Bold
+                        inst.SyntaxHandle.Styles("STRING").Italic = .Italic
+                    End With
+                    With .H_String2
+                        inst.SyntaxHandle.Styles("STRINGEOL").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                        inst.SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                    End With
+                    With .H_Operator
+                        inst.SyntaxHandle.Styles("OPERATOR").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                    End With
+                    With .H_Chars
+                        inst.SyntaxHandle.Styles("CHARACTER").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                        inst.SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                    End With
+                    With .H_Class
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                    End With
+                    With .H_Preproc
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Font = inst.Font
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                    End With
+                    With .H_Comment
+                        inst.SyntaxHandle.Styles("COMMENT").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTLINE").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOC").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                    End With
+                    inst.SyntaxHandle.Lexing.Colorize()
+                Next
+            End If
         End With
         Me.Hide()
         Me.Owner.Refresh()
@@ -253,6 +362,7 @@ Public Class Options
             CheckBox7.Checked = .ToolBar
             CheckBox8.Checked = .aSelect
             CheckBox9.Checked = .OETab
+            CheckBox23.Checked = .All
             Select Case .Images
                 Case Imgs.iDefault
                     RadioButton5.Checked = True
@@ -318,6 +428,12 @@ Public Class Options
                 CheckBox22.Checked = .Bold
                 CheckBox3.Checked = .Italic
             End With
+            With .H_Preproc
+                Panel16.BackColor = .ForeColor
+                Panel17.BackColor = .BackColor
+                CheckBox25.Checked = .Bold
+                CheckBox24.Checked = .Italic
+            End With
             If .Enc Is System.Text.Encoding.UTF8 Then
                 RadioButton8.Checked = True
             ElseIf .Enc Is System.Text.Encoding.BigEndianUnicode Then
@@ -343,6 +459,7 @@ Public Class Options
         CheckBox7.Checked = True
         CheckBox8.Checked = False
         CheckBox9.Checked = True
+        CheckBox23.Checked = False
         ComboBox2.SelectedItem = 4
         ComboBox1.SelectedItem = 0
         TextBox1.Text = "GangZoneCreate({0}, {1}, {2}, {3});"
@@ -387,6 +504,10 @@ Public Class Options
         Panel14.BackColor = Color.White
         CheckBox22.Checked = False
         CheckBox3.Checked = False
+        Panel16.BackColor = Color.Blue
+        Panel17.BackColor = Color.White
+        CheckBox25.Checked = False
+        CheckBox24.Checked = False
         Panel15.BackColor = Color.White
     End Sub
 
@@ -582,6 +703,30 @@ Public Class Options
             .TrackBar2.Value = Panel15.BackColor.G
             .TrackBar3.Value = Panel15.BackColor.B
             .TrackBar4.Value = Panel15.BackColor.A
+        End With
+    End Sub
+
+    Private Sub Panel16_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel16.Click
+        gSender = CC.H_PRE_F
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel16.BackColor
+            .TrackBar1.Value = Panel16.BackColor.R
+            .TrackBar2.Value = Panel16.BackColor.G
+            .TrackBar3.Value = Panel16.BackColor.B
+            .TrackBar4.Value = Panel16.BackColor.A
+        End With
+    End Sub
+
+    Private Sub Panel17_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel17.Click
+        gSender = CC.H_PRE_B
+        With eColor
+            .Show()
+            .Panel1.BackColor = Panel17.BackColor
+            .TrackBar1.Value = Panel17.BackColor.R
+            .TrackBar2.Value = Panel17.BackColor.G
+            .TrackBar3.Value = Panel17.BackColor.B
+            .TrackBar4.Value = Panel17.BackColor.A
         End With
     End Sub
 

@@ -18,10 +18,10 @@ Public Structure PawnColor
 
 #Region "Arrays"
 
-    Private _name As String
-    Private _hex As Color
-    Private _line As Integer
-    Private _exist As Boolean
+    Private _name As String, _
+        _hex As Color, _
+        _line As Integer, _
+        _exist As Boolean
 
 #End Region
 

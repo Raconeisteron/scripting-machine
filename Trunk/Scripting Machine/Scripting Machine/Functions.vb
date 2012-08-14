@@ -100,6 +100,8 @@ Module Functions
         H_CLB
         H_CMF
         H_CMB
+        H_PRE_B
+        H_PRE_F
         G_Open
         G_Close
         Back
@@ -174,129 +176,131 @@ Module Functions
 #Region "Structures"
 
     Public Structure Config
-        Public Language As Languages
-        Public DefaultPath As String
-        Public cFont As Font
-        Public C_Area As PawnColor
-        Public C_Msg As PawnColor
-        Public C_Help As PawnColor
-        Public C_Text As PawnColor
-        Public C_Box As PawnColor
-        Public C_Back As PawnColor
-        Public AreaCreateOutput As String
-        Public AreaShowOutput As String
-        Public BoundsOutput As String
-        Public A_Fill As Boolean
-        Public A_MSelect As Boolean
-        Public oPath As String
-        Public URL_Skin As String
-        Public URL_Veh As String
-        Public URL_Weap As String
-        Public URL_Map As String
-        Public URL_Sprite As String
-        Public Skin_Ext As String
-        Public Veh_Ext As String
-        Public Weap_Ext As String
-        Public Map_Ext As String
-        Public Sprite_Ext As String
-        Public Images As Imgs
-        Public Assoc As Boolean
-        Public iTabs As Boolean
-        Public CompDefPath As Boolean
-        Public CompPath As String
-        Public CompArgs As String
-        Public ToolBar As Boolean
-        Public aSelect As Boolean
-        Public OETab As Boolean
-        Public H_Numbers As HighLightS
-        Public H_String As HighLightS
-        Public H_String2 As HighLightS
-        Public H_Operator As HighLightS
-        Public H_Chars As HighLightS
-        Public H_Class As HighLightS
-        Public H_Comment As HighLightS
-        Public BackColor As Color
-        Public G_Open_Color As PawnColor
-        Public G_Close_Color As PawnColor
-        Public Enc As System.Text.Encoding
+        Public Language As Languages, _
+            DefaultPath As String, _
+            cFont As Font, _
+            C_Area As PawnColor, _
+            C_Msg As PawnColor, _
+            C_Help As PawnColor, _
+            C_Text As PawnColor, _
+            C_Box As PawnColor, _
+            C_Back As PawnColor, _
+            AreaCreateOutput As String, _
+            AreaShowOutput As String, _
+            BoundsOutput As String, _
+            A_Fill As Boolean, _
+            A_MSelect As Boolean, _
+            oPath As String, _
+            URL_Skin As String, _
+            URL_Veh As String, _
+            URL_Weap As String, _
+            URL_Map As String, _
+            URL_Sprite As String, _
+            Skin_Ext As String, _
+            Veh_Ext As String, _
+            Weap_Ext As String, _
+            Map_Ext As String, _
+            Sprite_Ext As String, _
+            Images As Imgs, _
+            Assoc As Boolean, _
+            iTabs As Boolean, _
+            CompDefPath As Boolean, _
+            CompPath As String, _
+            CompArgs As String, _
+            ToolBar As Boolean, _
+            aSelect As Boolean, _
+            OETab As Boolean, _
+            H_Numbers As HighLightS, _
+            H_String As HighLightS, _
+            H_String2 As HighLightS, _
+            H_Operator As HighLightS, _
+            H_Chars As HighLightS, _
+            H_Class As HighLightS, _
+            H_Comment As HighLightS, _
+            H_Preproc As HighLightS, _
+            BackColor As Color, _
+            G_Open_Color As PawnColor, _
+            G_Close_Color As PawnColor, _
+            Enc As System.Text.Encoding, _
+            All As Boolean
     End Structure
 
     Public Structure Skin
-        Public ID As Integer
-        Public Name As String
-        Public Gender As GenderType
-        Public Gang As GangType
+        Public ID As Integer, _
+            Name As String, _
+            Gender As GenderType, _
+            Gang As GangType
     End Structure
 
     Public Structure Veh
-        Public ID As Integer
-        Public Name As String
-        Public Type As VehicleType
+        Public ID As Integer, _
+            Name As String, _
+            Type As VehicleType
     End Structure
 
     Public Structure Weap
-        Public ID As Integer
-        Public Name As String
-        Public Def As String
-        Public Slot As Integer
-        Public Type As WeaponType
+        Public ID As Integer, _
+            Name As String, _
+            Def As String, _
+            Slot As Integer, _
+            Type As WeaponType
     End Structure
 
     Public Structure Anim
-        Public _Lib As String
-        Public Name As String
+        Public _Lib As String, _
+            Name As String
     End Structure
 
     Public Structure mIcon
-        Public ID As Integer
-        Public Name As String
+        Public ID As Integer, _
+            Name As String
     End Structure
 
     Public Structure Sprt
-        Public Name As String
-        Public Size As String
-        Public Path As String
-        Public File As String
+        Public Name As String, _
+            Size As String, _
+            Path As String, _
+            File As String
     End Structure
 
     Public Structure AutoC
-        Public DialogTypes As List(Of String)
-        Public PreCompiler As List(Of String)
-        Public FightingTypes As List(Of String)
-        Public SpecTypes As List(Of String)
-        Public ActionTypes As List(Of String)
-        Public MarkerTypes As List(Of String)
-        Public RecordingTypes As List(Of String)
-        Public RoundTypes As List(Of String)
-        Public AngleTypes As List(Of String)
-        Public FileTypes As List(Of String)
-        Public WhenceTypes As List(Of String)
+        Public DialogTypes As List(Of String), _
+            PreCompiler As List(Of String), _
+            FightingTypes As List(Of String), _
+            SpecTypes As List(Of String), _
+            ActionTypes As List(Of String), _
+            MarkerTypes As List(Of String), _
+            RecordingTypes As List(Of String), _
+            RoundTypes As List(Of String), _
+            AngleTypes As List(Of String), _
+            FileTypes As List(Of String), _
+            WhenceTypes As List(Of String)
     End Structure
 
     Public Structure HighLightS
-        Public ForeColor As Color
-        Public BackColor As Color
-        Public Bold As Boolean
-        Public Italic As Boolean
+        Public ForeColor As Color, _
+            BackColor As Color, _
+            Bold As Boolean, _
+            Italic As Boolean
     End Structure
 
 #End Region
 
 #Region "Constants"
 
-    Public Const SBS_VERT As Integer = 1
-    Public Const WM_VSCROLL As Integer = &H115
-    Public Const SB_THUMBPOSITION As Integer = 4
-    Public Const MOD_CONTROL As Integer = &H2
-    Public Const MOD_NOREPEAT As Integer = &H4000
-    Public Const WM_HOTKEY As Integer = &H312
-
-    Public Const BadChars As String = "[^\d\.]+"
-    Public Const BadChars2 As String = "[^\d,]+"
-
-    Public Const SC_MARGIN_BACK As UInteger = 2
-    Public Const SC_MARGIN_FORE As UInteger = 3
-    Public Const SC_MARGIN_TEXT As UInteger = 4
+    Public Const SBS_VERT As Integer = 1, _
+        WM_VSCROLL As Integer = &H115, _
+        SB_THUMBPOSITION As Integer = 4, _
+        MOD_CONTROL As Integer = &H2, _
+        MOD_NOREPEAT As Integer = &H4000, _
+        WM_HOTKEY As Integer = &H312, _
+ _
+        BadChars As String = "[^\d\.]+", _
+        BadChars2 As String = "[^\d,]+", _
+ _
+        SC_MARGIN_BACK As UInteger = 2, _
+        SC_MARGIN_FORE As UInteger = 3, _
+        SC_MARGIN_TEXT As UInteger = 4
 
 #End Region
 
@@ -304,35 +308,34 @@ Module Functions
 
 #Region "Private"
 
-    Private sProgress As New AddProgressBarValue(AddressOf UpdateProgressBar)
-    Private AllCallbacks As New List(Of String)
+    Private sProgress As New AddProgressBarValue(AddressOf UpdateProgressBar), _
+        AllCallbacks As New List(Of String)
 
 #End Region
 
 #Region "Publics"
 
-    Public AllFunctions As New List(Of PawnFunction)
-    Public Settings As Config
-    Public Instances As New List(Of Instance)
-    Public gSender As CC
-    Public TextDrawFonts As New List(Of PrivateFontCollection)
-    Public tSender As MsgT
-    Public tText As String
-    Public tText2 As String
-    Public sLabel As New ChangeLabelText(AddressOf UpdateLabelText)
+    Public AllFunctions As New List(Of PawnFunction), _
+        Settings As Config, _
+        Instances As New List(Of Instance), _
+        gSender As CC, _
+        tSender As MsgT, _
+        tText As String, _
+        tText2 As String, _
+        sLabel As New ChangeLabelText(AddressOf UpdateLabelText)
 
 #End Region
 
 #Region "Resources"
 
-    Public Lists As AutoC
-    Public Sounds As New Dictionary(Of String, Integer)
-    Public Vehicles(211) As Veh
-    Public Skins(299) As Skin
-    Public Weapons(43) As Weap
-    Public Anims(1724) As Anim
-    Public Maps(63) As mIcon
-    Public Sprites(496) As Sprt
+    Public Lists As AutoC, _
+        Sounds As New Dictionary(Of String, Integer), _
+        Vehicles(211) As Veh, _
+        Skins(299) As Skin, _
+        Weapons(43) As Weap, _
+        Anims(1724) As Anim, _
+        Maps(63) As mIcon, _
+        Sprites(496) As Sprt
 
 #End Region
 
@@ -365,16 +368,27 @@ Module Functions
                             Reader = New StreamReader(Inc)
                             Line = Reader.ReadLine()
                             Do Until Line Is Nothing
-                                If Line.StartsWith("//") Then
+                                If Line.Length = 0 OrElse Line = "{" OrElse Line = "}" OrElse Line = ";" Then
+                                    Line = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf Line.StartsWith("//") Then
                                     CommentedLine = True
+                                ElseIf Line = "/*" OrElse Line = " /*" Then
+                                    CommentedSection = True
+                                    Line = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf Line = "*/" OrElse Line = " */" Then
+                                    CommentedSection = False
+                                    Line = Reader.ReadLine()
+                                    Continue Do
                                 ElseIf Line.IndexOf("/*") > -1 AndAlso Line.IndexOf("*/") = -1 Then
                                     CommentedSection = True
                                 ElseIf Line.IndexOf("*/") > -1 Then
                                     CommentedSection = False
                                 End If
                                 If CommentedLine Or CommentedSection Then
-                                    Line = Reader.ReadLine()
                                     CommentedLine = False
+                                    Line = Reader.ReadLine()
                                     Continue Do
                                 End If
                                 Dim pos As Integer = Line.IndexOf("native")
@@ -426,16 +440,27 @@ Module Functions
                         Reader = New StreamReader(Inc)
                         Line = Reader.ReadLine()
                         Do Until Line Is Nothing
-                            If Line.IndexOf("//") > -1 Then
+                            If Line.Length = 0 OrElse Line = "{" OrElse Line = "}" OrElse Line = ";" Then
+                                Line = Reader.ReadLine()
+                                Continue Do
+                            ElseIf Line.StartsWith("//") Then
                                 CommentedLine = True
+                            ElseIf Line = "/*" OrElse Line = " /*" Then
+                                CommentedSection = True
+                                Line = Reader.ReadLine()
+                                Continue Do
+                            ElseIf Line = "*/" OrElse Line = " */" Then
+                                CommentedSection = False
+                                Line = Reader.ReadLine()
+                                Continue Do
                             ElseIf Line.IndexOf("/*") > -1 AndAlso Line.IndexOf("*/") = -1 Then
                                 CommentedSection = True
                             ElseIf Line.IndexOf("*/") > -1 Then
                                 CommentedSection = False
                             End If
                             If CommentedLine Or CommentedSection Then
-                                Line = Reader.ReadLine()
                                 CommentedLine = False
+                                Line = Reader.ReadLine()
                                 Continue Do
                             End If
                             Dim pos As Integer = Line.IndexOf("native")
@@ -524,16 +549,44 @@ Module Functions
         Return False
     End Function
 
-    Public Function GetInstanceByName(ByVal name As String) As Integer
+    Public Function TrueContainsuPublic(ByVal list As List(Of CustomUserPublics), ByVal uPublic As CustomUserPublics) As Boolean
+        For Each item In list
+            If item = uPublic Then Return True
+        Next
+        Return False
+    End Function
+
+    Public Function GetInstanceByName(ByVal name As String, ByVal idx As Integer) As Integer
         If Not name.EndsWith(" *") Then name.Remove(name.Length - 2, 2)
         Try
-            Dim i As Integer
-            For i = 0 To Instances.Count
+            Dim i As Integer, counter As Integer = 0, tmp As Integer
+            For i = 0 To Instances.Count - 1
                 If Instances(i).Name = name Then
+                    tmp = i
+                    counter += 1
+                End If
+            Next
+            If counter = 0 Then
+                Return 0
+            ElseIf counter = 1 Then
+                Return tmp
+            Else
+                Return GetInstanceByIndex(idx)
+            End If
+        Catch ex As Exception
+            Return 0
+        End Try
+    End Function
+
+    Private Function GetInstanceByIndex(ByVal index As String) As Integer
+        Try
+            Dim i As Integer
+            For i = 0 To Instances.Count - 1
+                If Instances(i).Index = index Then
                     Exit For
                 End If
             Next
-            If Instances(i).Name = name Then
+            If Instances(i).Index = index Then
                 Return i
             Else
                 Return 0
@@ -16634,8 +16687,44 @@ Module Functions
                 .H_Comment.ForeColor = Color.FromArgb(tmp(1))
                 .H_Comment.Bold = IntToBool(tmp(2))
                 .H_Comment.Italic = IntToBool(tmp(3))
+                If My.Settings.H_Preproc = "Default" Then My.Settings.H_Preproc = Color.White.ToArgb() & "|" & Color.Blue.ToArgb & "|0|0"
+                tmp = Split(My.Settings.H_Preproc, "|")
+                .H_Preproc.BackColor = Color.FromArgb(tmp(0))
+                .H_Preproc.ForeColor = Color.FromArgb(tmp(1))
+                .H_Preproc.Bold = IntToBool(tmp(2))
+                .H_Preproc.Italic = IntToBool(tmp(3))
                 If My.Settings.BackColor.A = 0 Then My.Settings.BackColor = Color.White
                 .BackColor = My.Settings.BackColor
+                .All = My.Settings.ApplyAll
+                ChangeLang(.Language)
+                Options.ComboBox1.SelectedIndex = Options.ComboBox1.FindString(.cFont.FontFamily.Name)
+                Options.ComboBox2.SelectedIndex = Options.ComboBox2.FindString(.cFont.Size)
+                Options.CheckBox1.Checked = .cFont.Bold
+                Options.CheckBox2.Checked = .cFont.Italic
+                Select Case .Images
+                    Case Imgs.iDefault
+                        Options.RadioButton5.Checked = True
+                    Case Imgs.iFolder
+                        Options.RadioButton6.Checked = True
+                    Case Else
+                        Options.RadioButton7.Checked = True
+                End Select
+                Options.CheckBox4.Checked = .Assoc
+                Options.CheckBox5.Checked = .iTabs
+                Options.CheckBox6.Checked = .CompDefPath
+                Options.CheckBox7.Checked = .ToolBar
+                Options.CheckBox8.Checked = .aSelect
+                Options.CheckBox9.Checked = .OETab
+                Options.TextBox1.Text = .AreaCreateOutput
+                Options.TextBox2.Text = .AreaShowOutput
+                Options.TextBox3.Text = .BoundsOutput
+                Options.TextBox4.Text = .URL_Skin
+                Options.TextBox5.Text = .URL_Veh
+                Options.TextBox6.Text = .URL_Weap
+                Options.TextBox7.Text = .URL_Map
+                Options.TextBox8.Text = .URL_Sprite
+                Options.Panel15.BackColor = .BackColor
+                Options.CheckBox23.Checked = .All
                 With .H_Numbers
                     Options.Panel2.BackColor = .BackColor
                     Options.Panel1.BackColor = .ForeColor
@@ -16672,49 +16761,179 @@ Module Functions
                     Options.CheckBox21.Checked = .Bold
                     Options.CheckBox20.Checked = .Italic
                 End With
+                With .H_Preproc
+                    Options.Panel17.BackColor = .BackColor
+                    Options.Panel16.BackColor = .ForeColor
+                    Options.CheckBox25.Checked = .Bold
+                    Options.CheckBox24.Checked = .Italic
+                End With
                 With .H_Comment
                     Options.Panel13.BackColor = .ForeColor
                     Options.Panel14.BackColor = .BackColor
                     Options.CheckBox22.Checked = .Bold
                     Options.CheckBox3.Checked = .Italic
                 End With
-                ChangeLang(.Language)
-                Options.ComboBox1.SelectedIndex = Options.ComboBox1.FindString(.cFont.FontFamily.Name)
-                Options.ComboBox2.SelectedIndex = Options.ComboBox2.FindString(.cFont.Size)
-                Options.CheckBox1.Checked = .cFont.Bold
-                Options.CheckBox2.Checked = .cFont.Italic
-                Select Case .Images
-                    Case Imgs.iDefault
-                        Options.RadioButton5.Checked = True
-                    Case Imgs.iFolder
-                        Options.RadioButton6.Checked = True
-                    Case Else
-                        Options.RadioButton7.Checked = True
-                End Select
-                Options.CheckBox4.Checked = .Assoc
-                Options.CheckBox5.Checked = .iTabs
-                Options.CheckBox6.Checked = .CompDefPath
-                Options.CheckBox7.Checked = .ToolBar
-                Options.CheckBox8.Checked = .aSelect
-                Options.CheckBox9.Checked = .OETab
-                Options.TextBox1.Text = .AreaCreateOutput
-                Options.TextBox2.Text = .AreaShowOutput
-                Options.TextBox3.Text = .BoundsOutput
-                Options.TextBox4.Text = .URL_Skin
-                Options.TextBox5.Text = .URL_Veh
-                Options.TextBox6.Text = .URL_Weap
-                Options.TextBox7.Text = .URL_Map
-                Options.TextBox8.Text = .URL_Sprite
-                Options.Panel15.BackColor = .BackColor
-                Tools.CheckBox8.Checked = .A_MSelect
-                Tools.CheckBox10.Checked = .A_Fill
-                Main.TabControl2.Visible = .iTabs
-                Main.ToolStrip1.Visible = .ToolBar
-                For Each inst As Instance In Instances
-                    inst.Font = .cFont
-                    inst.SyntaxHandle.Encoding = .Enc
-                    inst.SyntaxHandle.BackColor = .BackColor
-                Next
+                Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
+                If .All Then
+                    For Each inst In Instances
+                        inst.Font = .cFont
+                        inst.SyntaxHandle.Encoding = .Enc
+                        inst.SyntaxHandle.BackColor = .BackColor
+                        inst.SyntaxHandle.Caret.Color = inverted
+                        For i = 0 To 19
+                            Select Case i
+                                Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                                Case Else
+                                    inst.SyntaxHandle.Styles(i).ForeColor = inverted
+                            End Select
+                            inst.SyntaxHandle.Styles(i).BackColor = .BackColor
+                        Next
+                        With .H_Numbers
+                            inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                            inst.SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                        End With
+                        With .H_String
+                            inst.SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("STRING").Bold = .Bold
+                            inst.SyntaxHandle.Styles("STRING").Italic = .Italic
+                        End With
+                        With .H_String2
+                            inst.SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                            inst.SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                        End With
+                        With .H_Operator
+                            inst.SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                            inst.SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                        End With
+                        With .H_Chars
+                            inst.SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                            inst.SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                        End With
+                        With .H_Class
+                            inst.SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
+                            inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                            inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                        End With
+                        With .H_Preproc
+                            inst.SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("PREPROCESSOR").Font = inst.Font
+                            inst.SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                            inst.SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                        End With
+                        With .H_Comment
+                            inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                        End With
+                        inst.SyntaxHandle.Lexing.Colorize()
+                    Next
+                Else
+                    For Each inst In Instances
+                        inst.Font = .cFont
+                        inst.SyntaxHandle.Encoding = .Enc
+                        inst.SyntaxHandle.BackColor = .BackColor
+                        inst.SyntaxHandle.Caret.Color = inverted
+                        For i = 0 To 19
+                            Select Case i
+                                Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                                Case Else
+                                    inst.SyntaxHandle.Styles(i).ForeColor = inverted
+                            End Select
+                            inst.SyntaxHandle.Styles(i).BackColor = .BackColor
+                        Next
+                        With .H_Numbers
+                            inst.SyntaxHandle.Styles("NUMBER").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                            inst.SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                        End With
+                        With .H_String
+                            inst.SyntaxHandle.Styles("STRING").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("STRING").Bold = .Bold
+                            inst.SyntaxHandle.Styles("STRING").Italic = .Italic
+                        End With
+                        With .H_String2
+                            inst.SyntaxHandle.Styles("STRINGEOL").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                            inst.SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                        End With
+                        With .H_Operator
+                            inst.SyntaxHandle.Styles("OPERATOR").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                            inst.SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                        End With
+                        With .H_Chars
+                            inst.SyntaxHandle.Styles("CHARACTER").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                            inst.SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                        End With
+                        With .H_Class
+                            inst.SyntaxHandle.Styles("GLOBALCLASS").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
+                            inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                            inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                        End With
+                        With .H_Preproc
+                            inst.SyntaxHandle.Styles("PREPROCESSOR").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("PREPROCESSOR").Font = inst.Font
+                            inst.SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                            inst.SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                        End With
+                        With .H_Comment
+                            inst.SyntaxHandle.Styles("COMMENT").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTLINE").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTDOC").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").BackColor = .BackColor
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                        End With
+                        inst.SyntaxHandle.Lexing.Colorize()
+                    Next
+                End If
             End With
             Splash.ProgressBar1.Invoke(sProgress, New Object() {10, Splash})
         Catch ex As Exception
@@ -16766,8 +16985,10 @@ Module Functions
             My.Settings.H_Chars = .H_Chars.BackColor.ToArgb & "|" & .H_Chars.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_Chars.Bold) & "|" & Convert.ToInt16(.H_Chars.Italic)
             My.Settings.H_Class = .H_Class.BackColor.ToArgb & "|" & .H_Class.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_Class.Bold) & "|" & Convert.ToInt16(.H_Class.Italic)
             My.Settings.H_Comment = .H_Comment.BackColor.ToArgb & "|" & .H_Comment.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_Comment.Bold) & "|" & Convert.ToInt16(.H_Comment.Italic)
+            My.Settings.H_Preproc = .H_Preproc.BackColor.ToArgb & "|" & .H_Preproc.ForeColor.ToArgb & "|" & Convert.ToInt16(.H_Preproc.Bold) & "|" & Convert.ToInt16(.H_Preproc.Italic)
             My.Settings.Encod = EncToint(.Enc)
             My.Settings.BackColor = .BackColor
+            My.Settings.ApplyAll = .All
         End With
         My.Settings.Save()
     End Sub
@@ -17011,6 +17232,7 @@ Module Functions
                     .CheckBox8.Location = New Point(130, 19)
                     .CheckBox9.Text = "Show output/error tabs"
                     .CheckBox9.Location = New Point(130, 42)
+                    .CheckBox23.Text = "Apply to All"
                     'Advanced
                     .TabPage2.Text = "Advanced"
                     '   Images
@@ -17022,20 +17244,22 @@ Module Functions
                     .CheckBox6.Text = "Use default compiler"
                     'Highlight
                     .Label9.Text = "Forecolor:"
-                    .Label10.Text = "Backcolor:"
+                    .Label10.Text = "Background:"
                     .Label12.Text = "Forecolor:"
-                    .Label11.Text = "Backcolor:"
+                    .Label11.Text = "Background:"
                     .Label14.Text = "Forecolor:"
-                    .Label13.Text = "Backcolor:"
+                    .Label13.Text = "Background:"
                     .Label16.Text = "Forecolor:"
-                    .Label15.Text = "Backcolor:"
+                    .Label15.Text = "Background:"
                     .Label18.Text = "Forecolor:"
-                    .Label17.Text = "Backcolor:"
+                    .Label17.Text = "Background:"
                     .Label20.Text = "Forecolor:"
-                    .Label19.Text = "Backcolor:"
-                    .Label21.Text = "Backcolor:"
+                    .Label19.Text = "Background:"
+                    .Label21.Text = "Background:"
                     .Label22.Text = "Forecolor:"
-                    .Label23.Text = "Backcolor:"
+                    .Label23.Text = "Background:"
+                    .Label25.Text = "Forecolor:"
+                    .Label24.Text = "Background:"
                     .CheckBox10.Text = "Bold"
                     .CheckBox11.Text = "Italic"
                     .CheckBox13.Text = "Bold"
@@ -17050,6 +17274,8 @@ Module Functions
                     .CheckBox20.Text = "Italic"
                     .CheckBox22.Text = "Bold"
                     .CheckBox3.Text = "Italic"
+                    .CheckBox25.Text = "Bold"
+                    .CheckBox24.Text = "Italic"
                 End With
                 With Srch
                     .Text = "Search"
@@ -17177,9 +17403,9 @@ Module Functions
                     'Gates
                     .TabPage12.Text = "Puertas"
                     .GroupBox5.Text = "Tipo"
-                    .RadioButton22.Text = "Comando de la Puerta (Diferentes cmds)"
-                    .RadioButton17.Text = "Comand Puerta (solo un cmd)"
-                    .RadioButton21.Text = "semi automático de puertas (cmd para abrir)"
+                    .RadioButton22.Text = "Reja por comandos (diferentes cmds)"
+                    .RadioButton17.Text = "Reja por comandos (solo un cmd)"
+                    .RadioButton21.Text = "Reja semi automatica (cmd para abrir)"
                     .RadioButton20.Text = "Reja Automatica"
                     .GroupBox6.Text = "Config"
                     .Label45.Text = "Comando (Abierto)"
@@ -17316,6 +17542,7 @@ Module Functions
                     .CheckBox8.Location = New Point(137, 19)
                     .CheckBox9.Text = "Mostrar pestaña de errores"
                     .CheckBox9.Location = New Point(137, 42)
+                    .CheckBox23.Text = "Aplicar a todos"
                     'Advanced
                     .TabPage2.Text = "Avanzado"
                     '   Images
@@ -17341,6 +17568,8 @@ Module Functions
                     .Label21.Text = "Fondo:"
                     .Label22.Text = "Fuente:"
                     .Label23.Text = "Fondo:"
+                    .Label25.Text = "Fuente:"
+                    .Label24.Text = "Fondo:"
                     .CheckBox10.Text = "Negrita"
                     .CheckBox11.Text = "Cursiva"
                     .CheckBox13.Text = "Negrita"
@@ -17355,6 +17584,8 @@ Module Functions
                     .CheckBox20.Text = "Cursiva"
                     .CheckBox22.Text = "Negrita"
                     .CheckBox3.Text = "Cursiva"
+                    .CheckBox25.Text = "Negrita"
+                    .CheckBox24.Text = "Cursiva"
                 End With
                 With Srch
                     .Text = "Buscar"
@@ -17621,6 +17852,7 @@ Module Functions
                     .CheckBox8.Location = New Point(176, 19)
                     .CheckBox9.Text = "Mostrar guia do erros"
                     .CheckBox9.Location = New Point(176, 42)
+                    .CheckBox23.Text = "Aplicar a todos"
                     'Advanced
                     .TabPage2.Text = "Avançado"
                     '   Images
@@ -17646,6 +17878,8 @@ Module Functions
                     .Label21.Text = "Fundo:"
                     .Label22.Text = "Fonte:"
                     .Label23.Text = "Fundo:"
+                    .Label25.Text = "Fonte:"
+                    .Label24.Text = "Fundo:"
                     .CheckBox10.Text = "Negrito"
                     .CheckBox11.Text = "Itálico"
                     .CheckBox13.Text = "Negrito"
@@ -17660,6 +17894,8 @@ Module Functions
                     .CheckBox20.Text = "Itálico"
                     .CheckBox22.Text = "Negrito"
                     .CheckBox3.Text = "Itálico"
+                    .CheckBox25.Text = "Negrito"
+                    .CheckBox24.Text = "Itálico"
                 End With
                 With Srch
                     .Text = "Localizar"
@@ -17928,6 +18164,7 @@ Module Functions
                     .CheckBox8.Location = New Point(144, 19)
                     .CheckBox9.Text = "Show Output / Error Tabs"
                     .CheckBox9.Location = New Point(144, 42)
+                    .CheckBox23.Text = "Auf alle anwenden"
                     'Advanced
                     .TabPage2.Text = "Erweitert"
                     'Build
@@ -17939,20 +18176,22 @@ Module Functions
                     .CheckBox6.Text = "Standard-Compiler"
                     'Highlight
                     .Label9.Text = "Hintergrund:"
-                    .Label10.Text = "Backcolor:"
+                    .Label10.Text = "Background:"
                     .Label12.Text = "Hintergrund:"
-                    .Label11.Text = "Backcolor:"
+                    .Label11.Text = "Background:"
                     .Label14.Text = "Hintergrund:"
-                    .Label13.Text = "Backcolor:"
+                    .Label13.Text = "Background:"
                     .Label16.Text = "Hintergrund:"
-                    .Label15.Text = "Backcolor:"
+                    .Label15.Text = "Background:"
                     .Label18.Text = "Hintergrund:"
-                    .Label17.Text = "Backcolor:"
+                    .Label17.Text = "Background:"
                     .Label20.Text = "Hintergrund:"
-                    .Label19.Text = "Backcolor:"
+                    .Label19.Text = "Background:"
                     .Label22.Text = "Hintergrund:"
-                    .Label21.Text = "Backcolor:"
-                    .Label23.Text = "Backcolor:"
+                    .Label21.Text = "Background:"
+                    .Label23.Text = "Background:"
+                    .Label25.Text = "Hintergrund:"
+                    .Label24.Text = "Background:"
                     .CheckBox10.Text = "Fett"
                     .CheckBox11.Text = "Kursiv"
                     .CheckBox13.Text = "Fett"
@@ -17967,6 +18206,8 @@ Module Functions
                     .CheckBox20.Text = "Kursiv"
                     .CheckBox22.Text = "Fett"
                     .CheckBox3.Text = "Kursiv"
+                    .CheckBox25.Text = "Fett"
+                    .CheckBox24.Text = "Kursiv"
                 End With
                 With Srch
                     .Text = "Suchen"

@@ -48,7 +48,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>2.2.1.%2a</ApplicationVersion>
+    <ApplicationVersion>2.3.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -128,6 +128,7 @@
     <Compile Include="Colors\CMYK.vb" />
     <Compile Include="Colors\HSL.vb" />
     <Compile Include="Colors\RGB.vb" />
+    <Compile Include="CustomUserPublics.vb" />
     <Compile Include="MultiF.designer.vb">
       <DependentUpon>MultiF.vb</DependentUpon>
     </Compile>

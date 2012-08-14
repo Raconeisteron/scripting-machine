@@ -107,5 +107,11 @@
     <Setting Name="BackColor" Type="System.Drawing.Color" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="ApplyAll" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="H_Preproc" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

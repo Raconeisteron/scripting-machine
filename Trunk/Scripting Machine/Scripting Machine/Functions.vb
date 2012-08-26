@@ -396,7 +396,7 @@ Module Functions
                                     pos = Line.IndexOf("stock")
                                     If pos = -1 Then pos = Line.IndexOf("public")
                                 End If
-                                If pos > -1 AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
+                                If pos > -1 AndAlso (Line.EndsWith(";") AndAlso Line.StartsWith("native ")) AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
                                     Dim params As New List(Of String)
                                     params.AddRange(Split(Trim(Mid(Line, Line.IndexOf("(") + 2, Line.IndexOf(")") - Line.IndexOf("(") - 1)), ","))
                                     For i = 0 To params.Count - 1
@@ -468,7 +468,7 @@ Module Functions
                                 pos = Line.IndexOf("stock")
                                 If pos = -1 Then pos = Line.IndexOf("public")
                             End If
-                            If pos > -1 AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
+                            If pos > -1 AndAlso (Line.EndsWith(";") AndAlso Line.StartsWith("native ")) AndAlso Line.IndexOf("(") > -1 AndAlso Line.IndexOf(")") > -1 AndAlso Line.IndexOf("operator") = -1 Then
                                 Dim params As New List(Of String)
                                 params.AddRange(Split(Trim(Mid(Line, Line.IndexOf("(") + 2, Line.IndexOf(")") - Line.IndexOf("(") - 1)), ","))
                                 For i = 0 To params.Count - 1
@@ -509,7 +509,7 @@ Module Functions
 
     Public Function GetFunctionByName(ByVal list As List(Of PawnFunction), ByVal func As String) As PawnFunction
         For Each item As PawnFunction In list
-            If item.Name = func Then
+            If Trim(item.Name) = func Then
                 Return item
             End If
         Next
@@ -556,8 +556,17 @@ Module Functions
         Return False
     End Function
 
+    Public Function ExistInstance(ByVal name As String) As Boolean
+        For Each inst In Instances
+            If inst.Name = name Then
+                Return True
+            End If
+        Next
+        Return False
+    End Function
+
     Public Function GetInstanceByName(ByVal name As String, ByVal idx As Integer) As Integer
-        If Not name.EndsWith(" *") Then name.Remove(name.Length - 2, 2)
+        If name.EndsWith(" *") Then name = name.Remove(name.Length - 2, 2)
         Try
             Dim i As Integer, counter As Integer = 0, tmp As Integer
             For i = 0 To Instances.Count - 1
@@ -567,14 +576,14 @@ Module Functions
                 End If
             Next
             If counter = 0 Then
-                Return 0
+                Return -1
             ElseIf counter = 1 Then
                 Return tmp
             Else
                 Return GetInstanceByIndex(idx)
             End If
         Catch ex As Exception
-            Return 0
+            Return -1
         End Try
     End Function
 
@@ -589,10 +598,10 @@ Module Functions
             If Instances(i).Index = index Then
                 Return i
             Else
-                Return 0
+                Return -1
             End If
         Catch ex As Exception
-            Return 0
+            Return -1
         End Try
     End Function
 

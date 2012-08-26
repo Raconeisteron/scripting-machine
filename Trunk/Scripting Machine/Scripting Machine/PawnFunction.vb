@@ -30,7 +30,7 @@ Public Structure PawnFunction
 
     Public Property Name As String
         Get
-            Name = _name
+            Name = Trim(_name) & " "
         End Get
         Set(ByVal value As String)
             _name = value

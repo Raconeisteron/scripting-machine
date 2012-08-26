@@ -22,6 +22,7 @@ Public Class Main
 
     Private Sub Main_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         Try
+            Dim name As String
             Me.Visible = False
             AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf OnUnhandledException
             AddHandler My.Application.StartupNextInstance, AddressOf OnStartupNextInstance
@@ -50,7 +51,6 @@ Public Class Main
                             result = MsgBox("Nicht gespeicherte Dateien aus der letzten Zeit wurde das Programm eingesetzt wurden nachgewiesen. Wollen Sie sie wieder?", MsgBoxStyle.YesNo, "Alarm")
                     End Select
                     If result = vbYes Then
-                        Dim name As String
                         For Each File In Directory.GetFiles(My.Application.Info.DirectoryPath & "\TMP")
                             name = Mid(File, File.LastIndexOf("\") + 2, File.LastIndexOf(".") - File.LastIndexOf("\") - 1)
                             Instances.Add(New Instance(name, Instances.Count))
@@ -75,7 +75,6 @@ Public Class Main
                 End If
             End If
             Try
-                Dim name As String
                 name = Mid(My.Application.CommandLineArgs(0), My.Application.CommandLineArgs(0).LastIndexOf("\") + 2, My.Application.CommandLineArgs(0).LastIndexOf(".") - My.Application.CommandLineArgs(0).LastIndexOf("\") - 1)
                 Instances.Add(New Instance(name, Instances.Count))
                 Reader = New StreamReader(My.Application.CommandLineArgs(0), System.Text.Encoding.GetEncoding(28591))
@@ -109,6 +108,7 @@ Public Class Main
             Me.Visible = True
         Catch ex As Exception
             Splash.Label1.Invoke(sLabel, New Object() {"Error", Splash})
+            Me.Visible = True
         End Try
     End Sub
 
@@ -268,17 +268,14 @@ Public Class Main
 #Region "New"
 
     Private Sub GameModeToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles GamemodeToolStripMenuItem.Click
-        Dim count As Integer, name As String
-        For Each item In Instances
-            If item.Name.StartsWith("new script") Then
-                count += 1
-            End If
-        Next
-        If count Then
-            name = "new script" & count
-        Else
-            name = "new script"
-        End If
+        Dim count As Integer, name As String, exist As Boolean
+        name = "new script"
+        exist = ExistInstance(name)
+        While exist
+            count += 1
+            name = "new script " & count
+            exist = ExistInstance(name)
+        End While
         Instances.Add(New Instance(name, Instances.Count))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn") Then
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn", System.Text.Encoding.GetEncoding(28591))
@@ -303,17 +300,14 @@ Public Class Main
     End Sub
 
     Private Sub FilterscriptToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FilterscriptToolStripMenuItem.Click
-        Dim count As Integer, name As String
-        For Each item In Instances
-            If item.Name.IndexOf("new script") > -1 Then
-                count += 1
-            End If
-        Next
-        If count = 0 Then
-            name = "new script"
-        Else
-            name = "new script" & count
-        End If
+        Dim count As Integer, name As String, exist As Boolean
+        name = "new script"
+        exist = ExistInstance(name)
+        While exist
+            count += 1
+            name = "new script " & count
+            exist = ExistInstance(name)
+        End While
         Instances.Add(New Instance(name, Instances.Count))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn") Then
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn", System.Text.Encoding.GetEncoding(28591))
@@ -338,18 +332,14 @@ Public Class Main
     End Sub
 
     Private Sub NewScriptToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles NewScriptToolStripMenuItem.Click
-        Dim count As Integer, name As String
-        For Each item In Instances
-            If item.Name.IndexOf("new script") > -1 Then
-                count += 1
-            End If
-        Next
-
-        If count = 0 Then
-            name = "new script"
-        Else
-            name = "new script" & count
-        End If
+        Dim count As Integer, name As String, exist As Boolean
+        name = "new script"
+        exist = ExistInstance(name)
+        While exist
+            count += 1
+            name = "new script " & count
+            exist = ExistInstance(name)
+        End While
         Instances.Add(New Instance(name, Instances.Count))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
@@ -374,18 +364,14 @@ Public Class Main
     End Sub
 
     Private Sub EmptyDocumentToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles EmptyDocumentToolStripMenuItem.Click
-        Dim count As Integer, name As String
-        For Each item In Instances
-            If item.Name.IndexOf("new script") > -1 Then
-                count += 1
-            End If
-        Next
-
-        If count = 0 Then
-            name = "new script"
-        Else
-            name = "new script" & count
-        End If
+        Dim count As Integer, name As String, exist As Boolean
+        name = "new script"
+        exist = ExistInstance(name)
+        While exist
+            count += 1
+            name = "new script " & count
+            exist = ExistInstance(name)
+        End While
         Instances.Add(New Instance(name, Instances.Count))
         With Instances(GetInstanceByName(name, Instances.Count - 1))
             TabControl1.SelectedTab = .TabHandle
@@ -851,18 +837,14 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton1.Click
-        Dim count As Integer, name As String
-        For Each item In Instances
-            If item.Name.IndexOf("new script") > -1 Then
-                count += 1
-            End If
-        Next
-
-        If count = 0 Then
-            name = "new script"
-        Else
-            name = "new script" & count
-        End If
+        Dim count As Integer, name As String, exist As Boolean
+        name = "new script"
+        exist = ExistInstance(name)
+        While exist
+            count += 1
+            name = "new script " & count
+            exist = ExistInstance(name)
+        End While
         Instances.Add(New Instance(name, Instances.Count))
         If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
@@ -1320,6 +1302,7 @@ Public Class Main
     ''' <remarks></remarks>
     Private Sub TabControl1_OnClose(ByVal sender As Object, ByVal e As TabControlEx.CloseEventArgs) Handles TabControl1.OnClose
         Dim index As Integer = GetInstanceByName(Trim(TabControl1.TabPages(e.TabIndex).Text), Instances.Count - 1)
+        If index = -1 Then Exit Sub
         Instances(index).destroy()
         Instances.RemoveAt(index)
         TabControl1.Controls.RemoveAt(e.TabIndex)
@@ -1613,6 +1596,7 @@ Public Class Main
                 Instances.Add(New Instance(name, Instances.Count))
                 With Instances(GetInstanceByName(name, Instances.Count - 1))
                     TabControl1.SelectedTab = .TabHandle
+                    .Path = path
                     Dim Reader As StreamReader
                     If path.EndsWith(".pwn") OrElse path.EndsWith(".inc") Then
                         Reader = New StreamReader(path, System.Text.Encoding.GetEncoding(28591), True)
@@ -1621,7 +1605,6 @@ Public Class Main
                     End If
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
-                    .Path = OFD.FileName
                 End With
             Next
         End If
@@ -1634,6 +1617,7 @@ Public Class Main
                 Instances.Add(New Instance(name, Instances.Count))
                 With Instances(GetInstanceByName(name, Instances.Count - 1))
                     TabControl1.SelectedTab = .TabHandle
+                    .Path = path
                     Dim Reader As StreamReader
                     If path.EndsWith(".pwn") OrElse path.EndsWith(".inc") Then
                         Reader = New StreamReader(path, System.Text.Encoding.GetEncoding(28591), True)
@@ -1642,7 +1626,6 @@ Public Class Main
                     End If
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
-                    .Path = OFD.FileName
                 End With
             Next
         End If
@@ -1655,6 +1638,7 @@ Public Class Main
                 Instances.Add(New Instance(name, Instances.Count))
                 With Instances(GetInstanceByName(name, Instances.Count - 1))
                     TabControl1.SelectedTab = .TabHandle
+                    .Path = path
                     Dim Reader As StreamReader
                     If path.EndsWith(".pwn") OrElse path.EndsWith(".inc") Then
                         Reader = New StreamReader(path, System.Text.Encoding.GetEncoding(28591), True)
@@ -1663,7 +1647,6 @@ Public Class Main
                     End If
                     .SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
-                    .Path = OFD.FileName
                 End With
             Next
         End If

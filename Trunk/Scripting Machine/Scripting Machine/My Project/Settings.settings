@@ -42,7 +42,7 @@
       <Value Profile="(Default)">SetPlayerWorldBounds(playerid, {0}, {1}, {2}, {3});</Value>
     </Setting>
     <Setting Name="aFill" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+      <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="aMSelect" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>

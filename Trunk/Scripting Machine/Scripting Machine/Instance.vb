@@ -35,7 +35,8 @@ Public Class Instance
         wait As Boolean, _
         first As Boolean, _
         MarginUpdater As New uMargin(AddressOf UpdateMargin),
-        justreloaded As Boolean
+        justreloaded As Boolean, _
+        DataFileUpdater As New uFileData(AddressOf UpdateFileData)
     Private WithEvents Tim As New Timers.Timer(1000)
 
 #End Region
@@ -106,6 +107,7 @@ Public Class Instance
 
     Public Delegate Sub uDataEx(ByVal Type As UpdateType, ByVal startline As Integer, ByVal endline As Integer)
     Public Delegate Sub uData()
+    Public Delegate Sub uFileData()
 
 #End Region
 
@@ -447,7 +449,7 @@ Public Class Instance
         SetParent(InfoText.Handle, TabHandle.Handle)
         InfoText.BringToFront()
         Main.TabControl1.Controls.Add(TabHandle)
-        If iwait = True Then
+        If iwait Then
             wait = True
             first = True
         End If
@@ -1217,7 +1219,7 @@ Public Class Instance
                 End If
                 If CommentedChar Then Exit Sub
                 Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True), False, True))
-                If func.Name.Length = 0 Then : ShowingInfoText = False
+                If Trim(func.Name) = "" Then : ShowingInfoText = False
                 Else
                     With InfoText
                         If _ShowingInfoText Then
@@ -1592,13 +1594,28 @@ Public Class Instance
     End Sub
 
     Private Sub SyntaxHandle_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles SyntaxHandle.TextChanged
+        If SyntaxHandle.Lines.Count = 1 Then SyntaxHandle.Text = vbNullString
         With SyntaxHandle
             If wait AndAlso first Then
                 Saved = True
                 first = False
                 wait = False
                 .Invoke(MarginUpdater)
-                .Invoke(DataUpdater)
+                If _Path Is Nothing OrElse _Path.Length = 0 OrElse Not File.Exists(_Path) Then
+                    .Invoke(DataUpdater)
+                Else
+                    If _Saved Then
+                        .Invoke(DataFileUpdater)
+                    Else
+                        Dim tmp As String = My.Application.Info.DirectoryPath & "\tmp_" & _Name & ".tmp"
+                        If File.Exists(tmp) Then File.Delete(tmp)
+                        Dim Writer As New StreamWriter(tmp)
+                        Writer.Write(.Text)
+                        Writer.Close()
+                        .Invoke(DataFileUpdater)
+                        File.Delete(tmp)
+                    End If
+                End If
                 .UndoRedo.IsUndoEnabled = True
                 For Each Line As ScintillaNet.Line In .Lines
                     If Line.IsFoldPoint AndAlso Line.FoldExpanded Then Line.ToggleFoldExpanded()
@@ -1891,6 +1908,7 @@ Public Class Instance
 #Region "Subs"
 
     Private Sub ParseCode()
+        On Error Resume Next
         ACLists.UserDefinedPublics.Clear()
         Dim CommentedLine As Boolean, CommentedSection As Boolean
         For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
@@ -1918,7 +1936,7 @@ Public Class Instance
                 If Line.Text.IndexOf("<") > -1 Then
                     file = Mid(Line.Text, Line.Text.IndexOf("<") + 2, Line.Text.IndexOf(">") - Line.Text.IndexOf("<") - 1)
                     path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
-                Else
+                ElseIf Line.Text.IndexOf("""") > -1 Then
                     If Line.Text.IndexOf("..") = -1 Then
                         file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1)
                         path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
@@ -1926,6 +1944,8 @@ Public Class Instance
                         file = Mid(Line.Text, Line.Text.IndexOf("..") + 3, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1).Replace("/", "\")
                         path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
                     End If
+                Else
+                    Continue For
                 End If
                 If IO.File.Exists(path) Then
                     Dim fLine As String, Reader As New StreamReader(path)
@@ -1960,7 +1980,7 @@ Public Class Instance
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
                                 path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
-                            Else
+                            ElseIf fLine.IndexOf("""") > -1 Then
                                 If fLine.IndexOf("..") = -1 Then
                                     file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
                                     path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
@@ -1968,6 +1988,9 @@ Public Class Instance
                                     file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
                                     path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 End If
+                            Else
+                                fLine = Reader.ReadLine()
+                                Continue Do
                             End If
                             If IO.File.Exists(path2) Then
                                 Dim Reader2 As New StreamReader(path2)
@@ -1975,17 +1998,17 @@ Public Class Instance
                                 Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
                                         CommentedLine3 = True
                                     ElseIf fLine = "/*" OrElse fLine = " /*" Then
                                         CommentedSection3 = True
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine = "*/" OrElse fLine = " */" Then
                                         CommentedSection3 = False
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
                                         CommentedSection3 = True
@@ -1994,7 +2017,7 @@ Public Class Instance
                                     End If
                                     If CommentedLine3 Or CommentedSection3 Then
                                         CommentedLine3 = False
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
                                     If fLine.IndexOf("#define") > -1 AndAlso fLine.IndexOf("public") > -1 OrElse fLine.IndexOf("forward") > -1 Then
@@ -2011,7 +2034,7 @@ Public Class Instance
                                             End If
                                         End If
                                     End If
-                                    fLine = Reader.ReadLine()
+                                    fLine = Reader2.ReadLine()
                                 Loop
                             End If
                         ElseIf fLine.IndexOf("#tryinclude") > -1 Then
@@ -2034,17 +2057,17 @@ Public Class Instance
                                 Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
                                         CommentedLine3 = True
                                     ElseIf fLine = "/*" OrElse fLine = " /*" Then
                                         CommentedSection3 = True
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine = "*/" OrElse fLine = " */" Then
                                         CommentedSection3 = False
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
                                         CommentedSection3 = True
@@ -2053,7 +2076,7 @@ Public Class Instance
                                     End If
                                     If CommentedLine3 Or CommentedSection3 Then
                                         CommentedLine3 = False
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
                                     If fLine.IndexOf("#define") > -1 AndAlso fLine.IndexOf("public") > -1 OrElse fLine.IndexOf("forward") > -1 Then
@@ -2070,7 +2093,7 @@ Public Class Instance
                                             End If
                                         End If
                                     End If
-                                    fLine = Reader.ReadLine()
+                                    fLine = Reader2.ReadLine()
                                 Loop
                             End If
                         ElseIf fLine.IndexOf("#define") > -1 AndAlso fLine.IndexOf("public") > -1 OrElse fLine.IndexOf("forward") > -1 Then
@@ -2136,7 +2159,7 @@ Public Class Instance
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
                                 path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
-                            Else
+                            ElseIf fLine.IndexOf("""") > -1 Then
                                 If fLine.IndexOf("..") = -1 Then
                                     file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
                                     path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
@@ -2144,6 +2167,9 @@ Public Class Instance
                                     file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
                                     path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 End If
+                            Else
+                                fLine = Reader.ReadLine()
+                                Continue Do
                             End If
                             If IO.File.Exists(path2) Then
                                 Dim Reader2 As New StreamReader(path2)
@@ -2326,958 +2352,7 @@ Public Class Instance
         tControl.Visible = value
     End Sub
 
-#End Region
-
-#End Region
-
-#Region "Delegates Subs/Functions"
-
-    Public Sub UpdateDataEx(ByVal Type As UpdateType, ByVal startline As Integer, ByVal endline As Integer)
-        On Error Resume Next
-        Static LastUpdate As Long = -1
-        If LastUpdate <> -1 AndAlso (GetTickCount() - LastUpdate) < 30000 Then Exit Sub
-        If ACLists.Functions.Count = 0 Then
-            SyntaxHandle.Invoke(DataUpdater)
-            LastUpdate = GetTickCount()
-            Exit Sub
-        End If
-        Dim CommentedLine As Boolean, CommentedSection As Boolean, tmp As String = vbNullString
-        Select Case Type
-            Case UpdateType.Includes
-                For Each func As PawnFunction In ACLists.Functions
-                    If func.Line = -1 Then func.Exist = False
-                Next
-                For Each clbk As PawnFunction In ACLists.Callbacks
-                    If clbk.Line = -1 Then clbk.Exist = False
-                Next
-                For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
-                    If Line.Number > endline Then Exit For
-                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
-                        Continue For
-                    ElseIf Line.Text.StartsWith("//") Then
-                        CommentedLine = True
-                        Continue For
-                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
-                        CommentedSection = True
-                        Continue For
-                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
-                        CommentedSection = False
-                        Continue For
-                    ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
-                        CommentedSection = True
-                    ElseIf Line.Text.IndexOf("*/") > -1 Then
-                        CommentedSection = False
-                    End If
-                    If CommentedLine Or CommentedSection Then
-                        CommentedLine = False
-                        Continue For
-                    End If
-                    If Line.Text.IndexOf("#include") > -1 Then
-                        Dim file As String, path As String
-                        If Line.Text.IndexOf("<") > -1 Then
-                            file = Mid(Line.Text, Line.Text.IndexOf("<") + 2, Line.Text.IndexOf(">") - Line.Text.IndexOf("<") - 1)
-                            path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
-                        Else
-                            If Line.Text.IndexOf("..") = -1 Then
-                                file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1)
-                                path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
-                            Else
-                                file = Mid(Line.Text, Line.Text.IndexOf("..") + 3, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1).Replace("/", "\")
-                                path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
-                            End If
-                        End If
-                        If IO.File.Exists(path) Then
-                            Dim fLine As String, Reader As New StreamReader(path)
-                            fLine = Reader.ReadLine()
-                            Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
-                            Do Until fLine Is Nothing
-                                If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                    fLine = Reader.ReadLine()
-                                    Continue Do
-                                ElseIf fLine.StartsWith("//") Then
-                                    CommentedLine2 = True
-                                ElseIf fLine = "/*" OrElse fLine = " /*" Then
-                                    CommentedSection2 = True
-                                    fLine = Reader.ReadLine()
-                                    Continue Do
-                                ElseIf fLine = "*/" OrElse fLine = " */" Then
-                                    CommentedSection2 = False
-                                    fLine = Reader.ReadLine()
-                                    Continue Do
-                                ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                    CommentedSection2 = True
-                                ElseIf fLine.IndexOf("*/") > -1 Then
-                                    CommentedSection2 = False
-                                End If
-                                If CommentedLine2 Or CommentedSection2 Then
-                                    CommentedLine2 = False
-                                    fLine = Reader.ReadLine()
-                                    Continue Do
-                                End If
-                                Dim pos As Integer = fLine.IndexOf("native")
-                                If pos = -1 Then
-                                    pos = fLine.IndexOf("stock")
-                                    If pos = -1 Then pos = fLine.IndexOf("public")
-                                End If
-                                If fLine.IndexOf("#include") > -1 Then
-                                    Dim file2 As String, path2 As String, cNode2 As New TreeNode()
-                                    If fLine.IndexOf("<") > -1 Then
-                                        file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
-                                    Else
-                                        If fLine.IndexOf("..") = -1 Then
-                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
-                                        Else
-                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
-                                        End If
-                                    End If
-                                    Dim count As Integer
-                                    If IO.File.Exists(path2) Then
-                                        Dim Reader2 As New StreamReader(path2)
-                                        fLine = Reader2.ReadLine()
-                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
-                                        Do Until fLine Is Nothing
-                                            If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                                count += 1
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine.StartsWith("//") Then
-                                                CommentedLine3 = True
-                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
-                                                CommentedSection3 = True
-                                                count += 1
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
-                                                CommentedSection3 = False
-                                                count += 1
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                                CommentedSection3 = True
-                                            ElseIf fLine.IndexOf("*/") > -1 Then
-                                                CommentedSection3 = False
-                                            End If
-                                            If CommentedLine3 Or CommentedSection3 Then
-                                                CommentedLine3 = False
-                                                count += 1
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            End If
-                                            pos = fLine.IndexOf("native")
-                                            If pos = -1 Then
-                                                pos = fLine.IndexOf("stock")
-                                                If pos = -1 Then pos = fLine.IndexOf("public")
-                                            End If
-                                            If pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
-                                                Dim params As New List(Of String)
-                                                params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                                For i = 0 To params.Count - 1
-                                                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
-                                                        params(i - 1) += "," & params(i)
-                                                        params.RemoveAt(i)
-                                                        Continue For
-                                                    End If
-                                                Next
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
-                                                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
-                                            ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
-                                            Else
-                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
-                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
-                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
-                                                    If M.Success Then
-                                                        tDef = def.Regex
-                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
-                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
-                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
-                                                        tDef = tDef.Remove(0, 2)
-                                                        tmp = tmp.Replace(name, "")
-                                                        name = name.Remove(name.Length - 1, 1)
-                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
-                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
-                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
-                                                    End If
-                                                Next
-                                            End If
-                                            fLine = Reader2.ReadLine()
-                                        Loop
-                                        Reader2.Close()
-                                    Else
-                                        Errors.Clear()
-                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 0))
-                                    End If
-                                ElseIf fLine.IndexOf("#tryinclude") > -1 Then
-                                    Dim file2 As String, path2 As String, cNode2 As New TreeNode()
-                                    If fLine.IndexOf("<") > -1 Then
-                                        file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
-                                    Else
-                                        If fLine.IndexOf("..") = -1 Then
-                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
-                                        Else
-                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
-                                        End If
-                                    End If
-                                    Dim count As Integer
-                                    If IO.File.Exists(path2) Then
-                                        Dim Reader2 As New StreamReader(path2)
-                                        fLine = Reader2.ReadLine()
-                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
-                                        Do Until fLine Is Nothing
-                                            If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                                count += 1
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine.StartsWith("//") Then
-                                                CommentedLine3 = True
-                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
-                                                CommentedSection3 = True
-                                                count += 1
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
-                                                count += 1
-                                                CommentedSection3 = False
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                                CommentedSection3 = True
-                                            ElseIf fLine.IndexOf("*/") > -1 Then
-                                                CommentedSection3 = False
-                                            End If
-                                            If CommentedLine3 Or CommentedSection3 Then
-                                                CommentedLine3 = False
-                                                count += 1
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            End If
-                                            pos = fLine.IndexOf("native")
-                                            If pos = -1 Then
-                                                pos = fLine.IndexOf("stock")
-                                                If pos = -1 Then pos = fLine.IndexOf("public")
-                                            End If
-                                            If pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
-                                                Dim params As New List(Of String)
-                                                params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                                For i = 0 To params.Count - 1
-                                                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
-                                                        params(i - 1) += "," & params(i)
-                                                        params.RemoveAt(i)
-                                                        Continue For
-                                                    End If
-                                                Next
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
-                                                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
-                                            ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
-                                            Else
-                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
-                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
-                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
-                                                    If M.Success Then
-                                                        tDef = def.Regex
-                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
-                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
-                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
-                                                        tDef = tDef.Remove(0, 2)
-                                                        tmp = tmp.Replace(name, "")
-                                                        name = name.Remove(name.Length - 1, 1)
-                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
-                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
-                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
-                                                    End If
-                                                Next
-                                            End If
-                                            fLine = Reader2.ReadLine()
-                                        Loop
-                                        Reader2.Close()
-                                    Else
-                                        Errors.Clear()
-                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
-                                    End If
-                                ElseIf pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
-                                    Dim params As New List(Of String)
-                                    params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                    For i = 0 To params.Count - 1
-                                        If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
-                                            params(i - 1) += "," & params(i)
-                                            params.RemoveAt(i)
-                                            Continue For
-                                        End If
-                                    Next
-                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
-                                    If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
-                                ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
-                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                    If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
-                                Else
-                                    Dim tDef As String, name As String, params As String(), func As PawnFunction
-                                    For Each def As CustomUserPublics In ACLists.UserDefinedPublics
-                                        Dim M As Match = Regex.Match(fLine, def.Regex)
-                                        If M.Success Then
-                                            tDef = def.Regex
-                                            tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
-                                            tDef = tDef.Remove(0, tDef.IndexOf(".+"))
-                                            name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
-                                            tDef = tDef.Remove(0, 2)
-                                            tmp = tmp.Replace(name, "")
-                                            name = name.Remove(name.Length - 1, 1)
-                                            params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
-                                            func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
-                                            If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
-                                        End If
-                                    Next
-                                End If
-                                fLine = Reader.ReadLine()
-                            Loop
-                            Reader.Close()
-                        Else
-                            Errors.Clear()
-                            Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file & """"}, 0))
-                        End If
-                    ElseIf Line.Text.IndexOf("#tryinclude") > -1 Then
-                        Dim file As String, path As String
-                        If Line.Text.IndexOf("<") > -1 Then
-                            file = Mid(Line.Text, Line.Text.IndexOf("<") + 2, Line.Text.IndexOf(">") - Line.Text.IndexOf("<") - 1)
-                            path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
-                        Else
-                            If Line.Text.IndexOf("..") = -1 Then
-                                file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1)
-                                path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
-                            Else
-                                file = Mid(Line.Text, Line.Text.IndexOf("..") + 3, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1).Replace("/", "\")
-                                path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
-                            End If
-                        End If
-                        If IO.File.Exists(path) Then
-                            Dim fLine As String, Reader As New StreamReader(path)
-                            fLine = Reader.ReadLine()
-                            Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
-                            Do Until fLine Is Nothing
-                                If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                    fLine = Reader.ReadLine()
-                                    Continue Do
-                                ElseIf fLine.StartsWith("//") Then
-                                    CommentedLine2 = True
-                                ElseIf fLine = "/*" OrElse fLine = " /*" Then
-                                    CommentedSection2 = True
-                                    fLine = Reader.ReadLine()
-                                    Continue Do
-                                ElseIf fLine = "*/" OrElse fLine = " */" Then
-                                    CommentedSection2 = False
-                                    fLine = Reader.ReadLine()
-                                    Continue Do
-                                ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                    CommentedSection2 = True
-                                ElseIf fLine.IndexOf("*/") > -1 Then
-                                    CommentedSection2 = False
-                                End If
-                                If CommentedLine2 Or CommentedSection2 Then
-                                    CommentedLine2 = False
-                                    fLine = Reader.ReadLine()
-                                    Continue Do
-                                End If
-                                If CommentedLine Or CommentedSection Then
-                                    CommentedLine = False
-                                    fLine = Reader.ReadLine()
-                                    Continue Do
-                                End If
-                                Dim pos As Integer = fLine.IndexOf("native")
-                                If pos = -1 Then
-                                    pos = fLine.IndexOf("stock")
-                                    If pos = -1 Then pos = fLine.IndexOf("public")
-                                End If
-                                If fLine.IndexOf("#include") > -1 Then
-                                    Dim file2 As String, path2 As String, cNode2 As New TreeNode()
-                                    If fLine.IndexOf("<") > -1 Then
-                                        file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
-                                    Else
-                                        If fLine.IndexOf("..") = -1 Then
-                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
-                                        Else
-                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
-                                        End If
-                                    End If
-                                    If IO.File.Exists(path2) Then
-                                        Dim Reader2 As New StreamReader(path2)
-                                        fLine = Reader2.ReadLine()
-                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
-                                        Do Until fLine Is Nothing
-                                            If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine.StartsWith("//") Then
-                                                CommentedLine3 = True
-                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
-                                                CommentedSection3 = True
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
-                                                CommentedSection3 = False
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                                CommentedSection3 = True
-                                            ElseIf fLine.IndexOf("*/") > -1 Then
-                                                CommentedSection3 = False
-                                            End If
-                                            If CommentedLine3 Or CommentedSection3 Then
-                                                CommentedLine3 = False
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            End If
-                                            pos = fLine.IndexOf("native")
-                                            If pos = -1 Then
-                                                pos = fLine.IndexOf("stock")
-                                                If pos = -1 Then pos = fLine.IndexOf("public")
-                                            End If
-                                            If pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
-                                                Dim params As New List(Of String)
-                                                params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                                For i = 0 To params.Count - 1
-                                                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
-                                                        params(i - 1) += "," & params(i)
-                                                        params.RemoveAt(i)
-                                                        Continue For
-                                                    End If
-                                                Next
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
-                                                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
-                                            ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
-                                            Else
-                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
-                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
-                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
-                                                    If M.Success Then
-                                                        tDef = def.Regex
-                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
-                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
-                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
-                                                        tDef = tDef.Remove(0, 2)
-                                                        tmp = tmp.Replace(name, "")
-                                                        name = name.Remove(name.Length - 1, 1)
-                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
-                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
-                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
-                                                    End If
-                                                Next
-                                            End If
-                                            fLine = Reader2.ReadLine()
-                                        Loop
-                                        Reader2.Close()
-                                    Else
-                                        Errors.Clear()
-                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 0))
-                                    End If
-                                ElseIf fLine.IndexOf("#tryinclude") > -1 Then
-                                    Dim file2 As String, path2 As String
-                                    If fLine.IndexOf("<") > -1 Then
-                                        file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
-                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
-                                    Else
-                                        If fLine.IndexOf("..") = -1 Then
-                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
-                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
-                                        Else
-                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
-                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
-                                        End If
-                                    End If
-                                    If IO.File.Exists(path2) Then
-                                        Dim Reader2 As New StreamReader(path2)
-                                        fLine = Reader2.ReadLine()
-                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
-                                        Do Until fLine Is Nothing
-                                            If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine.StartsWith("//") Then
-                                                CommentedLine3 = True
-                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
-                                                CommentedSection3 = True
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
-                                                CommentedSection3 = False
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
-                                                CommentedSection3 = True
-                                            ElseIf fLine.IndexOf("*/") > -1 Then
-                                                CommentedSection3 = False
-                                            End If
-                                            If CommentedLine3 Or CommentedSection3 Then
-                                                CommentedLine3 = False
-                                                fLine = Reader.ReadLine()
-                                                Continue Do
-                                            End If
-                                            pos = fLine.IndexOf("native")
-                                            If pos = -1 Then
-                                                pos = fLine.IndexOf("stock")
-                                                If pos = -1 Then pos = fLine.IndexOf("public")
-                                            End If
-                                            If pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
-                                                Dim params As New List(Of String)
-                                                params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                                For i = 0 To params.Count - 1
-                                                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
-                                                        params(i - 1) += "," & params(i)
-                                                        params.RemoveAt(i)
-                                                        Continue For
-                                                    End If
-                                                Next
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
-                                                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
-                                            ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
-                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
-                                            Else
-                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
-                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
-                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
-                                                    If M.Success Then
-                                                        tDef = def.Regex
-                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
-                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
-                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
-                                                        tDef = tDef.Remove(0, 2)
-                                                        tmp = tmp.Replace(name, "")
-                                                        name = name.Remove(name.Length - 1, 1)
-                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
-                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
-                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
-                                                    End If
-                                                Next
-                                            End If
-                                            fLine = Reader2.ReadLine()
-                                        Loop
-                                        Reader2.Close()
-                                    Else
-                                        Errors.Clear()
-                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
-                                    End If
-                                ElseIf pos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
-                                    Dim params As New List(Of String)
-                                    params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                    For i = 0 To params.Count - 1
-                                        If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
-                                            params(i - 1) += "," & params(i)
-                                            params.RemoveAt(i)
-                                            Continue For
-                                        End If
-                                    Next
-                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
-                                    If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
-                                ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
-                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
-                                    If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
-                                Else
-                                    Dim tDef As String, name As String, params As String(), func As PawnFunction
-                                    For Each def As CustomUserPublics In ACLists.UserDefinedPublics
-                                        Dim M As Match = Regex.Match(fLine, def.Regex)
-                                        If M.Success Then
-                                            tDef = def.Regex
-                                            tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
-                                            tDef = tDef.Remove(0, tDef.IndexOf(".+"))
-                                            name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
-                                            tDef = tDef.Remove(0, 2)
-                                            tmp = tmp.Replace(name, "")
-                                            name = name.Remove(name.Length - 1, 1)
-                                            params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
-                                            func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
-                                            If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
-                                        End If
-                                    Next
-                                End If
-                                fLine = Reader.ReadLine()
-                            Loop
-                            Reader.Close()
-                        Else
-                            Errors.Clear()
-                            Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file & """"}, 1))
-                        End If
-                    End If
-                Next
-                For Each func As PawnFunction In ACLists.Functions
-                    If Not func.Exist Then ACLists.Functions.Remove(func)
-                Next
-                For Each clbk As PawnFunction In ACLists.Callbacks
-                    If Not clbk.Exist Then ACLists.Callbacks.Remove(clbk)
-                Next
-            Case UpdateType.Functions_Callbacks
-                For Each func As PawnFunction In ACLists.Functions
-                    If func.Line >= startline AndAlso func.Line < endline Then func.Exist = False
-                Next
-                For Each clbk As PawnFunction In ACLists.Callbacks
-                    If clbk.Line >= startline AndAlso clbk.Line < endline Then clbk.Exist = False
-                Next
-                For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
-                    If Line.Number > endline Then Exit For
-                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
-                        Continue For
-                    ElseIf Line.Text.StartsWith("//") Then
-                        CommentedLine = True
-                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
-                        CommentedSection = True
-                        Continue For
-                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
-                        CommentedSection = False
-                        Continue For
-                    ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
-                        CommentedSection = True
-                    ElseIf Line.Text.IndexOf("*/") > -1 Then
-                        CommentedSection = False
-                    End If
-                    If CommentedLine Or CommentedSection Then
-                        CommentedLine = False
-                        Continue For
-                    End If
-                    Dim pos As Integer = Line.Text.IndexOf("native")
-                    If pos = -1 Then
-                        pos = Line.Text.IndexOf("stock")
-                        If pos = -1 Then pos = Line.Text.IndexOf("public")
-                    End If
-                    If pos > -1 AndAlso Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 AndAlso Line.Text.IndexOf("operator") = -1 Then
-                        Dim params As New List(Of String)
-                        params.AddRange(Split(Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 2, Line.Text.IndexOf(")") - Line.Text.IndexOf("(") - 1)), ","))
-                        For i = 0 To params.Count - 1
-                            If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
-                                params(i - 1) += "," & params(i)
-                                params.RemoveAt(i)
-                                Continue For
-                            End If
-                        Next
-                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ", pos) + 2, Line.Text.IndexOf("(") - Line.Text.IndexOf(" ", pos) - 1)), _Name.Replace(".inc", ":"), -1, params.ToArray)
-                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
-                    ElseIf Line.Text.IndexOf("forward") > -1 AndAlso Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 Then
-                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ") + 1, Line.Text.IndexOf("(") - Line.Text.IndexOf(" "))), _Name.Replace(".inc", ":"), -1, Split(Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 2, Line.Text.IndexOf(")") - Line.Text.IndexOf("(") - 1)), ","))
-                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
-                    Else
-                        Dim tDef As String, name As String, params As String(), func As PawnFunction
-                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
-                            Dim M As Match = Regex.Match(Line.Text, def.Regex)
-                            If M.Success Then
-                                tDef = def.Regex
-                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
-                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
-                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
-                                tDef = tDef.Remove(0, 2)
-                                tmp = tmp.Replace(name, "")
-                                name = name.Remove(name.Length - 1, 1)
-                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
-                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
-                                If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
-                            End If
-                        Next
-                    End If
-                Next
-                For Each func As PawnFunction In ACLists.Functions
-                    If Not func.Exist Then ACLists.Functions.Remove(func)
-                Next
-                For Each clbk As PawnFunction In ACLists.Callbacks
-                    If Not clbk.Exist Then ACLists.Callbacks.Remove(clbk)
-                Next
-            Case UpdateType.Colors
-                For Each col As PawnColor In ACLists.Colors
-                    If col.Line >= startline AndAlso col.Line < endline Then col.Exist = False
-                Next
-                For Each col As PawnColor In ACLists.eColors
-                    If col.Line >= startline AndAlso col.Line < endline Then col.Exist = False
-                Next
-                For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
-                    If Line.Number > endline Then Exit For
-                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
-                        Continue For
-                    ElseIf Line.Text.StartsWith("//") Then
-                        CommentedLine = True
-                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
-                        CommentedSection = True
-                        Continue For
-                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
-                        CommentedSection = False
-                        Continue For
-                    ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
-                        CommentedSection = True
-                    ElseIf Line.Text.IndexOf("*/") > -1 Then
-                        CommentedSection = False
-                    End If
-                    If CommentedLine Or CommentedSection Then
-                        CommentedLine = False
-                        Continue For
-                    End If
-                    If Line.Text.IndexOf("#define") > -1 Then
-                        If Line.Text.IndexOf("0x") > -1 Then
-                            Dim col As New PawnColor(), value As String
-                            If Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 Then
-                                value = Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 4, 8))
-                                If IsHex(value) Then
-                                    col = New PawnColor(Trim(Mid(Line.Text, Line.Text.IndexOf("#define") + 9, If(Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) > 0, Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) - Line.Text.IndexOf(" ") - 1, Line.Text.IndexOf(vbTab.ToString()) - Line.Text.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), Line.Number)
-                                    If Not TrueContainsColor(ACLists.Colors, col, True) Then
-                                        ACLists.Colors.Add(col)
-                                    End If
-                                End If
-                            Else
-                                value = Trim(Mid(Line.Text, Line.Text.IndexOf("0x") + 3, 8))
-                                If IsHex(value) Then
-                                    col = New PawnColor(Trim(Mid(Line.Text, Line.Text.IndexOf("#define") + 9, If(Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) > 0, Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) - Line.Text.IndexOf(" ") - 1, Line.Text.IndexOf(vbTab.ToString()) - Line.Text.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), Line.Number)
-                                    If Not TrueContainsColor(ACLists.Colors, col, True) Then ACLists.Colors.Add(col)
-                                End If
-                            End If
-                        Else
-                            If Line.Text.IndexOf("""") > -1 AndAlso Line.Text.IndexOf("""", Line.Text.IndexOf("""") + 1) > -1 Then
-                                Dim value As String
-                                If Line.Text.IndexOf("{") > -1 AndAlso Line.Text.IndexOf("}") > -1 Then
-                                    value = Trim(Mid(Line.Text, Line.Text.IndexOf("{") + 2, 6))
-                                Else
-                                    value = Trim(Mid(Line.Text, Line.Text.IndexOf("""") + 2, 6))
-                                End If
-                                If IsHex(value) Then
-                                    Dim col As New PawnColor(Trim(Mid(Line.Text, Line.Text.IndexOf("#define") + 9, If(Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) > 0, Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) - Line.Text.IndexOf(" ") - 1, Line.Text.IndexOf(vbTab.ToString()) - Line.Text.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), Line.Number)
-                                    If col.Name.Length > 0 AndAlso Not TrueContainsColor(ACLists.eColors, col, True) Then ACLists.eColors.Add(col)
-                                End If
-                            End If
-                        End If
-                    End If
-                Next
-                For Each col As PawnColor In ACLists.Colors
-                    If Not col.Exist Then ACLists.Colors.Remove(col)
-                Next
-                For Each col As PawnColor In ACLists.eColors
-                    If Not col.Exist Then ACLists.eColors.Remove(col)
-                Next
-            Case Else
-                For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
-                    If Line.Number > endline Then Exit For
-                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
-                        Continue For
-                    ElseIf Line.Text.StartsWith("//") Then
-                        CommentedLine = True
-                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
-                        CommentedSection = True
-                        Continue For
-                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
-                        CommentedSection = False
-                        Continue For
-                    ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
-                        CommentedSection = True
-                    ElseIf Line.Text.IndexOf("*/") > -1 Then
-                        CommentedSection = False
-                    End If
-                    If CommentedLine Or CommentedSection Then
-                        CommentedLine = False
-                        Continue For
-                    End If
-                    If Line.Text.IndexOf("Menu:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
-                        If Line.Text.IndexOf(",") = -1 Then
-                            If Line.Text.IndexOf(";") = -1 Then
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Menu:") + 6, Line.Text.Length - Line.Text.IndexOf("Menu:") - 5))
-                            Else
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Menu:") + 6, Line.Text.IndexOf(";") - Line.Text.IndexOf("Menu:") - 5))
-                            End If
-                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                        Else
-                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = Line.Text.IndexOf(",")
-                            While pos > -1
-                                If fround Then
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Menu:") + 6, pos - Line.Text.IndexOf("Menu:") - 5))
-                                    fround = False
-                                Else
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Menu:", oldpos) + 6, pos - Line.Text.IndexOf("Menu:", oldpos) - 5))
-                                End If
-                                oldpos = pos
-                                pos = Line.Text.IndexOf(",", pos + 1)
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End While
-                            If Line.Text.IndexOf(";") > -1 Then
-                                pos = Line.Text.LastIndexOf("Menu:")
-                                tmp = Trim(Mid(Line.Text, pos + 6, Line.Text.IndexOf(";") - pos - 5))
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End If
-                        End If
-                    ElseIf Line.Text.IndexOf("Text:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
-                        If Line.Text.IndexOf(",") = -1 Then
-                            If Line.Text.IndexOf(";") = -1 Then
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Text:") + 6, Line.Text.Length - Line.Text.IndexOf("Text:") - 5))
-                            Else
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Text:") + 6, Line.Text.IndexOf(";") - Line.Text.IndexOf("Text:") - 5))
-                            End If
-                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                        Else
-                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = Line.Text.IndexOf(",")
-                            While pos > -1
-                                If fround Then
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Text:") + 6, pos - Line.Text.IndexOf("Text:") - 5))
-                                    fround = False
-                                Else
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Text:", oldpos) + 6, pos - Line.Text.IndexOf("Text:", oldpos) - 5))
-                                End If
-                                oldpos = pos
-                                pos = Line.Text.IndexOf(",", pos + 1)
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End While
-                            If Line.Text.IndexOf(";") > -1 Then
-                                pos = Line.Text.LastIndexOf("Text:")
-                                tmp = Trim(Mid(Line.Text, pos + 6, Line.Text.IndexOf(";") - pos - 5))
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End If
-                        End If
-                    ElseIf Line.Text.IndexOf("Text3D:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
-                        If Line.Text.IndexOf(",") = -1 Then
-                            If Line.Text.IndexOf(";") = -1 Then
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Text3D:") + 8, Line.Text.Length - Line.Text.IndexOf("Text3D:") - 7))
-                            Else
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Text3D:") + 8, Line.Text.IndexOf(";") - Line.Text.IndexOf("Text3D:") - 7))
-                            End If
-                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                        Else
-                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = Line.Text.IndexOf(",")
-                            While pos > -1
-                                If fround Then
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Text3D:") + 8, pos - Line.Text.IndexOf("Text3D:") - 7))
-                                    fround = False
-                                Else
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Text3D:", oldpos) + 8, pos - Line.Text.IndexOf("Text3D:", oldpos) - 7))
-                                End If
-                                oldpos = pos
-                                pos = Line.Text.IndexOf(",", pos + 1)
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End While
-                            If Line.Text.IndexOf(";") > -1 Then
-                                pos = Line.Text.LastIndexOf("Text3D:")
-                                tmp = Trim(Mid(Line.Text, pos + 8, Line.Text.IndexOf(";") - pos - 7))
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End If
-                        End If
-                    ElseIf Line.Text.IndexOf("Float:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
-                        If Line.Text.IndexOf(",") = -1 Then
-                            If Line.Text.IndexOf(";") = -1 Then
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Float:") + 7, Line.Text.Length - Line.Text.IndexOf("Float:") - 6))
-                            Else
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Float:") + 7, Line.Text.IndexOf(";") - Line.Text.IndexOf("Float:") - 6))
-                            End If
-                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                        Else
-                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = Line.Text.IndexOf(",")
-                            While pos > -1
-                                If fround Then
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Float:") + 7, pos - Line.Text.IndexOf("Float:") - 6))
-                                    fround = False
-                                Else
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("Float:", oldpos) + 7, pos - Line.Text.IndexOf("Float:", oldpos) - 6))
-                                End If
-                                oldpos = pos
-                                pos = Line.Text.IndexOf(",", pos + 1)
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End While
-                            If Line.Text.IndexOf(";") > -1 Then
-                                pos = Line.Text.LastIndexOf("Float:")
-                                tmp = Trim(Mid(Line.Text, pos + 7, Line.Text.IndexOf(";") - pos - 6))
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End If
-                        End If
-                    ElseIf Line.Text.IndexOf("DB:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
-                        If Line.Text.IndexOf(",") = -1 Then
-                            If Line.Text.IndexOf(";") = -1 Then
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("DB:") + 3, Line.Text.Length - Line.Text.IndexOf("DB:") - 2))
-                            Else
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("DB:") + 3, Line.Text.IndexOf(";") - Line.Text.IndexOf("DB:") - 2))
-                            End If
-                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                        Else
-                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = Line.Text.IndexOf(",")
-                            While pos > -1
-                                If fround Then
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("DB:") + 3, pos - Line.Text.IndexOf("DB:") - 2))
-                                    fround = False
-                                Else
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("DB:", oldpos) + 3, pos - Line.Text.IndexOf("DB:", oldpos) - 2))
-                                End If
-                                oldpos = pos
-                                pos = Line.Text.IndexOf(",", pos + 1)
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End While
-                            If Line.Text.IndexOf(";") > -1 Then
-                                pos = Line.Text.LastIndexOf("DB:")
-                                tmp = Trim(Mid(Line.Text, pos + 3, Line.Text.IndexOf(";") - pos - 2))
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End If
-                        End If
-                    ElseIf Line.Text.IndexOf("DBResult:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
-                        If Line.Text.IndexOf(",") = -1 Then
-                            If Line.Text.IndexOf(";") = -1 Then
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("DBResult:") + 10, Line.Text.Length - Line.Text.IndexOf("DBResult:") - 8))
-                            Else
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("DBResult:") + 10, Line.Text.IndexOf(";") - Line.Text.IndexOf("DBResult:") - 8))
-                            End If
-                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                        Else
-                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = Line.Text.IndexOf(",")
-                            While pos > -1
-                                If fround Then
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("DBResult:") + 10, pos - Line.Text.IndexOf("DBResult:") - 8))
-                                    fround = False
-                                Else
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("DBResult:", oldpos) + 10, pos - Line.Text.IndexOf("DBResult:", oldpos) - 8))
-                                End If
-                                oldpos = pos
-                                pos = Line.Text.IndexOf(",", pos + 1)
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End While
-                            If Line.Text.IndexOf(";") > -1 Then
-                                pos = Line.Text.LastIndexOf("DBResult:")
-                                tmp = Trim(Mid(Line.Text, pos + 10, Line.Text.IndexOf(";") - pos - 8))
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End If
-                        End If
-                    ElseIf Line.Text.IndexOf("File:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
-                        If Line.Text.IndexOf(",") = -1 Then
-                            If Line.Text.IndexOf(";") = -1 Then
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("File:") + 6, Line.Text.Length - Line.Text.IndexOf("File:") - 5))
-                            Else
-                                tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("File:") + 6, Line.Text.IndexOf(";") - Line.Text.IndexOf("File:") - 5))
-                            End If
-                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                        Else
-                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = Line.Text.IndexOf(",")
-                            While pos > -1
-                                If fround Then
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("File:") + 6, pos - Line.Text.IndexOf("File:") - 5))
-                                    fround = False
-                                Else
-                                    tmp = Trim(Mid(Line.Text, Line.Text.IndexOf("File:", oldpos) + 6, pos - Line.Text.IndexOf("File:", oldpos) - 5))
-                                End If
-                                oldpos = pos
-                                pos = Line.Text.IndexOf(",", pos + 1)
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End While
-                            If Line.Text.IndexOf(";") > -1 Then
-                                pos = Line.Text.LastIndexOf("File:")
-                                tmp = Trim(Mid(Line.Text, pos + 6, Line.Text.IndexOf(";") - pos - 5))
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            End If
-                        End If
-                    End If
-                Next
-        End Select
-        LastUpdate = GetTickCount()
-        Dim tmpstring As String = vbNullString
-        For Each item As PawnFunction In ACLists.Functions
-            tmpstring += item.Name & " "
-        Next
-        SyntaxHandle.Lexing.Keywords(3) = tmpstring
+    Private Sub Colorize()
         With Settings
             Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
             If .All Then
@@ -3437,6 +2512,2040 @@ Public Class Instance
         End With
     End Sub
 
+    Private Sub UpdateFileData()
+        Static lastcall As Long = -1
+        If lastcall <> -1 AndAlso GetTickCount() - lastcall < 30000 Then Exit Sub
+        Static TreeDelegate As New AddTreeNode(AddressOf AddNode), FirstTreeDelegate As New AddFirstTreeNode(AddressOf AddFirstNode), _
+                ClearDelegate As New ClearTree(AddressOf ClearTreeNodes), LinesDelegate As New SelectedLines(AddressOf GetLineCollection)
+        Dim CommentedLine As Boolean, CommentedSection As Boolean, tmp As String = vbNullString
+        With ACLists
+            .Colors.Clear()
+            .eColors.Clear()
+            .DbRes.Clear()
+            .Dbs.Clear()
+            .Files.Clear()
+            .Floats.Clear()
+            .Functions.Clear()
+            .Menus.Clear()
+            .Texts.Clear()
+            .Texts2.Clear()
+        End With
+        Errors.Clear()
+        ParseCode()
+        Dim mLine As String, linecounter As Integer, MainReader As New StreamReader(_Path)
+        mLine = MainReader.ReadLine()
+        While Not mLine Is Nothing
+            linecounter += 1
+            If mLine.Length = 0 OrElse mLine = "{" OrElse mLine = "}" OrElse mLine = ";" Then
+                mLine = MainReader.ReadLine()
+                Continue While
+            ElseIf mLine.StartsWith("//") Then
+                CommentedLine = True
+            ElseIf mLine = "/*" Then
+                CommentedSection = True
+                mLine = MainReader.ReadLine()
+                Continue While
+            ElseIf mLine = "*/" Then
+                CommentedSection = False
+                mLine = MainReader.ReadLine()
+                Continue While
+            ElseIf mLine.IndexOf("/*") > -1 AndAlso mLine.IndexOf("*/") = -1 Then
+                CommentedSection = True
+            ElseIf mLine.IndexOf("*/") > -1 Then
+                CommentedSection = False
+            End If
+            If CommentedLine Or CommentedSection Then
+                CommentedLine = False
+                mLine = MainReader.ReadLine()
+                Continue While
+            End If
+            Dim spos As Integer = mLine.IndexOf("native")
+            If spos = -1 Then
+                spos = mLine.IndexOf("stock")
+                If spos = -1 Then spos = mLine.IndexOf("public")
+            End If
+            If mLine.IndexOf("#include") > -1 Then
+                Dim file As String, path As String
+                If mLine.IndexOf("<") > -1 Then
+                    file = Mid(mLine, mLine.IndexOf("<") + 2, mLine.IndexOf(">") - mLine.IndexOf("<") - 1)
+                    path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                ElseIf mLine.IndexOf("""") > -1 Then
+                    If mLine.IndexOf("..") = -1 Then
+                        file = Mid(mLine, mLine.IndexOf("""") + 2, mLine.LastIndexOf("""") - mLine.IndexOf("""") - 1)
+                        path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    Else
+                        file = Mid(mLine, mLine.IndexOf("..") + 3, mLine.LastIndexOf("""") - mLine.IndexOf("""") - 1).Replace("/", "\")
+                        path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    End If
+                Else
+                    mLine = MainReader.ReadLine()
+                    Continue While
+                End If
+                If IO.File.Exists(path) Then
+                    Dim fLine As String, Reader As New StreamReader(path)
+                    fLine = Reader.ReadLine()
+                    Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
+                    Do Until fLine Is Nothing
+                        If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine.StartsWith("//") Then
+                            CommentedLine2 = True
+                        ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                            CommentedSection2 = True
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine = "*/" OrElse fLine = " */" Then
+                            CommentedSection2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                            CommentedSection2 = True
+                        ElseIf fLine.IndexOf("*/") > -1 Then
+                            CommentedSection2 = False
+                        End If
+                        If CommentedLine2 Or CommentedSection2 Then
+                            CommentedLine2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        End If
+                        spos = fLine.IndexOf("native")
+                        If spos = -1 Then
+                            spos = fLine.IndexOf("stock")
+                            If spos = -1 Then spos = fLine.IndexOf("public")
+                        End If
+                        If fLine.IndexOf("#include") > -1 Then
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                            If fLine.IndexOf("<") > -1 Then
+                                file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                            ElseIf fLine.IndexOf("""") > -1 Then
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                End If
+                            Else
+                                fLine = Reader.ReadLine()
+                                Continue Do
+                            End If
+                            Dim count As Integer
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
+                                fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                Do Until fLine Is Nothing
+                                    If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.StartsWith("//") Then
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    End If
+                                    spos = fLine.IndexOf("native")
+                                    If spos = -1 Then
+                                        spos = fLine.IndexOf("stock")
+                                        If spos = -1 Then
+                                            spos = fLine.IndexOf("public")
+                                        End If
+                                    End If
+                                    If spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                        Dim params As New List(Of String)
+                                        params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                        For i = 0 To params.Count - 1
+                                            If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                                params(i - 1) += "," & params(i)
+                                                params.RemoveAt(i)
+                                                Continue For
+                                            End If
+                                        Next
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                    ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                    ElseIf fLine.IndexOf("#define") > -1 Then
+                                        If fLine.IndexOf("0x") > -1 Then
+                                            Dim col As PawnColor, value As String
+                                            If fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                                value = Trim(Mid(fLine, fLine.IndexOf("(") + 4, 8))
+                                                If IsHex(value) Then
+                                                    col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                                End If
+                                            Else
+                                                value = Trim(Mid(fLine, fLine.IndexOf("0x") + 3, 8))
+                                                If IsHex(value) Then
+                                                    col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                                End If
+                                            End If
+                                        Else
+                                            If fLine.IndexOf("""") > -1 AndAlso fLine.IndexOf("""", fLine.IndexOf("""") + 1) > -1 Then
+                                                Dim value As String
+                                                If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                                    value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                                Else
+                                                    value = Trim(Mid(fLine, fLine.IndexOf("""") + 2, 6))
+                                                End If
+                                                If IsHex(value) Then
+                                                    Dim col As New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If col.Name.Length > 0 AndAlso Not ACLists.eColors.Contains(col) Then ACLists.eColors.Add(col)
+                                                End If
+                                            End If
+                                        End If
+                                    ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                                        Next
+                                    Else
+                                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                            Dim M As Match = Regex.Match(fLine, def.Regex)
+                                            If M.Success Then
+                                                tDef = def.Regex
+                                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                tDef = tDef.Remove(0, 2)
+                                                tmp = tmp.Replace(name, "")
+                                                name = name.Remove(name.Length - 1, 1)
+                                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), linecounter, params)
+                                                If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                            End If
+                                        Next
+                                    End If
+                                    count += 1
+                                    fLine = Reader2.ReadLine()
+                                Loop
+                                Reader2.Close()
+                            Else
+                                Errors.Clear()
+                                Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 0))
+                            End If
+                        ElseIf fLine.IndexOf("#tryinclude") > -1 Then
+                            Dim file2 As String, path2 As String
+                            If fLine.IndexOf("<") > -1 Then
+                                file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                            Else
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                End If
+                            End If
+                            Dim count As Integer
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
+                                fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                Do Until fLine Is Nothing
+                                    If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.StartsWith("//") Then
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine = False
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    End If
+                                    spos = fLine.IndexOf("native")
+                                    If spos = -1 Then
+                                        spos = fLine.IndexOf("stock")
+                                        If spos = -1 Then spos = fLine.IndexOf("public")
+                                    End If
+                                    If spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                        Dim params As New List(Of String)
+                                        params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                        For i = 0 To params.Count - 1
+                                            If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                                params(i - 1) += "," & params(i)
+                                                params.RemoveAt(i)
+                                                Continue For
+                                            End If
+                                        Next
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                    ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                    ElseIf fLine.IndexOf("#define") > -1 Then
+                                        If fLine.IndexOf("0x") > -1 Then
+                                            Dim col As PawnColor, value As String
+                                            If fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                                value = Trim(Mid(fLine, fLine.IndexOf("(") + 4, 8))
+                                                If IsHex(value) Then
+                                                    col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                                End If
+                                            Else
+                                                value = Trim(Mid(fLine, fLine.IndexOf("0x") + 3, 8))
+                                                If IsHex(value) Then
+                                                    col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                                End If
+                                            End If
+                                        Else
+                                            If fLine.IndexOf("""") > -1 AndAlso fLine.IndexOf("""", fLine.IndexOf("""") + 1) > -1 Then
+                                                Dim value As String
+                                                If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                                    value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                                Else
+                                                    If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                                        value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                                    Else
+                                                        value = Trim(Mid(fLine, fLine.IndexOf("""") + 2, 6))
+                                                    End If
+                                                End If
+                                                If IsHex(value) Then
+                                                    Dim col As New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If col.Name.Length > 0 AndAlso Not ACLists.eColors.Contains(col) Then ACLists.eColors.Add(col)
+                                                End If
+                                            End If
+                                        End If
+                                    ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                                        Next
+                                    Else
+                                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                            Dim M As Match = Regex.Match(fLine, def.Regex)
+                                            If M.Success Then
+                                                tDef = def.Regex
+                                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                tDef = tDef.Remove(0, 2)
+                                                tmp = tmp.Replace(name, "")
+                                                name = name.Remove(name.Length - 1, 1)
+                                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), linecounter, params)
+                                                If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                            End If
+                                        Next
+                                    End If
+                                    count += 1
+                                    fLine = Reader2.ReadLine()
+                                Loop
+                                Reader2.Close()
+                            Else
+                                Errors.Clear()
+                                Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 1))
+                            End If
+                        ElseIf spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                            Dim params As New List(Of String)
+                            params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                            For i = 0 To params.Count - 1
+                                If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                    params(i - 1) += "," & params(i)
+                                    params.RemoveAt(i)
+                                    Continue For
+                                End If
+                            Next
+                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file.Replace(".inc", ":"), -1, params.ToArray)
+                            If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                        ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                            If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                        ElseIf fLine.IndexOf("#define") > -1 Then
+                            If fLine.IndexOf("0x") > -1 Then
+                                Dim col As PawnColor, value As String
+                                If fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                    value = Trim(Mid(fLine, fLine.IndexOf("(") + 4, 8))
+                                    If IsHex(value) Then
+                                        col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                        If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                    End If
+                                Else
+                                    value = Trim(Mid(fLine, fLine.IndexOf("0x") + 3, 8))
+                                    If IsHex(value) Then
+                                        col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                        If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                    End If
+                                End If
+                            Else
+                                If fLine.IndexOf("""") > -1 AndAlso fLine.IndexOf("""", fLine.IndexOf("""") + 1) > -1 Then
+                                    Dim value As String
+                                    If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                        value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                    Else
+                                        If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                            value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                        Else
+                                            value = Trim(Mid(fLine, fLine.IndexOf("""") + 2, 6))
+                                        End If
+                                    End If
+                                    If IsHex(value) Then
+                                        Dim col As New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                        If col.Name.Length > 0 AndAlso Not ACLists.eColors.Contains(col) Then ACLists.eColors.Add(col)
+                                    End If
+                                End If
+                            End If
+                        ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                            Next
+                        Else
+                            Dim tDef As String, name As String, params As String(), func As PawnFunction
+                            For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                Dim M As Match = Regex.Match(fLine, def.Regex)
+                                If M.Success Then
+                                    tDef = def.Regex
+                                    tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                    tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                    name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                    tDef = tDef.Remove(0, 2)
+                                    tmp = tmp.Replace(name, "")
+                                    name = name.Remove(name.Length - 1, 1)
+                                    params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                    func = New PawnFunction(name, _Name.Replace(".inc", ":"), linecounter, params)
+                                    If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                End If
+                            Next
+                        End If
+                        fLine = Reader.ReadLine()
+                    Loop
+                    Reader.Close()
+                Else
+                    Errors.Clear()
+                    Errors.Add(New ListViewItem(New String() {"", "100", Name, linecounter + 1, "cannot read from file: """ & file & """"}, 0))
+                End If
+            ElseIf mLine.IndexOf("#tryinclude") > -1 Then
+                Dim file As String, path As String
+                If mLine.IndexOf("<") > -1 Then
+                    file = Mid(mLine, mLine.IndexOf("<") + 2, mLine.IndexOf(">") - mLine.IndexOf("<") - 1)
+                    path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                Else
+                    If mLine.IndexOf("..") = -1 Then
+                        file = Mid(mLine, mLine.IndexOf("""") + 2, mLine.LastIndexOf("""") - mLine.IndexOf("""") - 1)
+                        path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    Else
+                        file = Mid(mLine, mLine.IndexOf("..") + 3, mLine.LastIndexOf("""") - mLine.IndexOf("""") - 1).Replace("/", "\")
+                        path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                    End If
+                End If
+                If IO.File.Exists(path) Then
+                    Dim fLine As String, Reader As New StreamReader(path)
+                    fLine = Reader.ReadLine()
+                    Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
+                    Do Until fLine Is Nothing
+                        If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine.StartsWith("//") Then
+                            CommentedLine2 = True
+                        ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                            CommentedSection2 = True
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine = "*/" OrElse fLine = " */" Then
+                            CommentedSection2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                            CommentedSection2 = True
+                        ElseIf fLine.IndexOf("*/") > -1 Then
+                            CommentedSection2 = False
+                        End If
+                        If CommentedLine2 Or CommentedSection2 Then
+                            CommentedLine2 = False
+                            fLine = Reader.ReadLine()
+                            Continue Do
+                        End If
+                        spos = fLine.IndexOf("native")
+                        If spos = -1 Then
+                            spos = fLine.IndexOf("stock")
+                            If spos = -1 Then spos = fLine.IndexOf("public")
+                        End If
+                        If fLine.IndexOf("#include") > -1 Then
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                            If fLine.IndexOf("<") > -1 Then
+                                file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                            ElseIf fLine.IndexOf("""") > -1 Then
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                End If
+                            Else
+                                fLine = Reader.ReadLine()
+                                Continue Do
+                            End If
+                            Dim count As Integer
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
+                                fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                Do Until fLine Is Nothing
+                                    If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.StartsWith("//") Then
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    End If
+                                    spos = fLine.IndexOf("native")
+                                    If spos = -1 Then
+                                        spos = fLine.IndexOf("stock")
+                                        If spos = -1 Then spos = fLine.IndexOf("public")
+                                    End If
+                                    If spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                        Dim params As New List(Of String)
+                                        params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                        For i = 0 To params.Count - 1
+                                            If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                                params(i - 1) += "," & params(i)
+                                                params.RemoveAt(i)
+                                                Continue For
+                                            End If
+                                        Next
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                    ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                    ElseIf fLine.IndexOf("#define") > -1 Then
+                                        If fLine.IndexOf("0x") > -1 Then
+                                            Dim col As PawnColor, value As String
+                                            If fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                                value = Trim(Mid(fLine, fLine.IndexOf("(") + 4, 8))
+                                                If IsHex(value) Then
+                                                    col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                                End If
+                                            Else
+                                                value = Trim(Mid(fLine, fLine.IndexOf("0x") + 3, 8))
+                                                If IsHex(value) Then
+                                                    col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                                End If
+                                            End If
+                                        Else
+                                            If fLine.IndexOf("""") > -1 AndAlso fLine.IndexOf("""", fLine.IndexOf("""") + 1) > -1 Then
+                                                Dim value As String
+                                                If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                                    value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                                Else
+                                                    value = Trim(Mid(fLine, fLine.IndexOf("""") + 2, 6))
+                                                End If
+                                                If IsHex(value) Then
+                                                    Dim col As New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If col.Name.Length > 0 AndAlso Not ACLists.eColors.Contains(col) Then ACLists.eColors.Add(col)
+                                                End If
+                                            End If
+                                        End If
+                                    ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                                        Next
+                                    Else
+                                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                            Dim M As Match = Regex.Match(fLine, def.Regex)
+                                            If M.Success Then
+                                                tDef = def.Regex
+                                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                tDef = tDef.Remove(0, 2)
+                                                tmp = tmp.Replace(name, "")
+                                                name = name.Remove(name.Length - 1, 1)
+                                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), linecounter, params)
+                                                If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                            End If
+                                        Next
+                                    End If
+                                    count += 1
+                                    fLine = Reader2.ReadLine()
+                                Loop
+                                Reader2.Close()
+                            Else
+                                Errors.Clear()
+                                Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 0))
+                            End If
+                        ElseIf fLine.IndexOf("#tryinclude") > -1 Then
+                            Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                            If fLine.IndexOf("<") > -1 Then
+                                file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                            Else
+                                If fLine.IndexOf("..") = -1 Then
+                                    file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                    path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file.IndexOf(".inc") = -1, ".inc", "")
+                                Else
+                                    file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                    path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                End If
+                            End If
+                            Dim count As Integer
+                            If IO.File.Exists(path2) Then
+                                Dim Reader2 As New StreamReader(path2)
+                                fLine = Reader2.ReadLine()
+                                Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                Do Until fLine Is Nothing
+                                    If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.StartsWith("//") Then
+                                        CommentedLine3 = True
+                                    ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                        CommentedSection3 = True
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                        CommentedSection3 = False
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                        CommentedSection3 = True
+                                    ElseIf fLine.IndexOf("*/") > -1 Then
+                                        CommentedSection3 = False
+                                    End If
+                                    If CommentedLine3 Or CommentedSection3 Then
+                                        CommentedLine3 = False
+                                        count += 1
+                                        fLine = Reader2.ReadLine()
+                                        Continue Do
+                                    End If
+                                    spos = fLine.IndexOf("native")
+                                    If spos = -1 Then
+                                        spos = fLine.IndexOf("stock")
+                                        If spos = -1 Then spos = fLine.IndexOf("public")
+                                    End If
+                                    If spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                        Dim params As New List(Of String)
+                                        params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                        For i = 0 To params.Count - 1
+                                            If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                                params(i - 1) += "," & params(i)
+                                                params.RemoveAt(i)
+                                                Continue For
+                                            End If
+                                        Next
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                    ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                    ElseIf fLine.IndexOf("#define") > -1 Then
+                                        If fLine.IndexOf("0x") > -1 Then
+                                            Dim col As PawnColor, value As String
+                                            If fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                                value = Trim(Mid(fLine, fLine.IndexOf("(") + 4, 8))
+                                                If IsHex(value) Then
+                                                    col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                                End If
+                                            Else
+                                                value = Trim(Mid(fLine, fLine.IndexOf("0x") + 3, 8))
+                                                If IsHex(value) Then
+                                                    col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                                End If
+                                            End If
+                                        Else
+                                            If fLine.IndexOf("""") > -1 AndAlso fLine.IndexOf("""", fLine.IndexOf("""") + 1) > -1 Then
+                                                Dim value As String
+                                                If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                                    value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                                Else
+                                                    If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                                        value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                                    Else
+                                                        value = Trim(Mid(fLine, fLine.IndexOf("""") + 2, 6))
+                                                    End If
+                                                End If
+                                                If IsHex(value) Then
+                                                    Dim col As New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                                    If col.Name.Length > 0 AndAlso Not ACLists.eColors.Contains(col) Then ACLists.eColors.Add(col)
+                                                End If
+                                            End If
+                                        End If
+                                    ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                                        Next
+                                    Else
+                                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                            Dim M As Match = Regex.Match(fLine, def.Regex)
+                                            If M.Success Then
+                                                tDef = def.Regex
+                                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                tDef = tDef.Remove(0, 2)
+                                                tmp = tmp.Replace(name, "")
+                                                name = name.Remove(name.Length - 1, 1)
+                                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), linecounter, params)
+                                                If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                            End If
+                                        Next
+                                    End If
+                                    count += 1
+                                    fLine = Reader2.ReadLine()
+                                Loop
+                                Reader2.Close()
+                            Else
+                                Errors.Clear()
+                                Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 1))
+                            End If
+                        ElseIf spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                            Dim params As New List(Of String)
+                            params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                            For i = 0 To params.Count - 1
+                                If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                    params(i - 1) += "," & params(i)
+                                    params.RemoveAt(i)
+                                    Continue For
+                                End If
+                            Next
+                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", spos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", spos) - 1)).Replace("Float:", "").Replace("bool:", ""), file.Replace(".inc", ":"), -1, params.ToArray)
+                            If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                        ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                            Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                            If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                        ElseIf fLine.IndexOf("#define") > -1 Then
+                            If fLine.IndexOf("0x") > -1 Then
+                                Dim col As PawnColor, value As String
+                                If fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                    value = Trim(Mid(fLine, fLine.IndexOf("(") + 4, 8))
+                                    If IsHex(value) Then
+                                        col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                        If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                    End If
+                                Else
+                                    value = Trim(Mid(fLine, fLine.IndexOf("0x") + 3, 8))
+                                    If IsHex(value) Then
+                                        col = New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                        If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                                    End If
+                                End If
+                            Else
+                                If fLine.IndexOf("""") > -1 AndAlso fLine.IndexOf("""", fLine.IndexOf("""") + 1) > -1 Then
+                                    Dim value As String
+                                    If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                        value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                    Else
+                                        If fLine.IndexOf("{") > -1 AndAlso fLine.IndexOf("}") > -1 Then
+                                            value = Trim(Mid(fLine, fLine.IndexOf("{") + 2, 6))
+                                        Else
+                                            value = Trim(Mid(fLine, fLine.IndexOf("""") + 2, 6))
+                                        End If
+                                    End If
+                                    If IsHex(value) Then
+                                        Dim col As New PawnColor(Trim(Mid(fLine, fLine.IndexOf("#define") + 9, If(fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) > 0, fLine.IndexOf(" ", fLine.IndexOf(" ") + 2) - fLine.IndexOf(" ") - 1, fLine.IndexOf(vbTab.ToString()) - fLine.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                                        If col.Name.Length > 0 AndAlso Not ACLists.eColors.Contains(col) Then ACLists.eColors.Add(col)
+                                    End If
+                                End If
+                            End If
+                        ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                            Next
+                        Else
+                            Dim tDef As String, name As String, params As String(), func As PawnFunction
+                            For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                Dim M As Match = Regex.Match(fLine, def.Regex)
+                                If M.Success Then
+                                    tDef = def.Regex
+                                    tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                    tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                    name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                    tDef = tDef.Remove(0, 2)
+                                    tmp = tmp.Replace(name, "")
+                                    name = name.Remove(name.Length - 1, 1)
+                                    params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                    func = New PawnFunction(name, _Name.Replace(".inc", ":"), linecounter, params)
+                                    If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                                End If
+                            Next
+                        End If
+                        fLine = Reader.ReadLine()
+                    Loop
+                    Reader.Close()
+                Else
+                    Errors.Clear()
+                    Errors.Add(New ListViewItem(New String() {"", "100", Name, linecounter + 1, "cannot read from file: """ & file & """"}, 1))
+                End If
+            ElseIf spos > -1 AndAlso (mLine.EndsWith(";") AndAlso mLine.StartsWith("native ")) AndAlso mLine.IndexOf("(") > -1 AndAlso mLine.IndexOf(")") > -1 AndAlso mLine.IndexOf("operator") = -1 AndAlso mLine.IndexOf("#define") = -1 Then
+                Dim params As New List(Of String)
+                params.AddRange(Split(Trim(Mid(mLine, mLine.IndexOf("(") + 2, mLine.IndexOf(")") - mLine.IndexOf("(") - 1)), ","))
+                For i = 0 To params.Count - 1
+                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                        params(i - 1) += "," & params(i)
+                        params.RemoveAt(i)
+                        Continue For
+                    End If
+                Next
+                Dim func As PawnFunction = New PawnFunction(Trim(Mid(mLine, mLine.IndexOf(" ", spos) + 2, mLine.IndexOf("(") - mLine.IndexOf(" ", spos) - 1)), _Name.Replace(".inc", ":"), -1, params.ToArray)
+                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+            ElseIf mLine.IndexOf("forward") > -1 AndAlso mLine.IndexOf("#define") = -1 AndAlso mLine.IndexOf("(") > -1 AndAlso mLine.IndexOf(")") > -1 Then
+                Dim func As PawnFunction = New PawnFunction(Trim(Mid(mLine, mLine.IndexOf(" ") + 1, mLine.IndexOf("(") - mLine.IndexOf(" "))), _Name.Replace(".inc", ":"), -1, Split(Trim(Mid(mLine, mLine.IndexOf("(") + 2, mLine.IndexOf(")") - mLine.IndexOf("(") - 1)), ","))
+                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+            ElseIf mLine.IndexOf("#define") > -1 Then
+                If mLine.IndexOf("0x") > -1 Then
+                    Dim col As PawnColor, value As String
+                    If mLine.IndexOf("(") > -1 AndAlso mLine.IndexOf(")") > -1 Then
+                        value = Trim(Mid(mLine, mLine.IndexOf("(") + 4, 8))
+                        If IsHex(value) Then
+                            col = New PawnColor(Trim(Mid(mLine, mLine.IndexOf("#define") + 9, If(mLine.IndexOf(" ", mLine.IndexOf(" ") + 2) > 0, mLine.IndexOf(" ", mLine.IndexOf(" ") + 2) - mLine.IndexOf(" ") - 1, mLine.IndexOf(vbTab.ToString()) - mLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), linecounter)
+                            If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                        End If
+                    Else
+                        value = Trim(Mid(mLine, mLine.IndexOf("0x") + 3, 8))
+                        If IsHex(value) Then
+                            col = New PawnColor(Trim(Mid(mLine, mLine.IndexOf("#define") + 9, If(mLine.IndexOf(" ", mLine.IndexOf(" ") + 2) > 0, mLine.IndexOf(" ", mLine.IndexOf(" ") + 2) - mLine.IndexOf(" ") - 1, mLine.IndexOf(vbTab.ToString()) - mLine.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), linecounter)
+                            If Not ACLists.Colors.Contains(col) Then ACLists.Colors.Add(col)
+                        End If
+                    End If
+                Else
+                    If mLine.IndexOf("""") > -1 AndAlso mLine.IndexOf("""", mLine.IndexOf("""") + 1) > -1 Then
+                        Dim value As String
+                        If mLine.IndexOf("{") > -1 AndAlso mLine.IndexOf("}") > -1 Then
+                            value = Trim(Mid(mLine, mLine.IndexOf("{") + 2, 6))
+                        Else
+                            value = Trim(Mid(mLine, mLine.IndexOf("""") + 2, 6))
+                        End If
+                        If IsHex(value) Then
+                            Dim col As New PawnColor(Trim(Mid(mLine, mLine.IndexOf("#define") + 9, If(mLine.IndexOf(" ", mLine.IndexOf(" ") + 2) > 0, mLine.IndexOf(" ", mLine.IndexOf(" ") + 2) - mLine.IndexOf(" ") - 1, mLine.IndexOf(vbTab.ToString()) - mLine.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), -1)
+                            If col.Name.Length > 0 AndAlso Not ACLists.eColors.Contains(col) Then ACLists.eColors.Add(col)
+                        End If
+                    End If
+                End If
+            ElseIf mLine.IndexOf("Menu:") > -1 AndAlso mLine.IndexOf("(") = -1 AndAlso mLine.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(mLine, "Menu:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                Next
+            ElseIf mLine.IndexOf("Text:") > -1 AndAlso mLine.IndexOf("(") = -1 AndAlso mLine.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(mLine, "Text:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                Next
+            ElseIf mLine.IndexOf("Text3D:") > -1 AndAlso mLine.IndexOf("(") = -1 AndAlso mLine.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(mLine, "Text3D:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                Next
+            ElseIf mLine.IndexOf("Float:") > -1 AndAlso mLine.IndexOf("cellmin") = -1 AndAlso mLine.IndexOf("(") = -1 AndAlso mLine.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(mLine, "Float:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                Next
+            ElseIf mLine.IndexOf("DB:") > -1 AndAlso mLine.IndexOf("(") = -1 AndAlso mLine.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(mLine, "DB:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                Next
+            ElseIf mLine.IndexOf("DBResult:") > -1 AndAlso mLine.IndexOf("(") = -1 AndAlso mLine.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(mLine, "DBResult:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                Next
+            ElseIf mLine.IndexOf("File:") > -1 AndAlso mLine.IndexOf("(") = -1 AndAlso mLine.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(mLine, "File:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                Next
+            Else
+                If ACLists.UserDefinedPublics.Count > 0 Then
+                    Dim tDef As String, name As String, params As String(), func As PawnFunction
+                    For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                        Dim M As Match = Regex.Match(mLine, def.Regex)
+                        If M.Success Then
+                            tDef = def.Regex
+                            tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                            tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                            name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                            tDef = tDef.Remove(0, 2)
+                            tmp = tmp.Replace(name, "")
+                            name = name.Remove(name.Length - 1, 1)
+                            params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                            func = New PawnFunction(name, _Name.Replace(".inc", ":"), linecounter, params)
+                            If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                        End If
+                    Next
+                End If
+            End If
+            mLine = MainReader.ReadLine()
+        End While
+        Dim tmpstring As String = vbNullString
+        For Each item As PawnFunction In ACLists.Functions
+            tmpstring += item.Name & " "
+        Next
+        SyntaxHandle.Lexing.Keywords(3) = tmpstring
+        If Errors.Count Then
+            Main.ListView1.Items.Clear()
+            Dim Header As Boolean() = New Boolean() {True, True, True}
+            For Each item As ListViewItem In Errors
+                Main.ListView1.Items.Add(item)
+                If Not Header(0) AndAlso Main.ListView1.Columns(1).Text.Length <= item.SubItems(1).Text.Length Then Header(0) = False
+                If Not Header(1) AndAlso Main.ListView1.Columns(2).Text.Length <= item.SubItems(2).Text.Length Then Header(1) = False
+                If Not Header(2) AndAlso Main.ListView1.Columns(3).Text.Length <= item.SubItems(3).Text.Length Then Header(2) = False
+            Next
+            With Main.ListView1
+                .Columns(0).Width = 25
+                .Columns(1).Width = If(Header(0), -2, -1)
+                .Columns(2).Width = If(Header(1), -2, -1)
+                .Columns(3).Width = If(Header(2), -2, -1)
+                .Columns(4).Width = -2
+            End With
+            With Main.ListView1
+                .Columns(0).Width = 25
+                .Columns(1).Width = If(Header(0), -2, -1)
+                .Columns(2).Width = If(Header(1), -2, -1)
+                .Columns(3).Width = If(Header(2), -2, -1)
+                .Columns(4).Width = -2
+            End With
+        End If
+        Colorize()
+        With Main.TreeView2
+            If .InvokeRequired Then
+                Dim cNode As New TreeNode()
+                ClearDelegate.Invoke(Main.TreeView2)
+                For Each func As PawnFunction In ACLists.Functions
+                    If Not TrueNodeContains(Main.TreeView2.Nodes, func.Include) Then cNode = FirstTreeDelegate.Invoke(func.Include, Main.TreeView2)
+                    TreeDelegate.Invoke(func.Name, cNode)
+                Next
+            Else
+                Dim IncCount As Integer = -1
+                .Nodes.Clear()
+                For Each func As PawnFunction In ACLists.Functions
+                    If Not TrueNodeContains(Main.TreeView2.Nodes, func.Include) Then
+                        .Nodes.Add(func.Include)
+                        IncCount += 1
+                    End If
+                    .Nodes(IncCount).Nodes.Add(func.Name)
+                Next
+            End If
+        End With
+        lastcall = GetTickCount()
+    End Sub
+
+#End Region
+
+#End Region
+
+#Region "Delegates Subs/Functions"
+
+    Public Sub UpdateDataEx(ByVal Type As UpdateType, ByVal startline As Integer, ByVal endline As Integer)
+        Static LastUpdate As Long = -1
+        If LastUpdate <> -1 AndAlso (GetTickCount() - LastUpdate) < 30000 Then Exit Sub
+        If ACLists.Functions.Count = 0 Then
+            SyntaxHandle.Invoke(DataUpdater)
+            LastUpdate = GetTickCount()
+            Exit Sub
+        End If
+        Dim CommentedLine As Boolean, CommentedSection As Boolean, tmp As String = vbNullString
+        Select Case Type
+            Case UpdateType.Includes
+                For Each func As PawnFunction In ACLists.Functions
+                    If func.Line = -1 Then func.Exist = False
+                Next
+                For Each clbk As PawnFunction In ACLists.Callbacks
+                    If clbk.Line = -1 Then clbk.Exist = False
+                Next
+                For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
+                    If Line.Number > endline Then Exit For
+                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
+                        Continue For
+                    ElseIf Line.Text.StartsWith("//") Then
+                        CommentedLine = True
+                        Continue For
+                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
+                        CommentedSection = True
+                        Continue For
+                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
+                        CommentedSection = False
+                        Continue For
+                    ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
+                        CommentedSection = True
+                    ElseIf Line.Text.IndexOf("*/") > -1 Then
+                        CommentedSection = False
+                    End If
+                    If CommentedLine Or CommentedSection Then
+                        CommentedLine = False
+                        Continue For
+                    End If
+                    If Line.Text.IndexOf("#include") > -1 Then
+                        Dim file As String, path As String
+                        If Line.Text.IndexOf("<") > -1 Then
+                            file = Mid(Line.Text, Line.Text.IndexOf("<") + 2, Line.Text.IndexOf(">") - Line.Text.IndexOf("<") - 1)
+                            path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                        ElseIf Line.Text.IndexOf("""") > -1 Then
+                            If Line.Text.IndexOf("..") = -1 Then
+                                file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1)
+                                path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                            Else
+                                file = Mid(Line.Text, Line.Text.IndexOf("..") + 3, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1).Replace("/", "\")
+                                path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                            End If
+                        Else
+                            Continue For
+                        End If
+                        If IO.File.Exists(path) Then
+                            Dim fLine As String, Reader As New StreamReader(path)
+                            fLine = Reader.ReadLine()
+                            Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
+                            Do Until fLine Is Nothing
+                                If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf fLine.StartsWith("//") Then
+                                    CommentedLine2 = True
+                                ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                    CommentedSection2 = True
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                    CommentedSection2 = False
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                    CommentedSection2 = True
+                                ElseIf fLine.IndexOf("*/") > -1 Then
+                                    CommentedSection2 = False
+                                End If
+                                If CommentedLine2 Or CommentedSection2 Then
+                                    CommentedLine2 = False
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                End If
+                                Dim pos As Integer = fLine.IndexOf("native")
+                                If pos = -1 Then
+                                    pos = fLine.IndexOf("stock")
+                                    If pos = -1 Then pos = fLine.IndexOf("public")
+                                End If
+                                If fLine.IndexOf("#include") > -1 Then
+                                    Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                                    If fLine.IndexOf("<") > -1 Then
+                                        file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                                    ElseIf fLine.IndexOf("""") > -1 Then
+                                        If fLine.IndexOf("..") = -1 Then
+                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        Else
+                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        End If
+                                    Else
+                                        fLine = Reader.ReadLine()
+                                        Continue Do
+                                    End If
+                                    Dim count As Integer
+                                    If IO.File.Exists(path2) Then
+                                        Dim Reader2 As New StreamReader(path2)
+                                        fLine = Reader2.ReadLine()
+                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                        Do Until fLine Is Nothing
+                                            If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                                count += 1
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine.StartsWith("//") Then
+                                                CommentedLine3 = True
+                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                                CommentedSection3 = True
+                                                count += 1
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                                CommentedSection3 = False
+                                                count += 1
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                                CommentedSection3 = True
+                                            ElseIf fLine.IndexOf("*/") > -1 Then
+                                                CommentedSection3 = False
+                                            End If
+                                            If CommentedLine3 Or CommentedSection3 Then
+                                                CommentedLine3 = False
+                                                count += 1
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            End If
+                                            pos = fLine.IndexOf("native")
+                                            If pos = -1 Then
+                                                pos = fLine.IndexOf("stock")
+                                                If pos = -1 Then pos = fLine.IndexOf("public")
+                                            End If
+                                            If pos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                                Dim params As New List(Of String)
+                                                params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                                For i = 0 To params.Count - 1
+                                                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                                        params(i - 1) += "," & params(i)
+                                                        params.RemoveAt(i)
+                                                        Continue For
+                                                    End If
+                                                Next
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                            ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                            Else
+                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
+                                                    If M.Success Then
+                                                        tDef = def.Regex
+                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                        tDef = tDef.Remove(0, 2)
+                                                        tmp = tmp.Replace(name, "")
+                                                        name = name.Remove(name.Length - 1, 1)
+                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                                    End If
+                                                Next
+                                            End If
+                                            fLine = Reader2.ReadLine()
+                                        Loop
+                                        Reader2.Close()
+                                    Else
+                                        Errors.Clear()
+                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 0))
+                                    End If
+                                ElseIf fLine.IndexOf("#tryinclude") > -1 Then
+                                    Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                                    If fLine.IndexOf("<") > -1 Then
+                                        file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                                    Else
+                                        If fLine.IndexOf("..") = -1 Then
+                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        Else
+                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        End If
+                                    End If
+                                    Dim count As Integer
+                                    If IO.File.Exists(path2) Then
+                                        Dim Reader2 As New StreamReader(path2)
+                                        fLine = Reader2.ReadLine()
+                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                        Do Until fLine Is Nothing
+                                            If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                                count += 1
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine.StartsWith("//") Then
+                                                CommentedLine3 = True
+                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                                CommentedSection3 = True
+                                                count += 1
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                                count += 1
+                                                CommentedSection3 = False
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                                CommentedSection3 = True
+                                            ElseIf fLine.IndexOf("*/") > -1 Then
+                                                CommentedSection3 = False
+                                            End If
+                                            If CommentedLine3 Or CommentedSection3 Then
+                                                CommentedLine3 = False
+                                                count += 1
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            End If
+                                            pos = fLine.IndexOf("native")
+                                            If pos = -1 Then
+                                                pos = fLine.IndexOf("stock")
+                                                If pos = -1 Then pos = fLine.IndexOf("public")
+                                            End If
+                                            If pos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                                Dim params As New List(Of String)
+                                                params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                                For i = 0 To params.Count - 1
+                                                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                                        params(i - 1) += "," & params(i)
+                                                        params.RemoveAt(i)
+                                                        Continue For
+                                                    End If
+                                                Next
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                            ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                            Else
+                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
+                                                    If M.Success Then
+                                                        tDef = def.Regex
+                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                        tDef = tDef.Remove(0, 2)
+                                                        tmp = tmp.Replace(name, "")
+                                                        name = name.Remove(name.Length - 1, 1)
+                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                                    End If
+                                                Next
+                                            End If
+                                            fLine = Reader2.ReadLine()
+                                        Loop
+                                        Reader2.Close()
+                                    Else
+                                        Errors.Clear()
+                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
+                                    End If
+                                ElseIf pos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    Dim params As New List(Of String)
+                                    params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                    For i = 0 To params.Count - 1
+                                        If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                            params(i - 1) += "," & params(i)
+                                            params.RemoveAt(i)
+                                            Continue For
+                                        End If
+                                    Next
+                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
+                                    If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                    If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                Else
+                                    Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                    For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                        Dim M As Match = Regex.Match(fLine, def.Regex)
+                                        If M.Success Then
+                                            tDef = def.Regex
+                                            tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                            tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                            name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                            tDef = tDef.Remove(0, 2)
+                                            tmp = tmp.Replace(name, "")
+                                            name = name.Remove(name.Length - 1, 1)
+                                            params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                            func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                            If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                        End If
+                                    Next
+                                End If
+                                fLine = Reader.ReadLine()
+                            Loop
+                            Reader.Close()
+                        Else
+                            Errors.Clear()
+                            Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file & """"}, 0))
+                        End If
+                    ElseIf Line.Text.IndexOf("#tryinclude") > -1 Then
+                        Dim file As String, path As String
+                        If Line.Text.IndexOf("<") > -1 Then
+                            file = Mid(Line.Text, Line.Text.IndexOf("<") + 2, Line.Text.IndexOf(">") - Line.Text.IndexOf("<") - 1)
+                            path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
+                        Else
+                            If Line.Text.IndexOf("..") = -1 Then
+                                file = Mid(Line.Text, Line.Text.IndexOf("""") + 2, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1)
+                                path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                            Else
+                                file = Mid(Line.Text, Line.Text.IndexOf("..") + 3, Line.Text.LastIndexOf("""") - Line.Text.IndexOf("""") - 1).Replace("/", "\")
+                                path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
+                            End If
+                        End If
+                        If IO.File.Exists(path) Then
+                            Dim fLine As String, Reader As New StreamReader(path)
+                            fLine = Reader.ReadLine()
+                            Dim CommentedLine2 As Boolean, CommentedSection2 As Boolean
+                            Do Until fLine Is Nothing
+                                If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf fLine.StartsWith("//") Then
+                                    CommentedLine2 = True
+                                ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                    CommentedSection2 = True
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                    CommentedSection2 = False
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                    CommentedSection2 = True
+                                ElseIf fLine.IndexOf("*/") > -1 Then
+                                    CommentedSection2 = False
+                                End If
+                                If CommentedLine2 Or CommentedSection2 Then
+                                    CommentedLine2 = False
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                End If
+                                If CommentedLine Or CommentedSection Then
+                                    CommentedLine = False
+                                    fLine = Reader.ReadLine()
+                                    Continue Do
+                                End If
+                                Dim pos As Integer = fLine.IndexOf("native")
+                                If pos = -1 Then
+                                    pos = fLine.IndexOf("stock")
+                                    If pos = -1 Then pos = fLine.IndexOf("public")
+                                End If
+                                If fLine.IndexOf("#include") > -1 Then
+                                    Dim file2 As String, path2 As String, cNode2 As New TreeNode()
+                                    If fLine.IndexOf("<") > -1 Then
+                                        file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                                    ElseIf fLine.IndexOf("""") > -1 Then
+                                        If fLine.IndexOf("..") = -1 Then
+                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        Else
+                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        End If
+                                    Else
+                                        fLine = Reader.ReadLine
+                                        Continue Do
+                                    End If
+                                    If IO.File.Exists(path2) Then
+                                        Dim Reader2 As New StreamReader(path2)
+                                        fLine = Reader2.ReadLine()
+                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                        Do Until fLine Is Nothing
+                                            If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine.StartsWith("//") Then
+                                                CommentedLine3 = True
+                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                                CommentedSection3 = True
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                                CommentedSection3 = False
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                                CommentedSection3 = True
+                                            ElseIf fLine.IndexOf("*/") > -1 Then
+                                                CommentedSection3 = False
+                                            End If
+                                            If CommentedLine3 Or CommentedSection3 Then
+                                                CommentedLine3 = False
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            End If
+                                            pos = fLine.IndexOf("native")
+                                            If pos = -1 Then
+                                                pos = fLine.IndexOf("stock")
+                                                If pos = -1 Then pos = fLine.IndexOf("public")
+                                            End If
+                                            If pos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                                Dim params As New List(Of String)
+                                                params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                                For i = 0 To params.Count - 1
+                                                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                                        params(i - 1) += "," & params(i)
+                                                        params.RemoveAt(i)
+                                                        Continue For
+                                                    End If
+                                                Next
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                            ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                            Else
+                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
+                                                    If M.Success Then
+                                                        tDef = def.Regex
+                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                        tDef = tDef.Remove(0, 2)
+                                                        tmp = tmp.Replace(name, "")
+                                                        name = name.Remove(name.Length - 1, 1)
+                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                                    End If
+                                                Next
+                                            End If
+                                            fLine = Reader2.ReadLine()
+                                        Loop
+                                        Reader2.Close()
+                                    Else
+                                        Errors.Clear()
+                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 0))
+                                    End If
+                                ElseIf fLine.IndexOf("#tryinclude") > -1 Then
+                                    Dim file2 As String, path2 As String
+                                    If fLine.IndexOf("<") > -1 Then
+                                        file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
+                                        path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
+                                    Else
+                                        If fLine.IndexOf("..") = -1 Then
+                                            file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
+                                            path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        Else
+                                            file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
+                                            path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
+                                        End If
+                                    End If
+                                    If IO.File.Exists(path2) Then
+                                        Dim Reader2 As New StreamReader(path2)
+                                        fLine = Reader2.ReadLine()
+                                        Dim CommentedLine3 As Boolean, CommentedSection3 As Boolean
+                                        Do Until fLine Is Nothing
+                                            If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine.StartsWith("//") Then
+                                                CommentedLine3 = True
+                                            ElseIf fLine = "/*" OrElse fLine = " /*" Then
+                                                CommentedSection3 = True
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine = "*/" OrElse fLine = " */" Then
+                                                CommentedSection3 = False
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
+                                                CommentedSection3 = True
+                                            ElseIf fLine.IndexOf("*/") > -1 Then
+                                                CommentedSection3 = False
+                                            End If
+                                            If CommentedLine3 Or CommentedSection3 Then
+                                                CommentedLine3 = False
+                                                fLine = Reader2.ReadLine()
+                                                Continue Do
+                                            End If
+                                            pos = fLine.IndexOf("native")
+                                            If pos = -1 Then
+                                                pos = fLine.IndexOf("stock")
+                                                If pos = -1 Then pos = fLine.IndexOf("public")
+                                            End If
+                                            If pos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                                Dim params As New List(Of String)
+                                                params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                                For i = 0 To params.Count - 1
+                                                    If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                                        params(i - 1) += "," & params(i)
+                                                        params.RemoveAt(i)
+                                                        Continue For
+                                                    End If
+                                                Next
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file2.Replace(".inc", ":"), -1, params.ToArray)
+                                                If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                            ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                                Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file2.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                                If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                            Else
+                                                Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                                    Dim M As Match = Regex.Match(fLine, def.Regex)
+                                                    If M.Success Then
+                                                        tDef = def.Regex
+                                                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                                        tDef = tDef.Remove(0, 2)
+                                                        tmp = tmp.Replace(name, "")
+                                                        name = name.Remove(name.Length - 1, 1)
+                                                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                                        If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                                    End If
+                                                Next
+                                            End If
+                                            fLine = Reader2.ReadLine()
+                                        Loop
+                                        Reader2.Close()
+                                    Else
+                                        Errors.Clear()
+                                        Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file2 & """"}, 1))
+                                    End If
+                                ElseIf pos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    Dim params As New List(Of String)
+                                    params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                    For i = 0 To params.Count - 1
+                                        If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                            params(i - 1) += "," & params(i)
+                                            params.RemoveAt(i)
+                                            Continue For
+                                        End If
+                                    Next
+                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ", pos) + 2, fLine.IndexOf("(") - fLine.IndexOf(" ", pos) - 1)), file.Replace(".inc", ":"), -1, params.ToArray)
+                                    If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                                ElseIf fLine.IndexOf("forward") > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 Then
+                                    Dim func As PawnFunction = New PawnFunction(Trim(Mid(fLine, fLine.IndexOf(" ") + 1, fLine.IndexOf("(") - fLine.IndexOf(" "))), file.Replace(".inc", ":"), -1, Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
+                                    If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                                Else
+                                    Dim tDef As String, name As String, params As String(), func As PawnFunction
+                                    For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                                        Dim M As Match = Regex.Match(fLine, def.Regex)
+                                        If M.Success Then
+                                            tDef = def.Regex
+                                            tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                            tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                            name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                            tDef = tDef.Remove(0, 2)
+                                            tmp = tmp.Replace(name, "")
+                                            name = name.Remove(name.Length - 1, 1)
+                                            params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                            func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                            If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                                        End If
+                                    Next
+                                End If
+                                fLine = Reader.ReadLine()
+                            Loop
+                            Reader.Close()
+                        Else
+                            Errors.Clear()
+                            Errors.Add(New ListViewItem(New String() {"", "100", Name, Line.Number + 1, "cannot read from file: """ & file & """"}, 1))
+                        End If
+                    End If
+                Next
+                For Each func As PawnFunction In ACLists.Functions
+                    If Not func.Exist Then ACLists.Functions.Remove(func)
+                Next
+                For Each clbk As PawnFunction In ACLists.Callbacks
+                    If Not clbk.Exist Then ACLists.Callbacks.Remove(clbk)
+                Next
+            Case UpdateType.Functions_Callbacks
+                For Each func As PawnFunction In ACLists.Functions
+                    If func.Line >= startline AndAlso func.Line < endline Then func.Exist = False
+                Next
+                For Each clbk As PawnFunction In ACLists.Callbacks
+                    If clbk.Line >= startline AndAlso clbk.Line < endline Then clbk.Exist = False
+                Next
+                For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
+                    If Line.Number > endline Then Exit For
+                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
+                        Continue For
+                    ElseIf Line.Text.StartsWith("//") Then
+                        CommentedLine = True
+                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
+                        CommentedSection = True
+                        Continue For
+                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
+                        CommentedSection = False
+                        Continue For
+                    ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
+                        CommentedSection = True
+                    ElseIf Line.Text.IndexOf("*/") > -1 Then
+                        CommentedSection = False
+                    End If
+                    If CommentedLine Or CommentedSection Then
+                        CommentedLine = False
+                        Continue For
+                    End If
+                    Dim pos As Integer = Line.Text.IndexOf("native")
+                    If pos = -1 Then
+                        pos = Line.Text.IndexOf("stock")
+                        If pos = -1 Then pos = Line.Text.IndexOf("public")
+                    End If
+                    If pos > -1 AndAlso (Line.Text.EndsWith(";") AndAlso Line.Text.StartsWith("native ")) AndAlso Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 AndAlso Line.Text.IndexOf("operator") = -1 Then
+                        Dim params As New List(Of String)
+                        params.AddRange(Split(Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 2, Line.Text.IndexOf(")") - Line.Text.IndexOf("(") - 1)), ","))
+                        For i = 0 To params.Count - 1
+                            If i > 0 AndAlso params(i).Length > 0 AndAlso params(i).IndexOf("...") > -1 Then
+                                params(i - 1) += "," & params(i)
+                                params.RemoveAt(i)
+                                Continue For
+                            End If
+                        Next
+                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ", pos) + 2, Line.Text.IndexOf("(") - Line.Text.IndexOf(" ", pos) - 1)), _Name.Replace(".inc", ":"), -1, params.ToArray)
+                        If Not TrueContainsFunction(ACLists.Functions, func, True) AndAlso Not TrueContainsFunction(ACLists.Callbacks, func) Then ACLists.Functions.Add(func)
+                    ElseIf Line.Text.IndexOf("forward") > -1 AndAlso Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 Then
+                        Dim func As PawnFunction = New PawnFunction(Trim(Mid(Line.Text, Line.Text.IndexOf(" ") + 1, Line.Text.IndexOf("(") - Line.Text.IndexOf(" "))), _Name.Replace(".inc", ":"), -1, Split(Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 2, Line.Text.IndexOf(")") - Line.Text.IndexOf("(") - 1)), ","))
+                        If Not TrueContainsFunction(ACLists.Callbacks, func, True) Then ACLists.Callbacks.Add(func)
+                    Else
+                        Dim tDef As String, name As String, params As String(), func As PawnFunction
+                        For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                            Dim M As Match = Regex.Match(Line.Text, def.Regex)
+                            If M.Success Then
+                                tDef = def.Regex
+                                tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                                tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                                name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                                tDef = tDef.Remove(0, 2)
+                                tmp = tmp.Replace(name, "")
+                                name = name.Remove(name.Length - 1, 1)
+                                params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                                func = New PawnFunction(name, _Name.Replace(".inc", ":"), Line.Number, params)
+                                If Not TrueContainsFunction(ACLists.Functions, func, True) Then ACLists.Functions.Add(func)
+                            End If
+                        Next
+                    End If
+                Next
+                For Each func As PawnFunction In ACLists.Functions
+                    If Not func.Exist Then ACLists.Functions.Remove(func)
+                Next
+                For Each clbk As PawnFunction In ACLists.Callbacks
+                    If Not clbk.Exist Then ACLists.Callbacks.Remove(clbk)
+                Next
+            Case UpdateType.Colors
+                For Each col As PawnColor In ACLists.Colors
+                    If col.Line >= startline AndAlso col.Line < endline Then col.Exist = False
+                Next
+                For Each col As PawnColor In ACLists.eColors
+                    If col.Line >= startline AndAlso col.Line < endline Then col.Exist = False
+                Next
+                For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
+                    If Line.Number > endline Then Exit For
+                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
+                        Continue For
+                    ElseIf Line.Text.StartsWith("//") Then
+                        CommentedLine = True
+                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
+                        CommentedSection = True
+                        Continue For
+                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
+                        CommentedSection = False
+                        Continue For
+                    ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
+                        CommentedSection = True
+                    ElseIf Line.Text.IndexOf("*/") > -1 Then
+                        CommentedSection = False
+                    End If
+                    If CommentedLine Or CommentedSection Then
+                        CommentedLine = False
+                        Continue For
+                    End If
+                    If Line.Text.IndexOf("#define") > -1 Then
+                        If Line.Text.IndexOf("0x") > -1 Then
+                            Dim col As New PawnColor(), value As String
+                            If Line.Text.IndexOf("(") > -1 AndAlso Line.Text.IndexOf(")") > -1 Then
+                                value = Trim(Mid(Line.Text, Line.Text.IndexOf("(") + 4, 8))
+                                If IsHex(value) Then
+                                    col = New PawnColor(Trim(Mid(Line.Text, Line.Text.IndexOf("#define") + 9, If(Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) > 0, Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) - Line.Text.IndexOf(" ") - 1, Line.Text.IndexOf(vbTab.ToString()) - Line.Text.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), Line.Number)
+                                    If Not TrueContainsColor(ACLists.Colors, col, True) Then
+                                        ACLists.Colors.Add(col)
+                                    End If
+                                End If
+                            Else
+                                value = Trim(Mid(Line.Text, Line.Text.IndexOf("0x") + 3, 8))
+                                If IsHex(value) Then
+                                    col = New PawnColor(Trim(Mid(Line.Text, Line.Text.IndexOf("#define") + 9, If(Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) > 0, Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) - Line.Text.IndexOf(" ") - 1, Line.Text.IndexOf(vbTab.ToString()) - Line.Text.IndexOf(" ") - 1))), Color.FromArgb(Integer.Parse(Mid(value, 7, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), Line.Number)
+                                    If Not TrueContainsColor(ACLists.Colors, col, True) Then ACLists.Colors.Add(col)
+                                End If
+                            End If
+                        Else
+                            If Line.Text.IndexOf("""") > -1 AndAlso Line.Text.IndexOf("""", Line.Text.IndexOf("""") + 1) > -1 Then
+                                Dim value As String
+                                If Line.Text.IndexOf("{") > -1 AndAlso Line.Text.IndexOf("}") > -1 Then
+                                    value = Trim(Mid(Line.Text, Line.Text.IndexOf("{") + 2, 6))
+                                Else
+                                    value = Trim(Mid(Line.Text, Line.Text.IndexOf("""") + 2, 6))
+                                End If
+                                If IsHex(value) Then
+                                    Dim col As New PawnColor(Trim(Mid(Line.Text, Line.Text.IndexOf("#define") + 9, If(Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) > 0, Line.Text.IndexOf(" ", Line.Text.IndexOf(" ") + 2) - Line.Text.IndexOf(" ") - 1, Line.Text.IndexOf(vbTab.ToString()) - Line.Text.IndexOf(" ") - 1))), Color.FromArgb(255, Integer.Parse(Mid(value, 1, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 3, 2), Globalization.NumberStyles.HexNumber), Integer.Parse(Mid(value, 5, 2), Globalization.NumberStyles.HexNumber)), Line.Number)
+                                    If col.Name.Length > 0 AndAlso Not TrueContainsColor(ACLists.eColors, col, True) Then ACLists.eColors.Add(col)
+                                End If
+                            End If
+                        End If
+                    End If
+                Next
+                For Each col As PawnColor In ACLists.Colors
+                    If Not col.Exist Then ACLists.Colors.Remove(col)
+                Next
+                For Each col As PawnColor In ACLists.eColors
+                    If Not col.Exist Then ACLists.eColors.Remove(col)
+                Next
+            Case Else
+                For Each Line As ScintillaNet.Line In SyntaxHandle.Lines
+                    If Line.Number > endline Then Exit For
+                    If Line.Text.Length = 0 OrElse Line.Text = "{" OrElse Line.Text = "}" OrElse Line.Text = ";" Then
+                        Continue For
+                    ElseIf Line.Text.StartsWith("//") Then
+                        CommentedLine = True
+                    ElseIf Line.Text = "/*" OrElse Line.Text = " /*" Then
+                        CommentedSection = True
+                        Continue For
+                    ElseIf Line.Text = "*/" OrElse Line.Text = " */" Then
+                        CommentedSection = False
+                        Continue For
+                    ElseIf Line.Text.IndexOf("/*") > -1 AndAlso Line.Text.IndexOf("*/") = -1 Then
+                        CommentedSection = True
+                    ElseIf Line.Text.IndexOf("*/") > -1 Then
+                        CommentedSection = False
+                    End If
+                    If CommentedLine Or CommentedSection Then
+                        CommentedLine = False
+                        Continue For
+                    End If
+                    If Line.Text.IndexOf("Menu:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
+                        Dim value As String, Ms As MatchCollection = Regex.Matches(Line.Text, "Menu:[^,;\s]+")
+                        For Each M As Match In Ms
+                            value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                        Next
+                    ElseIf Line.Text.IndexOf("Text:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
+                        Dim value As String, Ms As MatchCollection = Regex.Matches(Line.Text, "Text:[^,;\s]+")
+                        For Each M As Match In Ms
+                            value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                        Next
+                    ElseIf Line.Text.IndexOf("Text3D:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
+                        Dim value As String, Ms As MatchCollection = Regex.Matches(Line.Text, "Text3D:[^,;\s]+")
+                        For Each M As Match In Ms
+                            value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                        Next
+                    ElseIf Line.Text.IndexOf("Float:") > -1 AndAlso Line.Text.IndexOf("cellmin") = -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
+                        Dim value As String, Ms As MatchCollection = Regex.Matches(Line.Text, "Float:[^,;\s]+")
+                        For Each M As Match In Ms
+                            value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                        Next
+                    ElseIf Line.Text.IndexOf("DB:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
+                        Dim value As String, Ms As MatchCollection = Regex.Matches(Line.Text, "DB:[^,;\s]+")
+                        For Each M As Match In Ms
+                            value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                        Next
+                    ElseIf Line.Text.IndexOf("DBResult:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
+                        Dim value As String, Ms As MatchCollection = Regex.Matches(Line.Text, "DBResult:[^,;\s]+")
+                        For Each M As Match In Ms
+                            value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                        Next
+                    ElseIf Line.Text.IndexOf("File:") > -1 AndAlso Line.Text.IndexOf("(") = -1 AndAlso Line.Text.IndexOf(")") = -1 Then
+                        Dim value As String, Ms As MatchCollection = Regex.Matches(Line.Text, "File:[^,;\s]+")
+                        For Each M As Match In Ms
+                            value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                        Next
+                    End If
+                Next
+        End Select
+        LastUpdate = GetTickCount()
+        Dim tmpstring As String = vbNullString
+        For Each item As PawnFunction In ACLists.Functions
+            tmpstring += item.Name & " "
+        Next
+        SyntaxHandle.Lexing.Keywords(3) = tmpstring
+        Colorize()
+    End Sub
+
     Private Sub UpdateData()
         Static lastcall As Long = -1
         If lastcall <> -1 AndAlso GetTickCount() - lastcall < 30000 Then Exit Sub
@@ -3487,7 +4596,7 @@ Public Class Instance
                 If line.Text.IndexOf("<") > -1 Then
                     file = Mid(line.Text, line.Text.IndexOf("<") + 2, line.Text.IndexOf(">") - line.Text.IndexOf("<") - 1)
                     path = My.Application.Info.DirectoryPath & "\Include\" & file & ".inc"
-                Else
+                ElseIf line.Text.IndexOf("""") > -1 Then
                     If line.Text.IndexOf("..") = -1 Then
                         file = Mid(line.Text, line.Text.IndexOf("""") + 2, line.Text.LastIndexOf("""") - line.Text.IndexOf("""") - 1)
                         path = My.Application.Info.DirectoryPath & "\Include\" & file & If(file.IndexOf(".inc") = -1, ".inc", "")
@@ -3495,6 +4604,8 @@ Public Class Instance
                         file = Mid(line.Text, line.Text.IndexOf("..") + 3, line.Text.LastIndexOf("""") - line.Text.IndexOf("""") - 1).Replace("/", "\")
                         path = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file & If(file.IndexOf(".inc") = -1, ".inc", "")
                     End If
+                Else
+                    Continue For
                 End If
                 If IO.File.Exists(path) Then
                     Dim fLine As String, Reader As New StreamReader(path)
@@ -3534,7 +4645,7 @@ Public Class Instance
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
                                 path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
-                            Else
+                            ElseIf fLine.IndexOf("""") > -1 Then
                                 If fLine.IndexOf("..") = -1 Then
                                     file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
                                     path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
@@ -3542,6 +4653,9 @@ Public Class Instance
                                     file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
                                     path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 End If
+                            Else
+                                fLine = Reader.ReadLine()
+                                Continue Do
                             End If
                             Dim count As Integer
                             If IO.File.Exists(path2) Then
@@ -3551,19 +4665,19 @@ Public Class Instance
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
                                         CommentedLine3 = True
                                     ElseIf fLine = "/*" OrElse fLine = " /*" Then
                                         CommentedSection3 = True
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine = "*/" OrElse fLine = " */" Then
                                         CommentedSection3 = False
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
                                         CommentedSection3 = True
@@ -3573,7 +4687,7 @@ Public Class Instance
                                     If CommentedLine3 Or CommentedSection3 Then
                                         CommentedLine3 = False
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
                                     spos = fLine.IndexOf("native")
@@ -3583,7 +4697,7 @@ Public Class Instance
                                             spos = fLine.IndexOf("public")
                                         End If
                                     End If
-                                    If spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    If spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                         Dim params As New List(Of String)
                                         params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                         For i = 0 To params.Count - 1
@@ -3629,194 +4743,47 @@ Public Class Instance
                                             End If
                                         End If
                                     ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.Length - fLine.IndexOf("Menu:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Menu:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, pos - fLine.IndexOf("Menu:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:", oldpos) + 6, pos - fLine.IndexOf("Menu:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Menu:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.Length - fLine.IndexOf("Text:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Text:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, pos - fLine.IndexOf("Text:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:", oldpos) + 6, pos - fLine.IndexOf("Text:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Text:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.Length - fLine.IndexOf("Text3D:") - 7))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.IndexOf(";") - fLine.IndexOf("Text3D:") - 7))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, pos - fLine.IndexOf("Text3D:") - 7))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:", oldpos) + 8, pos - fLine.IndexOf("Text3D:", oldpos) - 7))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Text3D:")
-                                                tmp = Trim(Mid(fLine, pos + 8, fLine.IndexOf(";") - pos - 7))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
-                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.Length - fLine.IndexOf("Float:") - 6))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.IndexOf(";") - fLine.IndexOf("Float:") - 6))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, pos - fLine.IndexOf("Float:") - 6))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:", oldpos) + 7, pos - fLine.IndexOf("Float:", oldpos) - 6))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Float:")
-                                                tmp = Trim(Mid(fLine, pos + 7, fLine.IndexOf(";") - pos - 6))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.Length - fLine.IndexOf("DB:") - 2))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.IndexOf(";") - fLine.IndexOf("DB:") - 2))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, pos - fLine.IndexOf("DB:") - 2))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:", oldpos) + 3, pos - fLine.IndexOf("DB:", oldpos) - 2))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("DB:")
-                                                tmp = Trim(Mid(fLine, pos + 3, fLine.IndexOf(";") - pos - 2))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.Length - fLine.IndexOf("DBResult:") - 8))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.IndexOf(";") - fLine.IndexOf("DBResult:") - 8))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, pos - fLine.IndexOf("DBResult:") - 8))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:", oldpos) + 10, pos - fLine.IndexOf("DBResult:", oldpos) - 8))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("DBResult:")
-                                                tmp = Trim(Mid(fLine, pos + 10, fLine.IndexOf(";") - pos - 8))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.Length - fLine.IndexOf("File:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.IndexOf(";") - fLine.IndexOf("File:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, pos - fLine.IndexOf("File:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:", oldpos) + 6, pos - fLine.IndexOf("File:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("File:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                                        Next
                                     Else
                                         Dim tDef As String, name As String, params As String(), func As PawnFunction
                                         For Each def As CustomUserPublics In ACLists.UserDefinedPublics
@@ -3865,19 +4832,19 @@ Public Class Instance
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
                                         CommentedLine3 = True
                                     ElseIf fLine = "/*" OrElse fLine = " /*" Then
                                         CommentedSection3 = True
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine = "*/" OrElse fLine = " */" Then
                                         CommentedSection3 = False
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
                                         CommentedSection3 = True
@@ -3887,7 +4854,7 @@ Public Class Instance
                                     If CommentedLine3 Or CommentedSection3 Then
                                         CommentedLine = False
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
                                     spos = fLine.IndexOf("native")
@@ -3895,7 +4862,7 @@ Public Class Instance
                                         spos = fLine.IndexOf("stock")
                                         If spos = -1 Then spos = fLine.IndexOf("public")
                                     End If
-                                    If spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    If spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                         Dim params As New List(Of String)
                                         params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                         For i = 0 To params.Count - 1
@@ -3945,194 +4912,47 @@ Public Class Instance
                                             End If
                                         End If
                                     ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.Length - fLine.IndexOf("Menu:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Menu:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, pos - fLine.IndexOf("Menu:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:", oldpos) + 6, pos - fLine.IndexOf("Menu:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Menu:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.Length - fLine.IndexOf("Text:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Text:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, pos - fLine.IndexOf("Text:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:", oldpos) + 6, pos - fLine.IndexOf("Text:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Text:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.Length - fLine.IndexOf("Text3D:") - 7))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.IndexOf(";") - fLine.IndexOf("Text3D:") - 7))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, pos - fLine.IndexOf("Text3D:") - 7))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:", oldpos) + 8, pos - fLine.IndexOf("Text3D:", oldpos) - 7))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Text3D:")
-                                                tmp = Trim(Mid(fLine, pos + 8, fLine.IndexOf(";") - pos - 7))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
-                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.Length - fLine.IndexOf("Float:") - 6))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.IndexOf(";") - fLine.IndexOf("Float:") - 6))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, pos - fLine.IndexOf("Float:") - 6))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:", oldpos) + 7, pos - fLine.IndexOf("Float:", oldpos) - 6))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Float:")
-                                                tmp = Trim(Mid(fLine, pos + 7, fLine.IndexOf(";") - pos - 6))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.Length - fLine.IndexOf("DB:") - 2))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.IndexOf(";") - fLine.IndexOf("DB:") - 2))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, pos - fLine.IndexOf("DB:") - 2))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:", oldpos) + 3, pos - fLine.IndexOf("DB:", oldpos) - 2))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("DB:")
-                                                tmp = Trim(Mid(fLine, pos + 3, fLine.IndexOf(";") - pos - 2))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.Length - fLine.IndexOf("DBResult:") - 8))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.IndexOf(";") - fLine.IndexOf("DBResult:") - 8))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, pos - fLine.IndexOf("DBResult:") - 8))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:", oldpos) + 10, pos - fLine.IndexOf("DBResult:", oldpos) - 8))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("DBResult:")
-                                                tmp = Trim(Mid(fLine, pos + 10, fLine.IndexOf(";") - pos - 8))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.Length - fLine.IndexOf("File:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.IndexOf(";") - fLine.IndexOf("File:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, pos - fLine.IndexOf("File:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:", oldpos) + 6, pos - fLine.IndexOf("File:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("File:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                                        Next
                                     Else
                                         Dim tDef As String, name As String, params As String(), func As PawnFunction
                                         For Each def As CustomUserPublics In ACLists.UserDefinedPublics
@@ -4159,7 +4979,7 @@ Public Class Instance
                                 Errors.Clear()
                                 Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 1))
                             End If
-                        ElseIf spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                        ElseIf spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                             Dim params As New List(Of String)
                             params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                             For i = 0 To params.Count - 1
@@ -4209,194 +5029,47 @@ Public Class Instance
                                 End If
                             End If
                         ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.Length - fLine.IndexOf("Menu:") - 5))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Menu:") - 5))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, pos - fLine.IndexOf("Menu:") - 5))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:", oldpos) + 6, pos - fLine.IndexOf("Menu:", oldpos) - 5))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("Menu:")
-                                    tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.Length - fLine.IndexOf("Text:") - 5))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Text:") - 5))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, pos - fLine.IndexOf("Text:") - 5))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Text:", oldpos) + 6, pos - fLine.IndexOf("Text:", oldpos) - 5))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("Text:")
-                                    tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.Length - fLine.IndexOf("Text3D:") - 7))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.IndexOf(";") - fLine.IndexOf("Text3D:") - 7))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, pos - fLine.IndexOf("Text3D:") - 7))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:", oldpos) + 8, pos - fLine.IndexOf("Text3D:", oldpos) - 7))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("Text3D:")
-                                    tmp = Trim(Mid(fLine, pos + 8, fLine.IndexOf(";") - pos - 7))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
-                        ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.Length - fLine.IndexOf("Float:") - 6))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.IndexOf(";") - fLine.IndexOf("Float:") - 6))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, pos - fLine.IndexOf("Float:") - 6))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Float:", oldpos) + 7, pos - fLine.IndexOf("Float:", oldpos) - 6))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("Float:")
-                                    tmp = Trim(Mid(fLine, pos + 7, fLine.IndexOf(";") - pos - 6))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.Length - fLine.IndexOf("DB:") - 2))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.IndexOf(";") - fLine.IndexOf("DB:") - 2))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, pos - fLine.IndexOf("DB:") - 2))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("DB:", oldpos) + 3, pos - fLine.IndexOf("DB:", oldpos) - 2))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("DB:")
-                                    tmp = Trim(Mid(fLine, pos + 3, fLine.IndexOf(";") - pos - 2))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.Length - fLine.IndexOf("DBResult:") - 8))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.IndexOf(";") - fLine.IndexOf("DBResult:") - 8))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, pos - fLine.IndexOf("DBResult:") - 8))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:", oldpos) + 10, pos - fLine.IndexOf("DBResult:", oldpos) - 8))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("DBResult:")
-                                    tmp = Trim(Mid(fLine, pos + 10, fLine.IndexOf(";") - pos - 8))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.Length - fLine.IndexOf("File:") - 5))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.IndexOf(";") - fLine.IndexOf("File:") - 5))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, pos - fLine.IndexOf("File:") - 5))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("File:", oldpos) + 6, pos - fLine.IndexOf("File:", oldpos) - 5))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("File:")
-                                    tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                            Next
                         Else
                             Dim tDef As String, name As String, params As String(), func As PawnFunction
                             For Each def As CustomUserPublics In ACLists.UserDefinedPublics
@@ -4474,7 +5147,7 @@ Public Class Instance
                             If fLine.IndexOf("<") > -1 Then
                                 file2 = Mid(fLine, fLine.IndexOf("<") + 2, fLine.IndexOf(">") - fLine.IndexOf("<") - 1)
                                 path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & ".inc"
-                            Else
+                            ElseIf fLine.IndexOf("""") > -1 Then
                                 If fLine.IndexOf("..") = -1 Then
                                     file2 = Mid(fLine, fLine.IndexOf("""") + 2, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1)
                                     path2 = My.Application.Info.DirectoryPath & "\Include\" & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
@@ -4482,6 +5155,9 @@ Public Class Instance
                                     file2 = Mid(fLine, fLine.IndexOf("..") + 3, fLine.LastIndexOf("""") - fLine.IndexOf("""") - 1).Replace("/", "\")
                                     path2 = Directory.GetParent(My.Application.Info.DirectoryPath).FullName & file2 & If(file2.IndexOf(".inc") = -1, ".inc", "")
                                 End If
+                            Else
+                                fLine = Reader.ReadLine()
+                                Continue Do
                             End If
                             Dim count As Integer
                             If IO.File.Exists(path2) Then
@@ -4491,19 +5167,19 @@ Public Class Instance
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
                                         CommentedLine3 = True
                                     ElseIf fLine = "/*" OrElse fLine = " /*" Then
                                         CommentedSection3 = True
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine = "*/" OrElse fLine = " */" Then
                                         CommentedSection3 = False
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
                                         CommentedSection3 = True
@@ -4513,7 +5189,7 @@ Public Class Instance
                                     If CommentedLine3 Or CommentedSection3 Then
                                         CommentedLine3 = False
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
                                     spos = fLine.IndexOf("native")
@@ -4521,7 +5197,7 @@ Public Class Instance
                                         spos = fLine.IndexOf("stock")
                                         If spos = -1 Then spos = fLine.IndexOf("public")
                                     End If
-                                    If spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    If spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                         Dim params As New List(Of String)
                                         params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                         For i = 0 To params.Count - 1
@@ -4567,194 +5243,47 @@ Public Class Instance
                                             End If
                                         End If
                                     ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.Length - fLine.IndexOf("Menu:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Menu:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, pos - fLine.IndexOf("Menu:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:", oldpos) + 6, pos - fLine.IndexOf("Menu:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Menu:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.Length - fLine.IndexOf("Text:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Text:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, pos - fLine.IndexOf("Text:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:", oldpos) + 6, pos - fLine.IndexOf("Text:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Text:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.Length - fLine.IndexOf("Text3D:") - 7))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.IndexOf(";") - fLine.IndexOf("Text3D:") - 7))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, pos - fLine.IndexOf("Text3D:") - 7))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:", oldpos) + 8, pos - fLine.IndexOf("Text3D:", oldpos) - 7))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Text3D:")
-                                                tmp = Trim(Mid(fLine, pos + 8, fLine.IndexOf(";") - pos - 7))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
-                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.Length - fLine.IndexOf("Float:") - 6))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.IndexOf(";") - fLine.IndexOf("Float:") - 6))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, pos - fLine.IndexOf("Float:") - 6))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:", oldpos) + 7, pos - fLine.IndexOf("Float:", oldpos) - 6))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Float:")
-                                                tmp = Trim(Mid(fLine, pos + 7, fLine.IndexOf(";") - pos - 6))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.Length - fLine.IndexOf("DB:") - 2))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.IndexOf(";") - fLine.IndexOf("DB:") - 2))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, pos - fLine.IndexOf("DB:") - 2))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:", oldpos) + 3, pos - fLine.IndexOf("DB:", oldpos) - 2))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("DB:")
-                                                tmp = Trim(Mid(fLine, pos + 3, fLine.IndexOf(";") - pos - 2))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.Length - fLine.IndexOf("DBResult:") - 8))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.IndexOf(";") - fLine.IndexOf("DBResult:") - 8))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, pos - fLine.IndexOf("DBResult:") - 8))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:", oldpos) + 10, pos - fLine.IndexOf("DBResult:", oldpos) - 8))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("DBResult:")
-                                                tmp = Trim(Mid(fLine, pos + 10, fLine.IndexOf(";") - pos - 8))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.Length - fLine.IndexOf("File:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.IndexOf(";") - fLine.IndexOf("File:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, pos - fLine.IndexOf("File:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:", oldpos) + 6, pos - fLine.IndexOf("File:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("File:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                                        Next
                                     Else
                                         Dim tDef As String, name As String, params As String(), func As PawnFunction
                                         For Each def As CustomUserPublics In ACLists.UserDefinedPublics
@@ -4803,19 +5332,19 @@ Public Class Instance
                                 Do Until fLine Is Nothing
                                     If fLine.Length = 0 OrElse fLine = "{" OrElse fLine = "}" OrElse fLine = ";" Then
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.StartsWith("//") Then
                                         CommentedLine3 = True
                                     ElseIf fLine = "/*" OrElse fLine = " /*" Then
                                         CommentedSection3 = True
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine = "*/" OrElse fLine = " */" Then
                                         CommentedSection3 = False
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     ElseIf fLine.IndexOf("/*") > -1 AndAlso fLine.IndexOf("*/") = -1 Then
                                         CommentedSection3 = True
@@ -4825,7 +5354,7 @@ Public Class Instance
                                     If CommentedLine3 Or CommentedSection3 Then
                                         CommentedLine3 = False
                                         count += 1
-                                        fLine = Reader.ReadLine()
+                                        fLine = Reader2.ReadLine()
                                         Continue Do
                                     End If
                                     spos = fLine.IndexOf("native")
@@ -4833,7 +5362,7 @@ Public Class Instance
                                         spos = fLine.IndexOf("stock")
                                         If spos = -1 Then spos = fLine.IndexOf("public")
                                     End If
-                                    If spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                                    If spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                                         Dim params As New List(Of String)
                                         params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                                         For i = 0 To params.Count - 1
@@ -4883,194 +5412,47 @@ Public Class Instance
                                             End If
                                         End If
                                     ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.Length - fLine.IndexOf("Menu:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Menu:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, pos - fLine.IndexOf("Menu:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:", oldpos) + 6, pos - fLine.IndexOf("Menu:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Menu:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.Length - fLine.IndexOf("Text:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Text:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, pos - fLine.IndexOf("Text:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:", oldpos) + 6, pos - fLine.IndexOf("Text:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Text:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.Length - fLine.IndexOf("Text3D:") - 7))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.IndexOf(";") - fLine.IndexOf("Text3D:") - 7))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, pos - fLine.IndexOf("Text3D:") - 7))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:", oldpos) + 8, pos - fLine.IndexOf("Text3D:", oldpos) - 7))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Text3D:")
-                                                tmp = Trim(Mid(fLine, pos + 8, fLine.IndexOf(";") - pos - 7))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
-                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.Length - fLine.IndexOf("Float:") - 6))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.IndexOf(";") - fLine.IndexOf("Float:") - 6))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, pos - fLine.IndexOf("Float:") - 6))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:", oldpos) + 7, pos - fLine.IndexOf("Float:", oldpos) - 6))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("Float:")
-                                                tmp = Trim(Mid(fLine, pos + 7, fLine.IndexOf(";") - pos - 6))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                                        Next
+                                    ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.Length - fLine.IndexOf("DB:") - 2))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.IndexOf(";") - fLine.IndexOf("DB:") - 2))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, pos - fLine.IndexOf("DB:") - 2))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:", oldpos) + 3, pos - fLine.IndexOf("DB:", oldpos) - 2))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("DB:")
-                                                tmp = Trim(Mid(fLine, pos + 3, fLine.IndexOf(";") - pos - 2))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.Length - fLine.IndexOf("DBResult:") - 8))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.IndexOf(";") - fLine.IndexOf("DBResult:") - 8))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, pos - fLine.IndexOf("DBResult:") - 8))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:", oldpos) + 10, pos - fLine.IndexOf("DBResult:", oldpos) - 8))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("DBResult:")
-                                                tmp = Trim(Mid(fLine, pos + 10, fLine.IndexOf(";") - pos - 8))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                                        Next
                                     ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                                        If fLine.IndexOf(",") = -1 Then
-                                            If fLine.IndexOf(";") = -1 Then
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.Length - fLine.IndexOf("File:") - 5))
-                                            Else
-                                                tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.IndexOf(";") - fLine.IndexOf("File:") - 5))
-                                            End If
-                                            If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                        Else
-                                            Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                            While pos > -1
-                                                If fround Then
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, pos - fLine.IndexOf("File:") - 5))
-                                                    fround = False
-                                                Else
-                                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:", oldpos) + 6, pos - fLine.IndexOf("File:", oldpos) - 5))
-                                                End If
-                                                oldpos = pos
-                                                pos = fLine.IndexOf(",", pos + 1)
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End While
-                                            If fLine.IndexOf(";") > -1 Then
-                                                pos = fLine.LastIndexOf("File:")
-                                                tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                            End If
-                                        End If
+                                        Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                                        For Each M As Match In Ms
+                                            value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                            If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                                        Next
                                     Else
                                         Dim tDef As String, name As String, params As String(), func As PawnFunction
                                         For Each def As CustomUserPublics In ACLists.UserDefinedPublics
@@ -5097,7 +5479,7 @@ Public Class Instance
                                 Errors.Clear()
                                 Errors.Add(New ListViewItem(New String() {"", "100", Name, count, "cannot read from file: """ & file2 & """"}, 1))
                             End If
-                        ElseIf spos > -1 AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
+                        ElseIf spos > -1 AndAlso (fLine.EndsWith(";") AndAlso fLine.StartsWith("native ")) AndAlso fLine.IndexOf("(") > -1 AndAlso fLine.IndexOf(")") > -1 AndAlso fLine.IndexOf("operator") = -1 Then
                             Dim params As New List(Of String)
                             params.AddRange(Split(Trim(Mid(fLine, fLine.IndexOf("(") + 2, fLine.IndexOf(")") - fLine.IndexOf("(") - 1)), ","))
                             For i = 0 To params.Count - 1
@@ -5147,194 +5529,47 @@ Public Class Instance
                                 End If
                             End If
                         ElseIf fLine.IndexOf("Menu:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.Length - fLine.IndexOf("Menu:") - 5))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Menu:") - 5))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:") + 6, pos - fLine.IndexOf("Menu:") - 5))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Menu:", oldpos) + 6, pos - fLine.IndexOf("Menu:", oldpos) - 5))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("Menu:")
-                                    tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Menu:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("Text:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.Length - fLine.IndexOf("Text:") - 5))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, fLine.IndexOf(";") - fLine.IndexOf("Text:") - 5))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Text:") + 6, pos - fLine.IndexOf("Text:") - 5))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Text:", oldpos) + 6, pos - fLine.IndexOf("Text:", oldpos) - 5))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("Text:")
-                                    tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("Text3D:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.Length - fLine.IndexOf("Text3D:") - 7))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, fLine.IndexOf(";") - fLine.IndexOf("Text3D:") - 7))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:") + 8, pos - fLine.IndexOf("Text3D:") - 7))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Text3D:", oldpos) + 8, pos - fLine.IndexOf("Text3D:", oldpos) - 7))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("Text3D:")
-                                    tmp = Trim(Mid(fLine, pos + 8, fLine.IndexOf(";") - pos - 7))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
-                        ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.Length - fLine.IndexOf("Float:") - 6))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, fLine.IndexOf(";") - fLine.IndexOf("Float:") - 6))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Float:") + 7, pos - fLine.IndexOf("Float:") - 6))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("Float:", oldpos) + 7, pos - fLine.IndexOf("Float:", oldpos) - 6))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("Float:")
-                                    tmp = Trim(Mid(fLine, pos + 7, fLine.IndexOf(";") - pos - 6))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Text3D:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                            Next
+                        ElseIf fLine.IndexOf("Float:") > -1 AndAlso fLine.IndexOf("cellmin") = -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "Float:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("DB:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.Length - fLine.IndexOf("DB:") - 2))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, fLine.IndexOf(";") - fLine.IndexOf("DB:") - 2))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("DB:") + 3, pos - fLine.IndexOf("DB:") - 2))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("DB:", oldpos) + 3, pos - fLine.IndexOf("DB:", oldpos) - 2))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("DB:")
-                                    tmp = Trim(Mid(fLine, pos + 3, fLine.IndexOf(";") - pos - 2))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DB:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("DBResult:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.Length - fLine.IndexOf("DBResult:") - 8))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, fLine.IndexOf(";") - fLine.IndexOf("DBResult:") - 8))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:") + 10, pos - fLine.IndexOf("DBResult:") - 8))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("DBResult:", oldpos) + 10, pos - fLine.IndexOf("DBResult:", oldpos) - 8))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("DBResult:")
-                                    tmp = Trim(Mid(fLine, pos + 10, fLine.IndexOf(";") - pos - 8))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "DBResult:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                            Next
                         ElseIf fLine.IndexOf("File:") > -1 AndAlso fLine.IndexOf("(") = -1 AndAlso fLine.IndexOf(")") = -1 Then
-                            If fLine.IndexOf(",") = -1 Then
-                                If fLine.IndexOf(";") = -1 Then
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.Length - fLine.IndexOf("File:") - 5))
-                                Else
-                                    tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, fLine.IndexOf(";") - fLine.IndexOf("File:") - 5))
-                                End If
-                                If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                            Else
-                                Dim fround As Boolean = True, oldpos As Integer, pos As Integer = fLine.IndexOf(",")
-                                While pos > -1
-                                    If fround Then
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("File:") + 6, pos - fLine.IndexOf("File:") - 5))
-                                        fround = False
-                                    Else
-                                        tmp = Trim(Mid(fLine, fLine.IndexOf("File:", oldpos) + 6, pos - fLine.IndexOf("File:", oldpos) - 5))
-                                    End If
-                                    oldpos = pos
-                                    pos = fLine.IndexOf(",", pos + 1)
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End While
-                                If fLine.IndexOf(";") > -1 Then
-                                    pos = fLine.LastIndexOf("File:")
-                                    tmp = Trim(Mid(fLine, pos + 6, fLine.IndexOf(";") - pos - 5))
-                                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                                End If
-                            End If
+                            Dim value As String, Ms As MatchCollection = Regex.Matches(fLine, "File:[^,;\s]+")
+                            For Each M As Match In Ms
+                                value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                                If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                            Next
                         Else
                             Dim tDef As String, name As String, params As String(), func As PawnFunction
                             For Each def As CustomUserPublics In ACLists.UserDefinedPublics
@@ -5360,7 +5595,7 @@ Public Class Instance
                     Errors.Clear()
                     Errors.Add(New ListViewItem(New String() {"", "100", Name, line.Number + 1, "cannot read from file: """ & file & """"}, 1))
                 End If
-            ElseIf spos > -1 AndAlso line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 AndAlso line.Text.IndexOf("operator") = -1 AndAlso line.Text.IndexOf("#define") = -1 Then
+            ElseIf spos > -1 AndAlso (line.Text.EndsWith(";") AndAlso line.Text.StartsWith("native ")) AndAlso line.Text.IndexOf("(") > -1 AndAlso line.Text.IndexOf(")") > -1 AndAlso line.Text.IndexOf("operator") = -1 AndAlso line.Text.IndexOf("#define") = -1 Then
                 Dim params As New List(Of String)
                 params.AddRange(Split(Trim(Mid(line.Text, line.Text.IndexOf("(") + 2, line.Text.IndexOf(")") - line.Text.IndexOf("(") - 1)), ","))
                 For i = 0 To params.Count - 1
@@ -5406,211 +5641,66 @@ Public Class Instance
                     End If
                 End If
             ElseIf line.Text.IndexOf("Menu:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
-                If line.Text.IndexOf(",") = -1 Then
-                    If line.Text.IndexOf(";") = -1 Then
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("Menu:") + 6, line.Text.Length - line.Text.IndexOf("Menu:") - 5))
-                    Else
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("Menu:") + 6, line.Text.IndexOf(";") - line.Text.IndexOf("Menu:") - 5))
-                    End If
-                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                Else
-                    Dim fround As Boolean = True, oldpos As Integer, pos As Integer = line.Text.IndexOf(",")
-                    While pos > -1
-                        If fround Then
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("Menu:") + 6, pos - line.Text.IndexOf("Menu:") - 5))
-                            fround = False
-                        Else
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("Menu:", oldpos) + 6, pos - line.Text.IndexOf("Menu:", oldpos) - 5))
-                        End If
-                        oldpos = pos
-                        pos = line.Text.IndexOf(",", pos + 1)
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End While
-                    If line.Text.IndexOf(";") > -1 Then
-                        pos = line.Text.LastIndexOf("Menu:")
-                        tmp = Trim(Mid(line.Text, pos + 6, line.Text.IndexOf(";") - pos - 5))
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Menus.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End If
-                End If
-            ElseIf line.Text.IndexOf("Text:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
-                If line.Text.IndexOf(",") = -1 Then
-                    If line.Text.IndexOf(";") = -1 Then
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("Text:") + 6, line.Text.Length - line.Text.IndexOf("Text:") - 5))
-                    Else
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("Text:") + 6, line.Text.IndexOf(";") - line.Text.IndexOf("Text:") - 5))
-                    End If
-                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                Else
-                    Dim fround As Boolean = True, oldpos As Integer, pos As Integer = line.Text.IndexOf(",")
-                    While pos > -1
-                        If fround Then
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("Text:") + 6, pos - line.Text.IndexOf("Text:") - 5))
-                            fround = False
-                        Else
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("Text:", oldpos) + 6, pos - line.Text.IndexOf("Text:", oldpos) - 5))
-                        End If
-                        oldpos = pos
-                        pos = line.Text.IndexOf(",", pos + 1)
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End While
-                    If line.Text.IndexOf(";") > -1 Then
-                        pos = line.Text.LastIndexOf("Text:")
-                        tmp = Trim(Mid(line.Text, pos + 6, line.Text.IndexOf(";") - pos - 5))
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End If
-                End If
-            ElseIf line.Text.IndexOf("Text3D:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
-                If line.Text.IndexOf(",") = -1 Then
-                    If line.Text.IndexOf(";") = -1 Then
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("Text3D:") + 8, line.Text.Length - line.Text.IndexOf("Text3D:") - 7))
-                    Else
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("Text3D:") + 8, line.Text.IndexOf(";") - line.Text.IndexOf("Text3D:") - 7))
-                    End If
-                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                Else
-                    Dim fround As Boolean = True, oldpos As Integer, pos As Integer = line.Text.IndexOf(",")
-                    While pos > -1
-                        If fround Then
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("Text3D:") + 8, pos - line.Text.IndexOf("Text3D:") - 7))
-                            fround = False
-                        Else
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("Text3D:", oldpos) + 8, pos - line.Text.IndexOf("Text3D:", oldpos) - 7))
-                        End If
-                        oldpos = pos
-                        pos = line.Text.IndexOf(",", pos + 1)
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End While
-                    If line.Text.IndexOf(";") > -1 Then
-                        pos = line.Text.LastIndexOf("Text3D:")
-                        tmp = Trim(Mid(line.Text, pos + 8, line.Text.IndexOf(";") - pos - 7))
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Texts2.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End If
-                End If
-            ElseIf line.Text.IndexOf("Float:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
-                If line.Text.IndexOf(",") = -1 Then
-                    If line.Text.IndexOf(";") = -1 Then
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("Float:") + 7, line.Text.Length - line.Text.IndexOf("Float:") - 6))
-                    Else
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("Float:") + 7, line.Text.IndexOf(";") - line.Text.IndexOf("Float:") - 6))
-                    End If
-                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                Else
-                    Dim fround As Boolean = True, oldpos As Integer, pos As Integer = line.Text.IndexOf(",")
-                    While pos > -1
-                        If fround Then
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("Float:") + 7, pos - line.Text.IndexOf("Float:") - 6))
-                            fround = False
-                        Else
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("Float:", oldpos) + 7, pos - line.Text.IndexOf("Float:", oldpos) - 6))
-                        End If
-                        oldpos = pos
-                        pos = line.Text.IndexOf(",", pos + 1)
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End While
-                    If line.Text.IndexOf(";") > -1 Then
-                        pos = line.Text.LastIndexOf("Float:")
-                        tmp = Trim(Mid(line.Text, pos + 7, line.Text.IndexOf(";") - pos - 6))
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Floats.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End If
-                End If
-            ElseIf line.Text.IndexOf("DB:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
-                If line.Text.IndexOf(",") = -1 Then
-                    If line.Text.IndexOf(";") = -1 Then
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("DB:") + 3, line.Text.Length - line.Text.IndexOf("DB:") - 2))
-                    Else
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("DB:") + 3, line.Text.IndexOf(";") - line.Text.IndexOf("DB:") - 2))
-                    End If
-                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                Else
-                    Dim fround As Boolean = True, oldpos As Integer, pos As Integer = line.Text.IndexOf(",")
-                    While pos > -1
-                        If fround Then
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("DB:") + 3, pos - line.Text.IndexOf("DB:") - 2))
-                            fround = False
-                        Else
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("DB:", oldpos) + 3, pos - line.Text.IndexOf("DB:", oldpos) - 2))
-                        End If
-                        oldpos = pos
-                        pos = line.Text.IndexOf(",", pos + 1)
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End While
-                    If line.Text.IndexOf(";") > -1 Then
-                        pos = line.Text.LastIndexOf("DB:")
-                        tmp = Trim(Mid(line.Text, pos + 3, line.Text.IndexOf(";") - pos - 2))
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Dbs.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End If
-                End If
-            ElseIf line.Text.IndexOf("DBResult:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
-                If line.Text.IndexOf(",") = -1 Then
-                    If line.Text.IndexOf(";") = -1 Then
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("DBResult:") + 10, line.Text.Length - line.Text.IndexOf("DBResult:") - 8))
-                    Else
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("DBResult:") + 10, line.Text.IndexOf(";") - line.Text.IndexOf("DBResult:") - 8))
-                    End If
-                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                Else
-                    Dim fround As Boolean = True, oldpos As Integer, pos As Integer = line.Text.IndexOf(",")
-                    While pos > -1
-                        If fround Then
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("DBResult:") + 10, pos - line.Text.IndexOf("DBResult:") - 8))
-                            fround = False
-                        Else
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("DBResult:", oldpos) + 10, pos - line.Text.IndexOf("DBResult:", oldpos) - 8))
-                        End If
-                        oldpos = pos
-                        pos = line.Text.IndexOf(",", pos + 1)
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End While
-                    If line.Text.IndexOf(";") > -1 Then
-                        pos = line.Text.LastIndexOf("DBResult:")
-                        tmp = Trim(Mid(line.Text, pos + 10, line.Text.IndexOf(";") - pos - 8))
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.DbRes.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End If
-                End If
-            ElseIf line.Text.IndexOf("File:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
-                If line.Text.IndexOf(",") = -1 Then
-                    If line.Text.IndexOf(";") = -1 Then
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("File:") + 6, line.Text.Length - line.Text.IndexOf("File:") - 5))
-                    Else
-                        tmp = Trim(Mid(line.Text, line.Text.IndexOf("File:") + 6, line.Text.IndexOf(";") - line.Text.IndexOf("File:") - 5))
-                    End If
-                    If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                Else
-                    Dim fround As Boolean = True, oldpos As Integer, pos As Integer = line.Text.IndexOf(",")
-                    While pos > -1
-                        If fround Then
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("File:") + 6, pos - line.Text.IndexOf("File:") - 5))
-                            fround = False
-                        Else
-                            tmp = Trim(Mid(line.Text, line.Text.IndexOf("File:", oldpos) + 6, pos - line.Text.IndexOf("File:", oldpos) - 5))
-                        End If
-                        oldpos = pos
-                        pos = line.Text.IndexOf(",", pos + 1)
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End While
-                    If line.Text.IndexOf(";") > -1 Then
-                        pos = line.Text.LastIndexOf("File:")
-                        tmp = Trim(Mid(line.Text, pos + 6, line.Text.IndexOf(";") - pos - 5))
-                        If tmp.Length > 0 AndAlso tmp <> " " AndAlso Not Char.IsSymbol(tmp) AndAlso Not ACLists.Files.Contains(tmp) Then ACLists.Floats.Add(tmp)
-                    End If
-                End If
-            Else
-                Dim tDef As String, name As String, params As String(), func As PawnFunction
-                For Each def As CustomUserPublics In ACLists.UserDefinedPublics
-                    Dim M As Match = Regex.Match(line.Text, def.Regex)
-                    If M.Success Then
-                        tDef = def.Regex
-                        tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
-                        tDef = tDef.Remove(0, tDef.IndexOf(".+"))
-                        name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
-                        tDef = tDef.Remove(0, 2)
-                        tmp = tmp.Replace(name, "")
-                        name = name.Remove(name.Length - 1, 1)
-                        params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
-                        func = New PawnFunction(name, _Name.Replace(".inc", ":"), line.Number, params)
-                        If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
-                    End If
+                Dim value As String, Ms As MatchCollection = Regex.Matches(line.Text, "Menu:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(Menu:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Menus.Contains(value) Then ACLists.Menus.Add(value)
                 Next
+            ElseIf line.Text.IndexOf("Text:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(line.Text, "Text:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(Text:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts.Contains(value) Then ACLists.Texts.Add(value)
+                Next
+            ElseIf line.Text.IndexOf("Text3D:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(line.Text, "Text3D:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(Text3D:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Texts2.Contains(value) Then ACLists.Texts2.Add(value)
+                Next
+            ElseIf line.Text.IndexOf("Float:") > -1 AndAlso line.Text.IndexOf("cellmin") = -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(line.Text, "Float:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(Float:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Floats.Contains(value) Then ACLists.Floats.Add(value)
+                Next
+            ElseIf line.Text.IndexOf("DB:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(line.Text, "DB:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(DB:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Dbs.Contains(value) Then ACLists.Dbs.Add(value)
+                Next
+            ElseIf line.Text.IndexOf("DBResult:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(line.Text, "DBResult:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(DBResult:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.DbRes.Contains(value) Then ACLists.DbRes.Add(value)
+                Next
+            ElseIf line.Text.IndexOf("File:") > -1 AndAlso line.Text.IndexOf("(") = -1 AndAlso line.Text.IndexOf(")") = -1 Then
+                Dim value As String, Ms As MatchCollection = Regex.Matches(line.Text, "File:[^,;\s]+")
+                For Each M As Match In Ms
+                    value = Regex.Replace(M.Value, "(File:|[,;\s])", "")
+                    If value.Length > 0 AndAlso value <> " " AndAlso Not Char.IsSymbol(value) AndAlso Not ACLists.Files.Contains(value) Then ACLists.Files.Add(value)
+                Next
+            Else
+                If ACLists.UserDefinedPublics.Count > 0 Then
+                    Dim tDef As String, name As String, params As String(), func As PawnFunction
+                    For Each def As CustomUserPublics In ACLists.UserDefinedPublics
+                        Dim M As Match = Regex.Match(line.Text, def.Regex)
+                        If M.Success Then
+                            tDef = def.Regex
+                            tmp = M.Value.Remove(0, tDef.IndexOf(".+"))
+                            tDef = tDef.Remove(0, tDef.IndexOf(".+"))
+                            name = Regex.Match(tmp, Regex.Escape(Mid(tDef, 1, tDef.IndexOf(".+", 1))).Replace("\.", ".").Replace("\+", "+")).Value
+                            tDef = tDef.Remove(0, 2)
+                            tmp = tmp.Replace(name, "")
+                            name = name.Remove(name.Length - 1, 1)
+                            params = Regex.Split(Mid(tmp, 1, tmp.Length - 2), "[\s]?,[\s]?")
+                            func = New PawnFunction(name, _Name.Replace(".inc", ":"), line.Number, params)
+                            If Not TrueContainsFunction(ACLists.Functions, func) Then ACLists.Functions.Add(func)
+                        End If
+                    Next
+                End If
             End If
         Next
         Dim tmpstring As String = vbNullString
@@ -5618,166 +5708,7 @@ Public Class Instance
             tmpstring += item.Name & " "
         Next
         SyntaxHandle.Lexing.Keywords(3) = tmpstring
-        With Settings
-            Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
-            If .All Then
-                SyntaxHandle.BackColor = .BackColor
-                SyntaxHandle.Caret.Color = inverted
-                For i = 0 To 19
-                    Select Case i
-                        Case 1 To 7, 9, 10, 12, 15, 17 To 19
-                        Case Else
-                            SyntaxHandle.Styles(i).ForeColor = inverted
-                    End Select
-                    SyntaxHandle.Styles(i).BackColor = .BackColor
-                Next
-                With .H_Numbers
-                    SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("NUMBER").Bold = .Bold
-                    SyntaxHandle.Styles("NUMBER").Italic = .Italic
-                End With
-                With .H_String
-                    SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("STRING").Bold = .Bold
-                    SyntaxHandle.Styles("STRING").Italic = .Italic
-                End With
-                With .H_String2
-                    SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
-                    SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
-                End With
-                With .H_Operator
-                    SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("OPERATOR").Bold = .Bold
-                    SyntaxHandle.Styles("OPERATOR").Italic = .Italic
-                End With
-                With .H_Chars
-                    SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("CHARACTER").Bold = .Bold
-                    SyntaxHandle.Styles("CHARACTER").Italic = .Italic
-                End With
-                With .H_Class
-                    SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("GLOBALCLASS").Font = Font
-                    SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
-                    SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
-                End With
-                With .H_Preproc
-                    SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("PREPROCESSOR").Font = Font
-                    SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
-                    SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
-                End With
-                With .H_Comment
-                    SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENT").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENT").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
-                End With
-                SyntaxHandle.Lexing.Colorize()
-            Else
-                Font = .cFont
-                SyntaxHandle.Encoding = .Enc
-                SyntaxHandle.BackColor = .BackColor
-                SyntaxHandle.Caret.Color = inverted
-                For i = 0 To 19
-                    Select Case i
-                        Case 1 To 7, 9, 10, 12, 15, 17 To 19
-                        Case Else
-                            SyntaxHandle.Styles(i).ForeColor = inverted
-                    End Select
-                    SyntaxHandle.Styles(i).BackColor = .BackColor
-                Next
-                With .H_Numbers
-                    SyntaxHandle.Styles("NUMBER").BackColor = .BackColor
-                    SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("NUMBER").Bold = .Bold
-                    SyntaxHandle.Styles("NUMBER").Italic = .Italic
-                End With
-                With .H_String
-                    SyntaxHandle.Styles("STRING").BackColor = .BackColor
-                    SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("STRING").Bold = .Bold
-                    SyntaxHandle.Styles("STRING").Italic = .Italic
-                End With
-                With .H_String2
-                    SyntaxHandle.Styles("STRINGEOL").BackColor = .BackColor
-                    SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
-                    SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
-                End With
-                With .H_Operator
-                    SyntaxHandle.Styles("OPERATOR").BackColor = .BackColor
-                    SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("OPERATOR").Bold = .Bold
-                    SyntaxHandle.Styles("OPERATOR").Italic = .Italic
-                End With
-                With .H_Chars
-                    SyntaxHandle.Styles("CHARACTER").BackColor = .BackColor
-                    SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("CHARACTER").Bold = .Bold
-                    SyntaxHandle.Styles("CHARACTER").Italic = .Italic
-                End With
-                With .H_Class
-                    SyntaxHandle.Styles("GLOBALCLASS").BackColor = .BackColor
-                    SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("GLOBALCLASS").Font = Font
-                    SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
-                    SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
-                End With
-                With .H_Preproc
-                    SyntaxHandle.Styles("PREPROCESSOR").BackColor = .BackColor
-                    SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("PREPROCESSOR").Font = Font
-                    SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
-                    SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
-                End With
-                With .H_Comment
-                    SyntaxHandle.Styles("COMMENT").BackColor = .BackColor
-                    SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENT").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENT").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTLINE").BackColor = .BackColor
-                    SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTDOC").BackColor = .BackColor
-                    SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTLINEDOC").BackColor = .BackColor
-                    SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").BackColor = .BackColor
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").BackColor = .BackColor
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
-                    SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
-                End With
-                SyntaxHandle.Lexing.Colorize()
-            End If
-        End With
-        For Each item In ACLists.Floats
-            If item = "cellmin" Then ACLists.Floats.Remove(item)
-        Next
+        Colorize()
         If Errors.Count Then
             Main.ListView1.Items.Clear()
             Dim Header As Boolean() = New Boolean() {True, True, True}

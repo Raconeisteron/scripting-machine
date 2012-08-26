@@ -237,7 +237,6 @@ Partial Class Tools
         Me.Button18 = New System.Windows.Forms.Button()
         Me.Panel6 = New System.Windows.Forms.Panel()
         Me.Label81 = New System.Windows.Forms.Label()
-        Me.CheckBox10 = New System.Windows.Forms.CheckBox()
         Me.Button17 = New System.Windows.Forms.Button()
         Me.CheckBox8 = New System.Windows.Forms.CheckBox()
         Me.Button16 = New System.Windows.Forms.Button()
@@ -371,6 +370,7 @@ Partial Class Tools
         Me.Label90 = New System.Windows.Forms.Label()
         Me.PictureBox11 = New System.Windows.Forms.PictureBox()
         Me.OFD = New System.Windows.Forms.OpenFileDialog()
+        Me.CheckBox10 = New System.Windows.Forms.CheckBox()
         Me.TabControl1.SuspendLayout()
         Me.TabPage6.SuspendLayout()
         Me.GroupBox4.SuspendLayout()
@@ -2443,12 +2443,12 @@ Partial Class Tools
         Me.TrackBar14.BackColor = System.Drawing.Color.White
         Me.TrackBar14.Location = New System.Drawing.Point(125, 267)
         Me.TrackBar14.Maximum = 1024
-        Me.TrackBar14.Minimum = 451
+        Me.TrackBar14.Minimum = 461
         Me.TrackBar14.Name = "TrackBar14"
         Me.TrackBar14.Orientation = System.Windows.Forms.Orientation.Vertical
         Me.TrackBar14.Size = New System.Drawing.Size(45, 187)
         Me.TrackBar14.TabIndex = 65
-        Me.TrackBar14.Value = 451
+        Me.TrackBar14.Value = 461
         '
         'TrackBar13
         '
@@ -2498,16 +2498,6 @@ Partial Class Tools
         Me.Label81.Size = New System.Drawing.Size(59, 13)
         Me.Label81.TabIndex = 60
         Me.Label81.Text = "Area Color:"
-        '
-        'CheckBox10
-        '
-        Me.CheckBox10.AutoSize = True
-        Me.CheckBox10.Location = New System.Drawing.Point(12, 169)
-        Me.CheckBox10.Name = "CheckBox10"
-        Me.CheckBox10.Size = New System.Drawing.Size(68, 17)
-        Me.CheckBox10.TabIndex = 59
-        Me.CheckBox10.Text = "Fill Areas"
-        Me.CheckBox10.UseVisualStyleBackColor = True
         '
         'Button17
         '
@@ -3793,6 +3783,16 @@ Partial Class Tools
         Me.PictureBox11.TabIndex = 6
         Me.PictureBox11.TabStop = False
         '
+        'CheckBox10
+        '
+        Me.CheckBox10.AutoSize = True
+        Me.CheckBox10.Location = New System.Drawing.Point(12, 169)
+        Me.CheckBox10.Name = "CheckBox10"
+        Me.CheckBox10.Size = New System.Drawing.Size(68, 17)
+        Me.CheckBox10.TabIndex = 59
+        Me.CheckBox10.Text = "Fill Areas"
+        Me.CheckBox10.UseVisualStyleBackColor = True
+        '
         'Tools
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -4023,7 +4023,6 @@ Partial Class Tools
     Friend WithEvents Button18 As System.Windows.Forms.Button
     Friend WithEvents Panel6 As System.Windows.Forms.Panel
     Friend WithEvents Label81 As System.Windows.Forms.Label
-    Friend WithEvents CheckBox10 As System.Windows.Forms.CheckBox
     Friend WithEvents Button17 As System.Windows.Forms.Button
     Friend WithEvents CheckBox8 As System.Windows.Forms.CheckBox
     Friend WithEvents Button16 As System.Windows.Forms.Button
@@ -4232,4 +4231,5 @@ Partial Class Tools
     Friend WithEvents Label89 As System.Windows.Forms.Label
     Friend WithEvents CheckBox13 As System.Windows.Forms.CheckBox
     Friend WithEvents PictureBox13 As System.Windows.Forms.PictureBox
+    Friend WithEvents CheckBox10 As System.Windows.Forms.CheckBox
 End Class

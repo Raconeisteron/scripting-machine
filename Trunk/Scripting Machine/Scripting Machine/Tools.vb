@@ -59,6 +59,7 @@ Public Class Tools
             maxY As Integer, _
             xForward As Boolean, _
             yForward As Boolean, _
+            res As Integer, _
             Lock As Boolean
     End Structure
 
@@ -3416,11 +3417,13 @@ Public Class Tools
     Private Sub PictureBox6_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PictureBox6.MouseDown
         Select Case e.Button
             Case Windows.Forms.MouseButtons.Left
+                If Not CheckBox8.Checked Then Areas.Clear()
                 With Selection
                     .xForward = True
                     .yForward = True
                     .minX = e.Location.X
                     .minY = e.Location.Y
+                    .res = TrackBar14.Value
                     .Lock = True
                 End With
                 If Not CheckBox8.Checked Then PictureBox6.Image = My.Resources.Map
@@ -3567,7 +3570,7 @@ Public Class Tools
                 TextBox24.Text = TextBox24.Text.Replace(",", ".")
                 TextBox25.Text = TextBox25.Text.Replace(",", ".")
                 PictureBox6.Refresh()
-                PictureBox6.CreateGraphics.DrawRectangle(New Pen(Settings.C_Area.Hex), New Rectangle(.minX, .minY, .maxX - .minX, .maxY - .minY))
+                PictureBox6.CreateGraphics.DrawRectangle(New Pen(Settings.C_Area.Hex, 1.5), New Rectangle(.minX, .minY, .maxX - .minX, .maxY - .minY))
                 PictureBox6.CreateGraphics.Dispose()
             End With
         End If
@@ -3575,26 +3578,25 @@ Public Class Tools
 
     Private Sub PictureBox6_MouseUp(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PictureBox6.MouseUp
         If Selection.Lock = True Then
-            Dim g As Graphics, tmp As Single
+            Dim g As Graphics, tmp As Single, area As AreaInfo
             g = Graphics.FromImage(PictureBox6.Image)
             tmp = 2048 / TrackBar14.Value
-            If CheckBox8.Checked Then
-                Dim area As New AreaInfo
-                area.Index = Areas.Count
-                area.Pos = New Rectangle(Selection.minX, Selection.minY, Selection.maxX - Selection.minX, Selection.maxY - Selection.minY)
-                area.Color = Settings.C_Area
-                area.Min = New PointF(TextBox22.Text.Replace(".", ","), TextBox23.Text.Replace(".", ","))
-                area.Max = New PointF(TextBox24.Text.Replace(".", ","), TextBox25.Text.Replace(".", ","))
-                area.Res = TrackBar14.Value
-                If RadioButton18.Checked Then
-                    area.format = AreaFormat.Area
-                Else
-                    area.format = AreaFormat.WorldBounds
-                End If
-                Areas.Add(area)
+
+            area.Index = Areas.Count
+            area.Pos = New Rectangle(Selection.minX, Selection.minY, Selection.maxX - Selection.minX, Selection.maxY - Selection.minY)
+            area.Color = Settings.C_Area
+            area.Min = New PointF(TextBox22.Text.Replace(".", ","), TextBox23.Text.Replace(".", ","))
+            area.Max = New PointF(TextBox24.Text.Replace(".", ","), TextBox25.Text.Replace(".", ","))
+            area.Res = TrackBar14.Value
+            If RadioButton18.Checked Then
+                area.format = AreaFormat.Area
+            Else
+                area.format = AreaFormat.WorldBounds
             End If
+            Areas.Add(area)
+
             If Not CheckBox10.Checked Then
-                g.DrawRectangle(New Pen(Settings.C_Area.Hex, 2.0), Selection.minX * tmp, Selection.minY * tmp, (Selection.maxX - Selection.minX) * tmp, (Selection.maxY - Selection.minY) * tmp)
+                g.DrawRectangle(New Pen(Settings.C_Area.Hex, 1.5), Selection.minX * tmp, Selection.minY * tmp, (Selection.maxX - Selection.minX) * tmp, (Selection.maxY - Selection.minY) * tmp)
             Else
                 Dim XX As Single = Selection.minX * tmp
                 g.FillRectangle(New SolidBrush(Settings.C_Area.Hex), Selection.minX * tmp, Selection.minY * tmp, (Selection.maxX - Selection.minX) * tmp, (Selection.maxY - Selection.minY) * tmp)
@@ -3710,6 +3712,11 @@ Public Class Tools
 #Region "Zoom"
 
     Private Sub TrackBar14_Scroll(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TrackBar14.Scroll
+        Dim tmpV(1) As Integer, tmpH(1) As Integer
+        tmpH(0) = TrackBar12.Value
+        tmpV(0) = TrackBar13.Value
+        tmpH(1) = TrackBar12.Maximum
+        tmpV(1) = TrackBar13.Minimum
         If TrackBar14.Value = 461 Then
             TrackBar12.Enabled = False
             TrackBar13.Enabled = False
@@ -3720,9 +3727,9 @@ Public Class Tools
             TrackBar13.Minimum = (TrackBar14.Value - 461) * -1
         End If
         PictureBox6.Size = New Point(TrackBar14.Value, TrackBar14.Value)
-        PictureBox6.Location = New Point(0, 0)
-        TrackBar12.Value = TrackBar12.Minimum
-        TrackBar13.Value = TrackBar13.Maximum
+        TrackBar12.Value = Round((TrackBar12.Maximum * tmpH(0) / tmpH(1)))
+        TrackBar13.Value = Round((TrackBar13.Minimum * tmpV(0) / tmpV(1)))
+        PictureBox6.Location = New Point(TrackBar12.Value * -1, TrackBar13.Value)
     End Sub
 
     Private Sub TrackBar12_Scroll(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TrackBar12.Scroll
@@ -3740,71 +3747,44 @@ Public Class Tools
     Private Sub CheckBox8_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox8.CheckedChanged
         If CheckBox8.Checked Then
             Button17.Enabled = True
-            If TextBox22.Text.Length > 0 Then
-                Dim area As New AreaInfo
-                area.Index = Areas.Count
-                area.Pos = New Rectangle(Selection.minX, Selection.minY, Selection.maxX - Selection.minX, Selection.maxY - Selection.minY)
-                area.Color = Settings.C_Area
-                If RadioButton18.Checked Then
-                    area.format = AreaFormat.Area
-                Else
-                    area.format = AreaFormat.WorldBounds
-                End If
-                Areas.Add(area)
-            End If
         Else
             Button17.Enabled = False
-            Areas.Clear()
             PictureBox6.Image = My.Resources.Map
-            Dim res As Single, g As Graphics = Graphics.FromImage(PictureBox6.Image)
-            res = 2048 / TrackBar14.Value
-            g.FillRectangle(New SolidBrush(Settings.C_Area.Hex), Selection.minX * res, Selection.minY * res, (Selection.maxX - Selection.minX) * res, (Selection.maxY - Selection.minY) * res)
+            Dim Area As AreaInfo, res As Single, g As Graphics = Graphics.FromImage(PictureBox6.Image)
+            Area = Areas(Areas.Count - 1)
+            Areas.Clear()
+            Areas.Add(Area)
+            If CheckBox10.Checked Then
+                res = 2048 / Area.Res
+                g.FillRectangle(New SolidBrush(Area.Color.Hex), Area.Pos.X * res, Area.Pos.Y * res, Area.Pos.Width * res, Area.Pos.Height * res)
+            Else
+                res = 2048 / Area.Res
+                g.DrawRectangle(New Pen(Area.Color.Hex, 1.5), Area.Pos.X * res, Area.Pos.Y * res, Area.Pos.Width * res, Area.Pos.Height * res)
+            End If
             g.Dispose()
-            PictureBox6.Refresh()
         End If
         Settings.A_MSelect = CheckBox8.Checked
     End Sub
 
     Private Sub CheckBox10_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox10.CheckedChanged
-        Dim res As Single = 2048 / TrackBar14.Value
+        PictureBox6.Image = My.Resources.Map
+        Dim res As Single, g As Graphics = Graphics.FromImage(PictureBox6.Image)
         If CheckBox10.Checked Then
-            If CheckBox8.Checked Then
-                If Not Areas Is Nothing AndAlso Areas.Count <> 0 Then
-                    PictureBox6.Image = My.Resources.Map
-                    Dim g As Graphics = Graphics.FromImage(PictureBox6.Image)
-                    For Each Area As AreaInfo In Areas
-                        Dim XX As Single = Area.Pos.X * Area.Res
-                        g.FillRectangle(New SolidBrush(Area.Color.Hex), Area.Pos.X * res, Area.Pos.Y * res, Area.Pos.Width * res, Area.Pos.Height * res)
-                    Next
-                    g.Dispose()
-                    PictureBox6.Refresh()
-                End If
-            Else
-                PictureBox6.Image = My.Resources.Map
-                Dim g As Graphics = Graphics.FromImage(PictureBox6.Image)
-                g.FillRectangle(New SolidBrush(Settings.C_Area.Hex), Selection.minX * res, Selection.minY * res, (Selection.maxX - Selection.minX) * res, (Selection.maxY - Selection.minY) * res)
-                g.Dispose()
-                PictureBox6.Refresh()
+            If Not Areas Is Nothing AndAlso Areas.Count <> 0 Then
+                For Each Area As AreaInfo In Areas
+                    res = 2048 / Area.Res
+                    g.FillRectangle(New SolidBrush(Area.Color.Hex), Area.Pos.X * res, Area.Pos.Y * res, Area.Pos.Width * res, Area.Pos.Height * res)
+                Next
             End If
         Else
-            If CheckBox8.Checked Then
-                If Not Areas Is Nothing AndAlso Areas.Count <> 0 Then
-                    PictureBox6.Image = My.Resources.Map
-                    Dim g As Graphics = Graphics.FromImage(PictureBox6.Image)
-                    For Each Area As AreaInfo In Areas
-                        g.DrawRectangle(New Pen(Area.Color.Hex), Area.Pos.X * res, Area.Pos.Y * res, Area.Pos.Width * res, Area.Pos.Height * res)
-                    Next
-                    g.Dispose()
-                    PictureBox6.Refresh()
-                End If
-            Else
-                PictureBox6.Image = My.Resources.Map
-                Dim g As Graphics = Graphics.FromImage(PictureBox6.Image)
-                g.DrawRectangle(New Pen(Settings.C_Area.Hex), Selection.minX * res, Selection.minY * res, (Selection.maxX - Selection.minX) * res, (Selection.maxY - Selection.minY) * res)
-                g.Dispose()
-                PictureBox6.Refresh()
+            If Not Areas Is Nothing AndAlso Areas.Count <> 0 Then
+                For Each Area As AreaInfo In Areas
+                    res = 2048 / Area.Res
+                    g.DrawRectangle(New Pen(Area.Color.Hex, 1.5), Area.Pos.X * res, Area.Pos.Y * res, Area.Pos.Width * res, Area.Pos.Height * res)
+                Next
             End If
         End If
+        g.Dispose()
         Settings.A_Fill = CheckBox10.Checked
     End Sub
 
@@ -5003,7 +4983,7 @@ Public Class Tools
                     Try
                         Select Case Settings.Images
                             Case Imgs.iDefault
-                                PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID)
+                                PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID - 400)
                             Case Imgs.iFolder
                                 Dim path As String = String.Format(Settings.URL_Veh, vehicle.ID)
                                 If File.Exists(path) Then
@@ -5019,7 +4999,7 @@ Public Class Tools
                             PictureBox8.Image = My.Resources.N_A
                         Else
                             Try
-                                PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID)
+                                PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID - 400)
                             Catch exx As Exception
                                 PictureBox8.Image = My.Resources.N_A
                             End Try
@@ -5043,7 +5023,7 @@ Public Class Tools
                         Try
                             Select Case Settings.Images
                                 Case Imgs.iDefault
-                                    PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID)
+                                    PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID - 400)
                                 Case Imgs.iFolder
                                     Dim path As String = String.Format(Settings.URL_Veh, vehicle.ID)
                                     If File.Exists(path) Then
@@ -5059,7 +5039,7 @@ Public Class Tools
                                 PictureBox8.Image = My.Resources.N_A
                             Else
                                 Try
-                                    PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID)
+                                    PictureBox8.Image = GetImageFromResource(ImageTypes.Vehicle, vehicle.ID - 400)
                                 Catch exx As Exception
                                     PictureBox8.Image = My.Resources.N_A
                                 End Try

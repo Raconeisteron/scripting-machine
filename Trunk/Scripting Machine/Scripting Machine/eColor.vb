@@ -238,7 +238,7 @@ Public Class eColor
                 Settings.G_Close_Color.Hex = Panel1.BackColor
                 Settings.G_Close_Color.Name = tmp
             Case (CC.Back)
-                If TrackBar4.Value = 0 Then TrackBar4.Value = 1
+                If TrackBar4.Value <> 255 Then TrackBar4.Value = 255
                 Options.Panel15.BackColor = Panel1.BackColor
         End Select
         Me.Hide()
@@ -270,6 +270,10 @@ Public Class eColor
                     ComboBox1.Enabled = False
                 End If
             End With
+        ElseIf gSender = CC.Back Then
+            TrackBar4.Enabled = False
+            TextBox4.Enabled = False
+            Label4.Enabled = False
         Else
             TrackBar4.Enabled = True
             TextBox4.Enabled = True

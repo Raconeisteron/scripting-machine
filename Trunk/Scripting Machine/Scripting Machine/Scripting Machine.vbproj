@@ -27,7 +27,7 @@
     <OutputType>WinExe</OutputType>
     <StartupObject>Scripting_Machine.My.MyApplication</StartupObject>
     <RootNamespace>Scripting_Machine</RootNamespace>
-    <AssemblyName>Scripting Machine Tracker</AssemblyName>
+    <AssemblyName>Scripting Machine</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>WindowsForms</MyType>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
@@ -59,7 +59,7 @@
     <DefineDebug>false</DefineDebug>
     <DefineTrace>false</DefineTrace>
     <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>Scripting Machine Tracker.xml</DocumentationFile>
+    <DocumentationFile>Scripting Machine.xml</DocumentationFile>
     <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42025,42032,42036</NoWarn>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <WarningLevel>1</WarningLevel>
@@ -76,7 +76,7 @@
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DocumentationFile>Scripting Machine Tracker.xml</DocumentationFile>
+    <DocumentationFile>Scripting Machine.xml</DocumentationFile>
     <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42025,42032,42036</NoWarn>
     <WarningLevel>1</WarningLevel>
     <WarningsAsErrors>

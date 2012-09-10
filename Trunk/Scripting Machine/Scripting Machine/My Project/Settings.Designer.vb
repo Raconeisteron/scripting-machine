@@ -495,6 +495,18 @@ Namespace My
                 Me("H_Preproc") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("True")>  _
+        Public Property DeleteXml() As Boolean
+            Get
+                Return CType(Me("DeleteXml"),Boolean)
+            End Get
+            Set
+                Me("DeleteXml") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

@@ -54,19 +54,34 @@ Public Class Options
             .AreaCreateOutput = TextBox1.Text
             .AreaShowOutput = TextBox2.Text
             .BoundsOutput = TextBox3.Text
-            If CheckBox4.Checked Then
-                .Assoc = True
-                If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
-                key.CreateSubKey(".pwn").SetValue("", ".pwn", Microsoft.Win32.RegistryValueKind.String)
-                key.CreateSubKey(".pwn\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
-                If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
-                key.CreateSubKey(".inc").SetValue("", ".inc", Microsoft.Win32.RegistryValueKind.String)
-                key.CreateSubKey(".inc\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
-            Else
+            Try
+                If CheckBox4.Checked Then
+                    .Assoc = True
+                    If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
+                    key.CreateSubKey(".pwn").SetValue("", ".pwn", Microsoft.Win32.RegistryValueKind.String)
+                    key.CreateSubKey(".pwn\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
+                    If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
+                    key.CreateSubKey(".inc").SetValue("", ".inc", Microsoft.Win32.RegistryValueKind.String)
+                    key.CreateSubKey(".inc\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
+                Else
+                    .Assoc = False
+                    If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
+                    If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
+                End If
+            Catch ex As Exception
                 .Assoc = False
-                If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
-                If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
-            End If
+                CheckBox4.Checked = False
+                Select Case Settings.Language
+                    Case Languages.English
+                        MsgBox("Could not generate/delete the keys to associate a program with .pwn and .inc files", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Español
+                        MsgBox("No se pudo generar/eliminar las claves de asociacion del programa con los archivos .pwn y .inc", MsgBoxStyle.Critical, "Error")
+                    Case Languages.Portuguêse
+                        MsgBox("Não foi possível gerar/apagar as chaves para associar um programa com .pwn e .inc arquivos", MsgBoxStyle.Critical, "Erro")
+                    Case Else
+                        MsgBox("Could not generate/löschen Sie die Tasten, um ein Programm assoziieren .pwn und .inc Dateien", MsgBoxStyle.Critical, "Error")
+                End Select
+            End Try
             If RadioButton5.Checked Then
                 .Images = Imgs.iDefault
             ElseIf RadioButton6.Checked Then
@@ -159,7 +174,7 @@ Public Class Options
                 .Bold = CheckBox22.Checked
                 .Italic = CheckBox3.Checked
             End With
-            .BackColor = Panel15.BackColor
+            .BackColor = Color.FromArgb(255, Panel15.BackColor.R, Panel15.BackColor.G, Panel15.BackColor.B)
 
             If RadioButton8.Checked Then
                 .Enc = System.Text.Encoding.UTF8
@@ -170,6 +185,7 @@ Public Class Options
             Else
                 .Enc = System.Text.Encoding.Unicode
             End If
+            .DelXml = CheckBox26.Checked
             Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
             If CheckBox23.Checked Then
                 For Each inst As Instance In Instances
@@ -460,6 +476,7 @@ Public Class Options
         CheckBox8.Checked = False
         CheckBox9.Checked = True
         CheckBox23.Checked = False
+        CheckBox26.Checked = True
         ComboBox2.SelectedItem = 4
         ComboBox1.SelectedItem = 0
         TextBox1.Text = "GangZoneCreate({0}, {1}, {2}, {3});"
@@ -531,202 +548,221 @@ Public Class Options
     Private Sub Panel1_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel1.Click
         gSender = CC.H_NF
         With eColor
-            .Show()
             .Panel1.BackColor = Panel1.BackColor
             .TrackBar1.Value = Panel1.BackColor.R
             .TrackBar2.Value = Panel1.BackColor.G
             .TrackBar3.Value = Panel1.BackColor.B
             .TrackBar4.Value = Panel1.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel2_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel2.Click
         gSender = CC.H_NB
         With eColor
-            .Show()
             .Panel1.BackColor = Panel2.BackColor
             .TrackBar1.Value = Panel2.BackColor.R
             .TrackBar2.Value = Panel2.BackColor.G
             .TrackBar3.Value = Panel2.BackColor.B
             .TrackBar4.Value = Panel2.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel3_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel3.Click
         gSender = CC.H_SB
         With eColor
-            .Show()
             .Panel1.BackColor = Panel3.BackColor
             .TrackBar1.Value = Panel3.BackColor.R
             .TrackBar2.Value = Panel3.BackColor.G
             .TrackBar3.Value = Panel3.BackColor.B
             .TrackBar4.Value = Panel3.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel4_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel4.Click
         gSender = CC.H_SF
         With eColor
-            .Show()
             .Panel1.BackColor = Panel4.BackColor
             .TrackBar1.Value = Panel4.BackColor.R
             .TrackBar2.Value = Panel4.BackColor.G
             .TrackBar3.Value = Panel4.BackColor.B
             .TrackBar4.Value = Panel4.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel5_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel5.Click
         gSender = CC.H_S2B
         With eColor
-            .Show()
             .Panel1.BackColor = Panel5.BackColor
             .TrackBar1.Value = Panel5.BackColor.R
             .TrackBar2.Value = Panel5.BackColor.G
             .TrackBar3.Value = Panel5.BackColor.B
             .TrackBar4.Value = Panel5.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel6_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel6.Click
         gSender = CC.H_S2F
         With eColor
-            .Show()
             .Panel1.BackColor = Panel6.BackColor
             .TrackBar1.Value = Panel6.BackColor.R
             .TrackBar2.Value = Panel6.BackColor.G
             .TrackBar3.Value = Panel6.BackColor.B
             .TrackBar4.Value = Panel6.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel7_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel7.Click
         gSender = CC.H_OB
         With eColor
-            .Show()
             .Panel1.BackColor = Panel7.BackColor
             .TrackBar1.Value = Panel7.BackColor.R
             .TrackBar2.Value = Panel7.BackColor.G
             .TrackBar3.Value = Panel7.BackColor.B
             .TrackBar4.Value = Panel7.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel8_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel8.Click
         gSender = CC.H_OF
         With eColor
-            .Show()
             .Panel1.BackColor = Panel8.BackColor
             .TrackBar1.Value = Panel8.BackColor.R
             .TrackBar2.Value = Panel8.BackColor.G
             .TrackBar3.Value = Panel8.BackColor.B
             .TrackBar4.Value = Panel8.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel9_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel9.Click
         gSender = CC.H_CHB
         With eColor
-            .Show()
             .Panel1.BackColor = Panel9.BackColor
             .TrackBar1.Value = Panel9.BackColor.R
             .TrackBar2.Value = Panel9.BackColor.G
             .TrackBar3.Value = Panel9.BackColor.B
             .TrackBar4.Value = Panel9.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel10_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel10.Click
         gSender = CC.H_CHF
         With eColor
-            .Show()
             .Panel1.BackColor = Panel10.BackColor
             .TrackBar1.Value = Panel10.BackColor.R
             .TrackBar2.Value = Panel10.BackColor.G
             .TrackBar3.Value = Panel10.BackColor.B
             .TrackBar4.Value = Panel10.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel11_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel11.Click
         gSender = CC.H_CLB
         With eColor
-            .Show()
             .Panel1.BackColor = Panel11.BackColor
             .TrackBar1.Value = Panel11.BackColor.R
             .TrackBar2.Value = Panel11.BackColor.G
             .TrackBar3.Value = Panel11.BackColor.B
             .TrackBar4.Value = Panel11.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel12_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel12.Click
         gSender = CC.H_CLF
-        eColor.Show()
-        eColor.Panel1.BackColor = Panel12.BackColor
-        eColor.TrackBar1.Value = Panel12.BackColor.R
-        eColor.TrackBar2.Value = Panel12.BackColor.G
-        eColor.TrackBar3.Value = Panel12.BackColor.B
-        eColor.TrackBar4.Value = Panel12.BackColor.A
+        With eColor
+            .Panel1.BackColor = Panel12.BackColor
+            .TrackBar1.Value = Panel12.BackColor.R
+            .TrackBar2.Value = Panel12.BackColor.G
+            .TrackBar3.Value = Panel12.BackColor.B
+            .TrackBar4.Value = Panel12.BackColor.A
+            .Owner = Me
+            .Show()
+        End With
     End Sub
 
     Private Sub Panel13_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel13.Click
         gSender = CC.H_CMF
         With eColor
-            .Show()
             .Panel1.BackColor = Panel13.BackColor
             .TrackBar1.Value = Panel13.BackColor.R
             .TrackBar2.Value = Panel13.BackColor.G
             .TrackBar3.Value = Panel13.BackColor.B
             .TrackBar4.Value = Panel13.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel14_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel14.Click
         gSender = CC.H_CMB
         With eColor
-            .Show()
             .Panel1.BackColor = Panel14.BackColor
             .TrackBar1.Value = Panel14.BackColor.R
             .TrackBar2.Value = Panel14.BackColor.G
             .TrackBar3.Value = Panel14.BackColor.B
             .TrackBar4.Value = Panel14.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel15_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel15.Click
         gSender = CC.Back
         With eColor
-            .Show()
             .Panel1.BackColor = Panel15.BackColor
             .TrackBar1.Value = Panel15.BackColor.R
             .TrackBar2.Value = Panel15.BackColor.G
             .TrackBar3.Value = Panel15.BackColor.B
             .TrackBar4.Value = Panel15.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel16_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel16.Click
         gSender = CC.H_PRE_F
         With eColor
-            .Show()
             .Panel1.BackColor = Panel16.BackColor
             .TrackBar1.Value = Panel16.BackColor.R
             .TrackBar2.Value = Panel16.BackColor.G
             .TrackBar3.Value = Panel16.BackColor.B
             .TrackBar4.Value = Panel16.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 
     Private Sub Panel17_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles Panel17.Click
         gSender = CC.H_PRE_B
         With eColor
-            .Show()
             .Panel1.BackColor = Panel17.BackColor
             .TrackBar1.Value = Panel17.BackColor.R
             .TrackBar2.Value = Panel17.BackColor.G
             .TrackBar3.Value = Panel17.BackColor.B
             .TrackBar4.Value = Panel17.BackColor.A
+            .Owner = Me
+            .Show()
         End With
     End Sub
 

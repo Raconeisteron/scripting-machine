@@ -151,6 +151,7 @@ Partial Class Options
         Me.Label25 = New System.Windows.Forms.Label()
         Me.Panel17 = New System.Windows.Forms.Panel()
         Me.TabPage5 = New System.Windows.Forms.TabPage()
+        Me.CheckBox26 = New System.Windows.Forms.CheckBox()
         Me.TextBox10 = New System.Windows.Forms.TextBox()
         Me.Label8 = New System.Windows.Forms.Label()
         Me.TextBox9 = New System.Windows.Forms.TextBox()
@@ -1336,6 +1337,7 @@ Partial Class Options
         '
         'TabPage5
         '
+        Me.TabPage5.Controls.Add(Me.CheckBox26)
         Me.TabPage5.Controls.Add(Me.TextBox10)
         Me.TabPage5.Controls.Add(Me.Label8)
         Me.TabPage5.Controls.Add(Me.TextBox9)
@@ -1347,6 +1349,16 @@ Partial Class Options
         Me.TabPage5.TabIndex = 2
         Me.TabPage5.Text = "Compiler"
         Me.TabPage5.UseVisualStyleBackColor = True
+        '
+        'CheckBox26
+        '
+        Me.CheckBox26.AutoSize = True
+        Me.CheckBox26.Location = New System.Drawing.Point(13, 82)
+        Me.CheckBox26.Name = "CheckBox26"
+        Me.CheckBox26.Size = New System.Drawing.Size(94, 17)
+        Me.CheckBox26.TabIndex = 5
+        Me.CheckBox26.Text = "Delete .xml file"
+        Me.CheckBox26.UseVisualStyleBackColor = True
         '
         'TextBox10
         '
@@ -1569,4 +1581,5 @@ Partial Class Options
     Friend WithEvents Label24 As System.Windows.Forms.Label
     Friend WithEvents Label25 As System.Windows.Forms.Label
     Friend WithEvents Panel17 As System.Windows.Forms.Panel
+    Friend WithEvents CheckBox26 As System.Windows.Forms.CheckBox
 End Class

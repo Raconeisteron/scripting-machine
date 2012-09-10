@@ -237,6 +237,7 @@ Partial Class Tools
         Me.Button18 = New System.Windows.Forms.Button()
         Me.Panel6 = New System.Windows.Forms.Panel()
         Me.Label81 = New System.Windows.Forms.Label()
+        Me.CheckBox10 = New System.Windows.Forms.CheckBox()
         Me.Button17 = New System.Windows.Forms.Button()
         Me.CheckBox8 = New System.Windows.Forms.CheckBox()
         Me.Button16 = New System.Windows.Forms.Button()
@@ -370,7 +371,6 @@ Partial Class Tools
         Me.Label90 = New System.Windows.Forms.Label()
         Me.PictureBox11 = New System.Windows.Forms.PictureBox()
         Me.OFD = New System.Windows.Forms.OpenFileDialog()
-        Me.CheckBox10 = New System.Windows.Forms.CheckBox()
         Me.TabControl1.SuspendLayout()
         Me.TabPage6.SuspendLayout()
         Me.GroupBox4.SuspendLayout()
@@ -1132,7 +1132,7 @@ Partial Class Tools
         'TextBox48
         '
         Me.TextBox48.Enabled = False
-        Me.TextBox48.Location = New System.Drawing.Point(514, 267)
+        Me.TextBox48.Location = New System.Drawing.Point(521, 267)
         Me.TextBox48.Name = "TextBox48"
         Me.TextBox48.Size = New System.Drawing.Size(59, 20)
         Me.TextBox48.TabIndex = 88
@@ -1142,7 +1142,7 @@ Partial Class Tools
         '
         Me.Label39.AutoSize = True
         Me.Label39.Enabled = False
-        Me.Label39.Location = New System.Drawing.Point(383, 270)
+        Me.Label39.Location = New System.Drawing.Point(365, 270)
         Me.Label39.Name = "Label39"
         Me.Label39.Size = New System.Drawing.Size(125, 13)
         Me.Label39.TabIndex = 87
@@ -1292,7 +1292,7 @@ Partial Class Tools
         '
         'TextBox49
         '
-        Me.TextBox49.Location = New System.Drawing.Point(277, 267)
+        Me.TextBox49.Location = New System.Drawing.Point(283, 267)
         Me.TextBox49.Name = "TextBox49"
         Me.TextBox49.Size = New System.Drawing.Size(55, 20)
         Me.TextBox49.TabIndex = 86
@@ -1301,7 +1301,7 @@ Partial Class Tools
         'Label40
         '
         Me.Label40.AutoSize = True
-        Me.Label40.Location = New System.Drawing.Point(230, 270)
+        Me.Label40.Location = New System.Drawing.Point(228, 270)
         Me.Label40.Name = "Label40"
         Me.Label40.Size = New System.Drawing.Size(41, 13)
         Me.Label40.TabIndex = 85
@@ -1348,6 +1348,7 @@ Partial Class Tools
         'Label42
         '
         Me.Label42.AutoSize = True
+        Me.Label42.Enabled = False
         Me.Label42.Location = New System.Drawing.Point(195, 75)
         Me.Label42.Name = "Label42"
         Me.Label42.Size = New System.Drawing.Size(53, 13)
@@ -1356,6 +1357,7 @@ Partial Class Tools
         '
         'Button21
         '
+        Me.Button21.Enabled = False
         Me.Button21.Location = New System.Drawing.Point(221, 40)
         Me.Button21.Name = "Button21"
         Me.Button21.Size = New System.Drawing.Size(56, 23)
@@ -1367,6 +1369,7 @@ Partial Class Tools
         '
         Me.Panel9.BackColor = System.Drawing.Color.White
         Me.Panel9.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel9.Enabled = False
         Me.Panel9.Location = New System.Drawing.Point(193, 40)
         Me.Panel9.Name = "Panel9"
         Me.Panel9.Size = New System.Drawing.Size(22, 23)
@@ -1374,6 +1377,7 @@ Partial Class Tools
         '
         'TextBox50
         '
+        Me.TextBox50.Enabled = False
         Me.TextBox50.Location = New System.Drawing.Point(254, 72)
         Me.TextBox50.Name = "TextBox50"
         Me.TextBox50.Size = New System.Drawing.Size(93, 20)
@@ -2498,6 +2502,16 @@ Partial Class Tools
         Me.Label81.Size = New System.Drawing.Size(59, 13)
         Me.Label81.TabIndex = 60
         Me.Label81.Text = "Area Color:"
+        '
+        'CheckBox10
+        '
+        Me.CheckBox10.AutoSize = True
+        Me.CheckBox10.Location = New System.Drawing.Point(12, 169)
+        Me.CheckBox10.Name = "CheckBox10"
+        Me.CheckBox10.Size = New System.Drawing.Size(68, 17)
+        Me.CheckBox10.TabIndex = 59
+        Me.CheckBox10.Text = "Fill Areas"
+        Me.CheckBox10.UseVisualStyleBackColor = True
         '
         'Button17
         '
@@ -3782,16 +3796,6 @@ Partial Class Tools
         Me.PictureBox11.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.PictureBox11.TabIndex = 6
         Me.PictureBox11.TabStop = False
-        '
-        'CheckBox10
-        '
-        Me.CheckBox10.AutoSize = True
-        Me.CheckBox10.Location = New System.Drawing.Point(12, 169)
-        Me.CheckBox10.Name = "CheckBox10"
-        Me.CheckBox10.Size = New System.Drawing.Size(68, 17)
-        Me.CheckBox10.TabIndex = 59
-        Me.CheckBox10.Text = "Fill Areas"
-        Me.CheckBox10.UseVisualStyleBackColor = True
         '
         'Tools
         '

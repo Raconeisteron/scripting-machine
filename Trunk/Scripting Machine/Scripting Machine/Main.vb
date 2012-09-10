@@ -21,6 +21,7 @@ Public Class Main
 #Region "Me"
 
     Private Sub Main_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        Dim Reader As StreamReader
         Try
             Dim name As String
             Me.Visible = False
@@ -36,7 +37,6 @@ Public Class Main
             SFD.DefaultExt = "pwn"
             OFD.Filter = "Script files|*.pwn;*.inc|Pawn files (.pwn)|*.pwn|Include files (.inc)|*.inc|All files| *.*"
             LoadResources()
-            Dim Reader As StreamReader
             If Directory.Exists(My.Application.Info.DirectoryPath & "\TMP") Then
                 If Directory.GetFiles(My.Application.Info.DirectoryPath & "\TMP").Length > 0 Then
                     Dim result As MsgBoxResult
@@ -89,10 +89,7 @@ Public Class Main
                 If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
                     Instances.Add(New Instance("new script", Instances.Count))
                     Reader = New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
-                    With Instances(GetInstanceByName("new script", Instances.Count - 1))
-                        .SyntaxHandle.Text = Reader.ReadToEnd()
-                        .Path = My.Application.Info.DirectoryPath & "\Scripts\new.pwn"
-                    End With
+                    Instances(GetInstanceByName("new script", Instances.Count - 1)).SyntaxHandle.Text = Reader.ReadToEnd()
                     Reader.Close()
                 End If
             End Try
@@ -107,6 +104,12 @@ Public Class Main
             ListView1.ContextMenu = cMenu
             Me.Visible = True
         Catch ex As Exception
+            If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
+                Instances.Add(New Instance("new script", Instances.Count))
+                Reader = New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
+                Instances(GetInstanceByName("new script", Instances.Count - 1)).SyntaxHandle.Text = Reader.ReadToEnd()
+                Reader.Close()
+            End If
             Splash.Label1.Invoke(sLabel, New Object() {"Error", Splash})
             Me.Visible = True
         End Try
@@ -183,20 +186,21 @@ Public Class Main
 #Region "App"
 
     Private Sub OnUnhandledException(ByVal sender As Object, ByVal e As UnhandledExceptionEventArgs)
-        If Not Directory.Exists(My.Application.Info.DirectoryPath & "\Temp") Then Directory.CreateDirectory(My.Application.Info.DirectoryPath & "\Temp")
+        If Not Directory.Exists(My.Application.Info.DirectoryPath & "\TMP") Then Directory.CreateDirectory(My.Application.Info.DirectoryPath & "\TMP")
         Dim Writer As StreamWriter, count As Integer
         For Each item In Instances
             If item.Saved = False Then
-                Writer = New StreamWriter(My.Application.Info.DirectoryPath & "\Temp\" & item.Name & ".pwn", False, System.Text.Encoding.GetEncoding(28591))
+                Writer = New StreamWriter(My.Application.Info.DirectoryPath & "\TMP\" & item.Name & ".pwn", False, System.Text.Encoding.GetEncoding(28591))
                 Writer.Write(item.Path & vbNewLine & item.SyntaxHandle.Text)
                 Writer.Close()
                 count += 1
             End If
         Next
-        If count = 0 Then Directory.Delete(My.Application.Info.ProductName & "\Temp")
+        If count = 0 Then Directory.Delete(My.Application.Info.ProductName & "\TMP")
     End Sub
 
     Private Sub OnStartupNextInstance(ByVal sender As Object, ByVal e As Microsoft.VisualBasic.ApplicationServices.StartupNextInstanceEventArgs)
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         For Each a As String In e.CommandLine
             Try
                 Dim name As String, index As Integer
@@ -220,36 +224,32 @@ Public Class Main
         Next
     End Sub
 
-    Protected Overrides Sub WndProc(ByRef m As System.Windows.Forms.Message)
+        Protected Overrides Sub WndProc(ByRef m As System.Windows.Forms.Message)
+        On Error Resume Next
         If m.Msg = WM_HOTKEY Then
-            If m.WParam.ToInt32 = 9303 AndAlso Not Instances(TabControl1.SelectedIndex).InfoText.Visible Then
+            If m.WParam.ToInt32 = 9303 AndAlso Not Instances(TabControl1.SelectedIndex).SyntaxHandle.CallTip.IsActive Then
                 Dim func As PawnFunction = GetFunctionByName(Instances(TabControl1.SelectedIndex).ACLists.Functions, Instances(TabControl1.SelectedIndex).CurrentFunction)
                 If Instances(TabControl1.SelectedIndex).ACLists.Functions.Contains(func) Then
                     With Instances(TabControl1.SelectedIndex)
-                        .InfoText.Clear()
-                        Dim istart As Integer, iend As Integer
+                        .SyntaxHandle.CallTip.Cancel()
+                        Dim istart As Integer, iend As Integer, tmp As String = vbNullString
                         For Each param As String In .ACLists.Functions(.ACLists.Functions.IndexOf(func)).Params
                             If Not .ACLists.Functions(.ACLists.Functions.IndexOf(func)).Params(UBound(.ACLists.Functions(.ACLists.Functions.IndexOf(func)).Params)) = param Then
                                 If Array.IndexOf(.ACLists.Functions(.ACLists.Functions.IndexOf(func)).Params, param) = .CurrentParamIndex Then
-                                    istart = .InfoText.Text.Length
-                                    iend = istart + Len(param + ", ")
+                                    istart = tmp.Length
+                                    iend = istart + Len(param + ",")
                                 End If
-                                .InfoText.Text += param & ", "
+                                tmp += param & ", "
                             Else
                                 If Array.IndexOf(.ACLists.Functions(.ACLists.Functions.IndexOf(func)).Params, param) = .CurrentParamIndex Then
-                                    istart = .InfoText.Text.Length
-                                    iend = istart + Len(param)
+                                    istart = tmp.Length
+                                    iend = tmp.IndexOf(",", istart)
                                 End If
-                                .InfoText.Text += param
+                                tmp += param
                             End If
                         Next
-                        .InfoText.Width = .InfoText.Text.Length * 6.5
-                        .InfoText.SelectionStart = istart
-                        .InfoText.SelectionLength = iend - istart
-                        .InfoText.SelectionFont = New Font(.InfoText.Font.FontFamily, 10)
-                        .InfoText.SelectionColor = Color.Blue
-                        .InfoText.Location = New Point(Instances(TabControl1.SelectedIndex).SyntaxHandle.PointXFromPosition(Instances(TabControl1.SelectedIndex).SyntaxHandle.CurrentPos), Instances(TabControl1.SelectedIndex).SyntaxHandle.PointYFromPosition(Instances(TabControl1.SelectedIndex).SyntaxHandle.CurrentPos) + 20)
-                        .ShowingInfoText = True
+                        .SyntaxHandle.CallTip.HighlightTextColor = Color.Blue
+                        .SyntaxHandle.CallTip.Show(tmp, .SyntaxHandle.CurrentPos, istart, iend)
                     End With
                 End If
             End If
@@ -281,7 +281,6 @@ Public Class Main
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn", System.Text.Encoding.GetEncoding(28591))
             With Instances(GetInstanceByName(name, Instances.Count - 1))
                 .SyntaxHandle.Text = Reader.ReadToEnd()
-                .Path = My.Application.Info.DirectoryPath & "\Scripts\gamemode.pwn"
                 TabControl1.SelectedTab = .TabHandle
             End With
             Reader.Close()
@@ -313,7 +312,6 @@ Public Class Main
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn", System.Text.Encoding.GetEncoding(28591))
             With Instances(GetInstanceByName(name, Instances.Count - 1))
                 .SyntaxHandle.Text = Reader.ReadToEnd()
-                .Path = My.Application.Info.DirectoryPath & "\Scripts\filterscript.pwn"
                 TabControl1.SelectedTab = .TabHandle
             End With
             Reader.Close()
@@ -345,7 +343,6 @@ Public Class Main
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
             With Instances(GetInstanceByName(name, Instances.Count - 1))
                 .SyntaxHandle.Text = Reader.ReadToEnd()
-                .Path = My.Application.Info.DirectoryPath & "\Scripts\new.pwn"
                 TabControl1.SelectedTab = .TabHandle
             End With
             Reader.Close()
@@ -406,6 +403,7 @@ Public Class Main
     End Sub
 
     Private Sub SaveToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SaveToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         With Instances(TabControl1.SelectedIndex)
             If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
                 Dim Writer As New StreamWriter(.Path, False, System.Text.Encoding.GetEncoding(28591))
@@ -452,6 +450,7 @@ Public Class Main
     End Sub
 
     Private Sub SaveAsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SaveAsToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         SFD.InitialDirectory = Settings.DefaultPath
         If SFD.ShowDialog() = Windows.Forms.DialogResult.Cancel Then Exit Sub
         If Not SFD.FileName Is Nothing AndAlso SFD.FileName.Length > 0 Then
@@ -511,49 +510,57 @@ Public Class Main
 #Region "Edit"
 
     Private Sub UndoToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles UndoToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.UndoRedo.Undo()
     End Sub
 
     Private Sub RedoToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RedoToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.UndoRedo.Redo()
     End Sub
 
     Private Sub CopyToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CopyToolStripMenuItem.Click
-        On Error Resume Next
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Copy()
     End Sub
 
     Private Sub CutToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CutToolStripMenuItem.Click
-        On Error Resume Next
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Cut()
     End Sub
 
     Private Sub PasteToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles PasteToolStripMenuItem.Click
-        On Error Resume Next
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Paste()
     End Sub
 
     Private Sub FindToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FindToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.FindReplace.ShowFind()
     End Sub
 
     Private Sub FindNextToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FindNextToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.FindReplace.Window.FindNext()
     End Sub
 
     Private Sub FindPrevToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FindPrevToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.FindReplace.Window.FindPrevious()
     End Sub
 
     Private Sub ReplaceToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ReplaceToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.FindReplace.ShowReplace()
     End Sub
 
     Private Sub GotoLineToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles GotoLineToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.GoTo.ShowGoToDialog()
     End Sub
 
     Private Sub SelectAllToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SelectAllToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Selection.SelectAll()
     End Sub
 
@@ -562,6 +569,7 @@ Public Class Main
 #Region "Build"
 
     Private Sub BuildToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BuildToolStripMenuItem1.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         With Instances(TabControl1.SelectedIndex)
             If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
                 If .Ext <> ".inc" Then
@@ -629,11 +637,14 @@ Public Class Main
         For Each pr As Process In Process.GetProcesses
             If pr Is P Then pr.Kill()
         Next
-        Dim tmpf As String = Mid(Instances(TabControl1.SelectedIndex).Path, 1, Instances(TabControl1.SelectedIndex).Path.LastIndexOf("\")) & ".xml"
-        If File.Exists(tmpf) Then File.Delete(tmpf)
+        If Settings.DelXml Then
+            Dim tmpf As String = Mid(Instances(TabControl1.SelectedIndex).Path, 1, Instances(TabControl1.SelectedIndex).Path.LastIndexOf(".")) & ".xml"
+            If File.Exists(tmpf) Then File.Delete(tmpf)
+        End If
         Dim errs As String(), tmp As String()
         errs = Split(err, vbNewLine)
         With Instances(TabControl1.SelectedIndex)
+            .OutPut = "Output from """ & .Name & """ finished at: " & If(Date.Now.Hour < 10, "0" & Date.Now.Hour, Date.Now.Hour) & ":" & If(Date.Now.Minute < 10, "0" & Date.Now.Minute, Date.Now.Minute) & ":" & Date.Now.Second & vbNewLine & out
             .Errors.Clear()
             For Each er As String In errs
                 If er.Length > 0 Then
@@ -646,7 +657,7 @@ Public Class Main
                 End If
             Next
             If Settings.OETab Then
-                TextBox1.Text = "Output from """ & .Name & """ finished at: " & If(Date.Now.Hour < 10, "0" & Date.Now.Hour, Date.Now.Hour) & ":" & If(Date.Now.Minute < 10, "0" & Date.Now.Minute, Date.Now.Minute) & ":" & Date.Now.Second & vbNewLine & out
+                TextBox1.Text = .OutPut
                 TextBox1.SelectionStart = TextBox1.Text.Length
                 TextBox1.SelectionLength = 0
                 ListView1.Items.Clear()
@@ -678,42 +689,49 @@ Public Class Main
 #Region "Tools"
 
     Private Sub TeleportsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TeleportsToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage6
     End Sub
 
     Private Sub GatesToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles GatesToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage12
     End Sub
 
     Private Sub DialogsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles DialogsToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage1
     End Sub
 
     Private Sub AreasToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AreasToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage3
     End Sub
 
     Private Sub ColorPickerToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ColorPickerToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage2
     End Sub
 
     Private Sub ConverterToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ConverterToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage4
     End Sub
 
     Private Sub AnimsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AnimsToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
@@ -721,6 +739,7 @@ Public Class Main
     End Sub
 
     Private Sub MapIconsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MapIconsToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
@@ -728,6 +747,7 @@ Public Class Main
     End Sub
 
     Private Sub SkinsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SkinsToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
@@ -735,6 +755,7 @@ Public Class Main
     End Sub
 
     Private Sub SoundsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SoundsToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
@@ -742,6 +763,7 @@ Public Class Main
     End Sub
 
     Private Sub SpritesToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SpritesToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
@@ -756,6 +778,7 @@ Public Class Main
     End Sub
 
     Private Sub WeaponsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles WeaponsToolStripMenuItem.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdaterEx, New Object() {Instance.UpdateType.Colors, 0, Instances(TabControl1.SelectedIndex).SyntaxHandle.Lines.Count})
         Tools.Show()
         Tools.TabControl1.SelectedTab = Tools.TabPage5
@@ -850,7 +873,6 @@ Public Class Main
             Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
             With Instances(GetInstanceByName(name, Instances.Count - 1))
                 .SyntaxHandle.Text = Reader.ReadToEnd()
-                .Path = My.Application.Info.DirectoryPath & "\Scripts\new.pwn"
                 TabControl1.SelectedTab = .TabHandle
             End With
             Reader.Close()
@@ -905,6 +927,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton3.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         With Instances(TabControl1.SelectedIndex)
             If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
                 Dim Writer As New StreamWriter(.Path, False, System.Text.Encoding.GetEncoding(28591))
@@ -933,7 +956,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton4.Click
-        On Error Resume Next
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Copy()
     End Sub
 
@@ -944,7 +967,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton5_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton5.Click
-        On Error Resume Next
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Cut()
     End Sub
 
@@ -955,7 +978,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton6_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton6.Click
-        On Error Resume Next
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Clipboard.Paste()
     End Sub
 
@@ -966,6 +989,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton7_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton7.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.UndoRedo.Undo()
     End Sub
 
@@ -976,6 +1000,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton8_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton8.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.UndoRedo.Redo()
     End Sub
 
@@ -986,6 +1011,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton9_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton9.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.FindReplace.ShowFind()
     End Sub
 
@@ -996,6 +1022,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton10_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton10.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.GoTo.ShowGoToDialog()
     End Sub
 
@@ -1006,6 +1033,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub ToolStripButton11_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ToolStripButton11.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         With Instances(TabControl1.SelectedIndex)
             If Not .Path Is Nothing AndAlso .Path.Length > 0 Then
                 If .Ext <> ".inc" Then
@@ -1073,11 +1101,14 @@ Public Class Main
         For Each pr As Process In Process.GetProcesses
             If pr Is P Then pr.Kill()
         Next
-        Dim tmpf As String = Mid(Instances(TabControl1.SelectedIndex).Path, 1, Instances(TabControl1.SelectedIndex).Path.LastIndexOf("\")) & ".xml"
-        If File.Exists(tmpf) Then File.Delete(tmpf)
+        If Settings.DelXml Then
+            Dim tmpf As String = Mid(Instances(TabControl1.SelectedIndex).Path, 1, Instances(TabControl1.SelectedIndex).Path.LastIndexOf(".")) & ".xml"
+            If File.Exists(tmpf) Then File.Delete(tmpf)
+        End If
         Dim errs As String(), tmp As String()
         errs = Split(err, vbNewLine)
         With Instances(TabControl1.SelectedIndex)
+            .OutPut = "Output from """ & .Name & """ finished at: " & If(Date.Now.Hour < 10, "0" & Date.Now.Hour, Date.Now.Hour) & ":" & If(Date.Now.Minute < 10, "0" & Date.Now.Minute, Date.Now.Minute) & ":" & Date.Now.Second & vbNewLine & out
             .Errors.Clear()
             For Each er As String In errs
                 If er.Length > 0 Then
@@ -1089,7 +1120,7 @@ Public Class Main
                 End If
             Next
             If Settings.OETab Then
-                TextBox1.Text = "Output from """ & .Name & """ finished at: " & If(Date.Now.Hour < 10, "0" & Date.Now.Hour, Date.Now.Hour) & ":" & If(Date.Now.Minute < 10, "0" & Date.Now.Minute, Date.Now.Minute) & ":" & Date.Now.Second & vbNewLine & out
+                TextBox1.Text = .OutPut
                 TextBox1.SelectionStart = TextBox1.Text.Length
                 TextBox1.SelectionLength = 0
                 ListView1.Items.Clear()
@@ -1129,10 +1160,11 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub TreeView1_DoubleClick(ByVal sender As Object, ByVal e As System.EventArgs) Handles TreeView1.DoubleClick
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         With Instances(TabControl1.SelectedIndex)
             For Each func As PawnFunction In AllFunctions
                 If func.Name = TreeView1.SelectedNode.Text Then
-                    .SyntaxHandle.Selection.Text = func.Name & "("
+                    .SyntaxHandle.Selection.Text = Trim(func.Name) & "("
                     .SyntaxHandle.Focus()
                 End If
             Next
@@ -1159,10 +1191,11 @@ Public Class Main
     ''' <remarks></remarks>
     Private Sub TreeView2_DoubleClick(ByVal sender As Object, ByVal e As System.EventArgs) Handles TreeView2.DoubleClick
         If TreeView2.SelectedNode.Text = "Current:" Then Exit Sub
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         With Instances(TabControl1.SelectedIndex)
             For Each func As PawnFunction In .ACLists.Functions
                 If func.Name = TreeView2.SelectedNode.Text Then
-                    .SyntaxHandle.Selection.Text = func.Name & "("
+                    .SyntaxHandle.Selection.Text = Trim(func.Name) & "("
                     .SyntaxHandle.Focus()
                     Exit Sub
                 End If
@@ -1189,6 +1222,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdater)
     End Sub
 
@@ -1209,6 +1243,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub TabControl2_Selected(ByVal sender As Object, ByVal e As System.Windows.Forms.TabControlEventArgs) Handles TabControl2.Selected
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         If TabControl2.SelectedTab Is TabPage2 Then Instances(TabControl1.SelectedIndex).SyntaxHandle.Invoke(Instances(TabControl1.SelectedIndex).DataUpdater)
         If TabControl2.SelectedTab Is TabPage1 Then
             With Instances(TabControl1.SelectedIndex)
@@ -1237,37 +1272,140 @@ Public Class Main
         End If
     End Sub
 
+    ''' <summary>
+    ''' Show info about the selected function (Helper)
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
+    ''' <remarks></remarks>
+    Private Sub TreeView1_AfterSelect(ByVal sender As System.Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles TreeView1.AfterSelect
+        With Instances(TabControl1.SelectedIndex)
+            If TrueContainsFunction(AllFunctions, GetFunctionByName(AllFunctions, Trim(TreeView1.SelectedNode.Text))) Then
+                For Each func As PawnFunction In AllFunctions
+                    If func.Name = TreeView1.SelectedNode.Text Then
+                        Dim params As String = vbNullString
+                        For Each param In func.Params
+                            If param.Length Then
+                                params += param & ", "
+                            Else
+                                params = param & ", "
+                            End If
+                        Next
+                        params = params.Remove(params.Length - 2, 2)
+                        Helper.Text = func.Name & "(" & params & ");"
+                        Helper.SelectionStart = 0
+                        Helper.SelectionLength = Helper.Text.IndexOf("(")
+                        Helper.SelectionColor = Settings.H_String2.ForeColor
+                        Helper.SelectionStart = Helper.Text.IndexOf("(") + 1
+                        Helper.SelectionLength = Helper.Text.IndexOf(")") - Helper.Text.IndexOf("(") - 1
+                        Helper.SelectionColor = Settings.H_String.ForeColor
+                        Helper.SelectionStart = Helper.Text.IndexOf("(")
+                        Helper.SelectionLength = 1
+                        Helper.SelectionColor = Settings.H_Operator.ForeColor
+                        Helper.SelectionStart = Helper.Text.IndexOf(")")
+                        Helper.SelectionLength = 2
+                        Helper.SelectionColor = Settings.H_Operator.ForeColor
+                        For Each M As Match In Regex.Matches(Helper.Text, ", ")
+                            Helper.SelectionStart = M.Index
+                            Helper.SelectionLength = 2
+                            Helper.SelectionColor = Settings.H_Operator.ForeColor
+                        Next
+                        Helper.Visible = True
+                        Exit For
+                    End If
+                Next
+            Else
+                Helper.Visible = False
+            End If
+        End With
+    End Sub
+
+    ''' <summary>
+    ''' Show info about the selected function (Helper)
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
+    ''' <remarks></remarks>
+    Private Sub TreeView2_AfterSelect(ByVal sender As System.Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles TreeView2.AfterSelect
+        With Instances(TabControl1.SelectedIndex)
+            If TrueContainsFunction(.ACLists.Functions, GetFunctionByName(.ACLists.Functions, Trim(TreeView2.SelectedNode.Text))) Then
+                For Each func As PawnFunction In AllFunctions
+                    If func.Name = TreeView2.SelectedNode.Text Then
+                        Dim params As String = vbNullString
+                        For Each param In func.Params
+                            If param.Length Then
+                                params += param & ", "
+                            Else
+                                params = param & ", "
+                            End If
+                        Next
+                        params = params.Remove(params.Length - 2, 2)
+                        Helper.Text = func.Name & "(" & params & ");"
+                        Helper.SelectionStart = 0
+                        Helper.SelectionLength = Helper.Text.IndexOf("(")
+                        Helper.SelectionColor = Settings.H_String2.ForeColor
+                        Helper.SelectionStart = Helper.Text.IndexOf("(") + 1
+                        Helper.SelectionLength = Helper.Text.IndexOf(")") - Helper.Text.IndexOf("(") - 1
+                        Helper.SelectionColor = Settings.H_String.ForeColor
+                        Helper.SelectionStart = Helper.Text.IndexOf("(")
+                        Helper.SelectionLength = 1
+                        Helper.SelectionColor = Settings.H_Operator.ForeColor
+                        Helper.SelectionStart = Helper.Text.IndexOf(")")
+                        Helper.SelectionLength = 2
+                        Helper.SelectionColor = Settings.H_Operator.ForeColor
+                        For Each M As Match In Regex.Matches(Helper.Text, ", ")
+                            Helper.SelectionStart = M.Index
+                            Helper.SelectionLength = 2
+                            Helper.SelectionColor = Settings.H_Operator.ForeColor
+                        Next
+                        Helper.Visible = True
+                        Exit For
+                    End If
+                Next
+            Else
+                Helper.Visible = False
+            End If
+        End With
+    End Sub
+
+    Private Sub TreeView1_LostFocus(sender As Object, e As System.EventArgs) Handles TreeView1.LostFocus
+        Helper.Visible = False
+    End Sub
+
+    Private Sub TreeView2_LostFocus(sender As Object, e As System.EventArgs) Handles TreeView2.LostFocus
+        Helper.Visible = False
+    End Sub
+
 #End Region
 
 #Region "Instances"
 
     Private Sub TabPage1_ControlAdded(ByVal sender As Object, ByVal e As System.Windows.Forms.ControlEventArgs) Handles TabPage1.ControlAdded
-        On Error Resume Next
-        If Not TabControl1.SelectedTab Is Nothing Then
-            With Instances(TabControl1.SelectedIndex)
-                If .Saved Then
-                    ToolStripButton3.Enabled = False
-                    SaveToolStripMenuItem.Enabled = False
-                Else
-                    ToolStripButton3.Enabled = True
-                    SaveToolStripMenuItem.Enabled = True
-                End If
-                If .SyntaxHandle.UndoRedo.CanUndo Then
-                    UndoToolStripMenuItem.Enabled = True
-                    ToolStripButton7.Enabled = True
-                Else
-                    UndoToolStripMenuItem.Enabled = False
-                    ToolStripButton7.Enabled = False
-                End If
-                If .SyntaxHandle.UndoRedo.CanRedo Then
-                    RedoToolStripMenuItem.Enabled = True
-                    ToolStripButton8.Enabled = True
-                Else
-                    RedoToolStripMenuItem.Enabled = False
-                    ToolStripButton8.Enabled = False
-                End If
-            End With
-        End If
+        'On Error Resume Next
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
+        With Instances(TabControl1.SelectedIndex)
+            If .Saved Then
+                ToolStripButton3.Enabled = False
+                SaveToolStripMenuItem.Enabled = False
+            Else
+                ToolStripButton3.Enabled = True
+                SaveToolStripMenuItem.Enabled = True
+            End If
+            If .SyntaxHandle.UndoRedo.CanUndo Then
+                UndoToolStripMenuItem.Enabled = True
+                ToolStripButton7.Enabled = True
+            Else
+                UndoToolStripMenuItem.Enabled = False
+                ToolStripButton7.Enabled = False
+            End If
+            If .SyntaxHandle.UndoRedo.CanRedo Then
+                RedoToolStripMenuItem.Enabled = True
+                ToolStripButton8.Enabled = True
+            Else
+                RedoToolStripMenuItem.Enabled = False
+                ToolStripButton8.Enabled = False
+            End If
+        End With
     End Sub
 
     ''' <summary>
@@ -1310,10 +1448,7 @@ Public Class Main
             Instances.Add(New Instance("new script", Instances.Count))
             If File.Exists(My.Application.Info.DirectoryPath & "\Scripts\new.pwn") Then
                 Dim Reader As New StreamReader(My.Application.Info.DirectoryPath & "\Scripts\new.pwn", System.Text.Encoding.GetEncoding(28591))
-                With Instances(GetInstanceByName("new script", Instances.Count - 1))
-                    .SyntaxHandle.Text = Reader.ReadToEnd()
-                    .Path = My.Application.Info.DirectoryPath & "\Scripts\new.pwn"
-                End With
+                Instances(GetInstanceByName("new script", Instances.Count - 1)).SyntaxHandle.Text = Reader.ReadToEnd()
                 Reader.Close()
             End If
         End If
@@ -1343,6 +1478,7 @@ Public Class Main
                     .Columns(4).Width = -2
                 End With
             End If
+            TextBox1.Text = .OutPut
         End With
     End Sub
 
@@ -1353,7 +1489,7 @@ Public Class Main
     ''' <param name="e"></param>
     ''' <remarks></remarks>
     Private Sub TabControl1_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TabControl1.SelectedIndexChanged
-        On Error Resume Next
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         With Instances(TabControl1.SelectedIndex)
             If .Saved Then
                 ToolStripButton3.Enabled = False
@@ -1402,6 +1538,7 @@ Public Class Main
                     .Columns(4).Width = -2
                 End With
             End If
+            TextBox1.Text = .OutPut
             If Not .Saved Then .SyntaxHandle.Invoke(.DataUpdater)
         End With
     End Sub
@@ -1469,22 +1606,17 @@ Public Class Main
     End Sub
 
     Private Sub Button3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button3.Click
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         With Instances(TabControl1.SelectedIndex)
             .SyntaxHandle.Selection.Text = ComboBox1.Text & ");"
             .SyntaxHandle.Focus()
-            If .ShowingInfoText AndAlso .CurrentFunction = "" Then .ShowingInfoText = False
+            If .SyntaxHandle.CallTip.IsActive AndAlso .CurrentFunction = "" Then .SyntaxHandle.CallTip.Cancel()
         End With
     End Sub
 
 #End Region
 
 #Region "Errors List"
-
-    Private Sub ListView1_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles ListView1.MouseClick
-        If e.Button = Windows.Forms.MouseButtons.Right Then
-
-        End If
-    End Sub
 
     Private Sub ListView1_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ListView1.SelectedIndexChanged
         If Not ListView1.FocusedItem Is Nothing AndAlso ListView1.FocusedItem.SubItems(3).Text <> "" Then
@@ -1552,7 +1684,7 @@ Public Class Main
     End Sub
 
     Private Sub ContextMenuHandler(ByVal Sender As Object, ByVal e As EventArgs)
-        On Error Resume Next
+        If TabControl1.SelectedTab Is Nothing Then Exit Sub
         Dim mI As MenuItem = DirectCast(Sender, MenuItem)
         Select Case mI.Text
             Case "Copy selected row"

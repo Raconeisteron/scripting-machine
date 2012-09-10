@@ -38,6 +38,7 @@ Public Class MultiF
                 "   **Beta Testing:" & vbNewLine & _
                 "       ***NightWar" & vbNewLine & _
                 "       ***Jovanny" & vbNewLine & _
+                "       ***EduGTA" & vbNewLine & _
                 "   **SA:MP team, without them this program won't exist." & vbNewLine & _
                 "   **Every one that contribute to the SA:MP wikipedia."
         ElseIf tSender = MsgT.Contact Then

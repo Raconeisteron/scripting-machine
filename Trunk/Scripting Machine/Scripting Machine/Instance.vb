@@ -30,7 +30,6 @@ Public Class Instance
         _Ext As String, _
         _Rate As Integer, _
         _Font As Font = Settings.cFont, _
-        _ShowingInfoText As Boolean, _
         _index As Integer, _
         wait As Boolean, _
         first As Boolean, _
@@ -45,6 +44,7 @@ Public Class Instance
 
     Public ACLists As AutoCompleteLists, _
         Errors As New List(Of ListViewItem), _
+        OutPut As String, _
         DataUpdater As New uData(AddressOf UpdateData), _
         DataUpdaterEx As New uDataEx(AddressOf UpdateDataEx)
 
@@ -85,8 +85,7 @@ Public Class Instance
 #Region "Components"
 
     Friend WithEvents TabHandle As TabPageEx.TabPageEx, _
-        SyntaxHandle As Scintilla, _
-        InfoText As RichTextBox
+        SyntaxHandle As Scintilla
 
 #End Region
 
@@ -234,21 +233,6 @@ Public Class Instance
         End Set
     End Property
 
-    Public Property ShowingInfoText As Boolean
-        Get
-            ShowingInfoText = _ShowingInfoText
-        End Get
-        Set(ByVal value As Boolean)
-            _ShowingInfoText = value
-            If InfoText.InvokeRequired Then
-                Static VisibleDelegate As New SetVisible(AddressOf SetControlVisible)
-                VisibleDelegate.Invoke(InfoText, value)
-            Else
-                InfoText.Visible = value
-            End If
-        End Set
-    End Property
-
 #End Region
 
 #Region "Methods"
@@ -258,7 +242,6 @@ Public Class Instance
         _index = index
         TabHandle = New TabPageEx.TabPageEx()
         SyntaxHandle = New Scintilla()
-        InfoText = New RichTextBox()
         With ACLists
             .Functions = New List(Of PawnFunction)
             .Callbacks = New List(Of PawnFunction)
@@ -423,15 +406,6 @@ Public Class Instance
                 .Lexing.Colorize()
             End If
         End With
-        With InfoText
-            .Text = ""
-            .BorderStyle = BorderStyle.None
-            .Font = New Font(.Font.FontFamily, 10, FontStyle.Regular)
-            .Enabled = False
-            .Multiline = False
-            .Visible = False
-            .AutoSize = True
-        End With
         With TabHandle
             .Text = name
             .Menu = New ContextMenu
@@ -440,14 +414,9 @@ Public Class Instance
                 .Add("Save As...", AddressOf SaveAsMenuItem_Click)
                 .Add("Reload File", AddressOf ReloadFileMenuItem_Click)
             End With
-            With .Controls
-                .Add(SyntaxHandle)
-                .Add(InfoText)
-            End With
+            .Controls.Add(SyntaxHandle)
         End With
         SetParent(SyntaxHandle.Handle, TabHandle.Handle)
-        SetParent(InfoText.Handle, TabHandle.Handle)
-        InfoText.BringToFront()
         Main.TabControl1.Controls.Add(TabHandle)
         If iwait Then
             wait = True
@@ -512,38 +481,31 @@ Public Class Instance
 #Region "Events"
 
     Private Sub SyntaxHandle_AutoCompleteAccepted(ByVal sender As Object, ByVal e As ScintillaNet.AutoCompleteAcceptedEventArgs) Handles SyntaxHandle.AutoCompleteAccepted
+        On Error Resume Next
         If SyntaxHandle.AutoComplete.List Is Lists.PreCompiler Then SyntaxHandle.Selection.Text = " "
-        If _ShowingInfoText Then
-            With InfoText
-                .Clear()
-                Dim istart As Integer, iend As Integer, func As PawnFunction
+        If SyntaxHandle.CallTip.IsActive Then
+            With SyntaxHandle.CallTip
+                .Cancel()
+                Dim func As PawnFunction, istart As Integer, iend As Integer, tmp As String = vbNullString
                 func = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True)))
                 If func.Name.Length > 0 Then
                     For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                         If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
                             If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = GetCurrentParamIndex() Then
-                                istart = .Text.Length
+                                istart = tmp.Length
                                 iend = istart + Len(param + ", ")
                             End If
-                            .Text += param & ", "
+                            tmp += param & ", "
                         Else
                             If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = GetCurrentParamIndex() Then
-                                istart = .Text.Length
+                                istart = tmp.Length
                                 iend = istart + Len(param)
                             End If
-                            .Text += param
+                            tmp += param
                         End If
                     Next
-                    .SelectionStart = istart
-                    .SelectionLength = iend - istart
-                    .SelectionFont = New Font(.Font.FontFamily, 10)
-                    .SelectionColor = Color.Blue
-                    If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                        .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                    Else
-                        .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                    End If
-                    .Visible = True
+                    .HighlightTextColor = Color.Blue
+                    .Show(tmp, SyntaxHandle.CurrentPos, istart, iend)
                 End If
             End With
         End If
@@ -576,7 +538,7 @@ Public Class Instance
                         .List.Add(i)
                     Next
                     .Show()
-                    If _ShowingInfoText Then InfoText.Visible = False
+                    If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                 End With
             Case "("
                 Dim CommentedChar As Boolean, pos As Integer
@@ -610,7 +572,7 @@ Public Class Instance
                                             End If
                                         Next
                                         If ACLists.Colors.Count = 1 Then .List.Add("-")
-                                        If _ShowingInfoText Then InfoText.Visible = False
+                                        If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                         .Show()
                                     End With
                             End Select
@@ -621,7 +583,7 @@ Public Class Instance
                                     .List.Add(d)
                                 Next
                                 If ACLists.Dbs.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(0).IndexOf("DBResult:") > -1 AndAlso ACLists.DbRes.Count > 0 Then
@@ -631,7 +593,7 @@ Public Class Instance
                                     .List.Add(d)
                                 Next
                                 If ACLists.DbRes.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(0).IndexOf("Menu:") > -1 AndAlso ACLists.Menus.Count > 0 Then
@@ -641,7 +603,7 @@ Public Class Instance
                                     .List.Add(m)
                                 Next
                                 If ACLists.Menus.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(0).IndexOf("Text:") > -1 AndAlso ACLists.Texts.Count > 0 Then
@@ -651,7 +613,7 @@ Public Class Instance
                                     .List.Add(t)
                                 Next
                                 If ACLists.Texts.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(0).IndexOf("Text3D:") > -1 AndAlso ACLists.Texts2.Count > 0 Then
@@ -661,7 +623,7 @@ Public Class Instance
                                     .List.Add(t)
                                 Next
                                 If ACLists.Texts2.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(0).IndexOf("Float:") > -1 AndAlso ACLists.Floats.Count > 0 Then
@@ -671,7 +633,7 @@ Public Class Instance
                                     .List.Add(f)
                                 Next
                                 If ACLists.Floats.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         Else
@@ -682,7 +644,7 @@ Public Class Instance
                                         For Each w As Weap In Weapons
                                             .List.Add(w.Def)
                                         Next
-                                        If _ShowingInfoText Then InfoText.Visible = False
+                                        If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                         .Show()
                                     End With
                                 Case "style", "Style"
@@ -693,7 +655,7 @@ Public Class Instance
                                                 For Each i In Lists.FightingTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                         Case "GameTextForAll", "GameTextForPlayer"
@@ -702,7 +664,7 @@ Public Class Instance
                                                 For i = 0 To 6
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                         Case "ShowPlayerDialog"
@@ -711,7 +673,7 @@ Public Class Instance
                                                 For Each i In Lists.DialogTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                     End Select
@@ -721,7 +683,7 @@ Public Class Instance
                                         For Each i In ACLists.Callbacks
                                             .List.Add(i.Name)
                                         Next
-                                        If _ShowingInfoText Then InfoText.Visible = False
+                                        If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                         .Show()
                                     End With
                                 Case "mode", "Mode"
@@ -732,7 +694,7 @@ Public Class Instance
                                                 For Each i In Lists.SpecTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                         Case "ShowPlayerMarkers"
@@ -741,7 +703,7 @@ Public Class Instance
                                                 For Each i In Lists.MarkerTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                         Case "fopen"
@@ -750,7 +712,7 @@ Public Class Instance
                                                 For Each i In Lists.FileTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                     End Select
@@ -761,7 +723,7 @@ Public Class Instance
                                             For Each i In Lists.ActionTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
@@ -772,7 +734,7 @@ Public Class Instance
                                             For Each i In Lists.RecordingTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
@@ -783,7 +745,7 @@ Public Class Instance
                                             For Each i In Lists.RoundTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
@@ -794,7 +756,7 @@ Public Class Instance
                                             For Each i In Lists.AngleTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
@@ -805,36 +767,32 @@ Public Class Instance
                                             For Each i In Lists.WhenceTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
                                 Case Else
-                                    With InfoText
-                                        If _ShowingInfoText Then
-                                            .Clear()
-                                            If func.Params.Length = 0 Then InfoText.Visible = False
-                                            Dim istart As Integer, iend As Integer
+                                    With SyntaxHandle.CallTip
+                                        If .IsActive Then
+                                            .Cancel()
+                                            Dim istart As Integer, iend As Integer, tmp As String = vbNullString
                                             For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                                 If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
                                                     If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = 0 Then
-                                                        istart = .Text.Length
+                                                        istart = tmp.Length
                                                         iend = istart + Len(param + ", ")
                                                     End If
-                                                    .Text += param & ", "
+                                                    tmp += param & ", "
                                                 Else
                                                     If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = 0 Then
-                                                        istart = .Text.Length
+                                                        istart = tmp.Length
                                                         iend = istart + Len(param)
                                                     End If
-                                                    .Text += param
+                                                    tmp += param
                                                 End If
                                             Next
-                                            .SelectionStart = istart
-                                            .SelectionLength = iend - istart
-                                            .SelectionFont = New Font(.Font.FontFamily, 10)
-                                            .SelectionColor = Color.Blue
-                                            .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
+                                            .HighlightTextColor = Color.Blue
+                                            .Show(tmp, SyntaxHandle.CurrentPos, istart, iend)
                                         Else
                                             Tim.Enabled = True
                                         End If
@@ -903,7 +861,7 @@ Public Class Instance
                                         Next
                                         If ACLists.Colors.Count = 1 Then .List.Add("-")
                                         .Show()
-                                        If _ShowingInfoText Then InfoText.Visible = False
+                                        If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                     End With
                             End Select
                         ElseIf func.Params(index).IndexOf("DB:") > -1 AndAlso ACLists.Dbs.Count > 0 Then
@@ -913,7 +871,7 @@ Public Class Instance
                                     .List.Add(d)
                                 Next
                                 If ACLists.Dbs.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(index).IndexOf("DBResult:") > -1 AndAlso ACLists.DbRes.Count > 0 Then
@@ -923,7 +881,7 @@ Public Class Instance
                                     .List.Add(d)
                                 Next
                                 If ACLists.DbRes.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(index).IndexOf("Menu:") > -1 AndAlso ACLists.Menus.Count > 0 Then
@@ -933,7 +891,7 @@ Public Class Instance
                                     .List.Add(m)
                                 Next
                                 If ACLists.Menus.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(index).IndexOf("Text:") > -1 AndAlso ACLists.Texts.Count > 0 Then
@@ -943,7 +901,7 @@ Public Class Instance
                                     .List.Add(t)
                                 Next
                                 If ACLists.Texts.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(index).IndexOf("Text3D:") > -1 AndAlso ACLists.Texts2.Count > 0 Then
@@ -953,7 +911,7 @@ Public Class Instance
                                     .List.Add(t)
                                 Next
                                 If ACLists.Texts2.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         ElseIf func.Params(index).IndexOf("Float:") > -1 AndAlso ACLists.Floats.Count > 0 Then
@@ -963,7 +921,7 @@ Public Class Instance
                                     .List.Add(f)
                                 Next
                                 If ACLists.Floats.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         Else
@@ -974,7 +932,7 @@ Public Class Instance
                                         For Each w As Weap In Weapons
                                             .List.Add(w.Def)
                                         Next
-                                        If _ShowingInfoText Then InfoText.Visible = False
+                                        If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                         .Show()
                                     End With
                                 Case "style", "Style"
@@ -985,7 +943,7 @@ Public Class Instance
                                                 For Each i In Lists.FightingTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                         Case "GameTextForAll", "GameTextForPlayer"
@@ -994,7 +952,7 @@ Public Class Instance
                                                 For i = 0 To 6
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                         Case "ShowPlayerDialog"
@@ -1003,7 +961,7 @@ Public Class Instance
                                                 For Each i In Lists.DialogTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                     End Select
@@ -1013,7 +971,7 @@ Public Class Instance
                                         For Each i In ACLists.Callbacks
                                             .List.Add(i.Name)
                                         Next
-                                        If _ShowingInfoText Then InfoText.Visible = False
+                                        If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                         .Show()
                                     End With
                                 Case "mode", "Mode"
@@ -1024,7 +982,7 @@ Public Class Instance
                                                 For Each i In Lists.SpecTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                         Case "ShowPlayerMarkers"
@@ -1033,7 +991,7 @@ Public Class Instance
                                                 For Each i In Lists.MarkerTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                         Case "fopen"
@@ -1042,7 +1000,7 @@ Public Class Instance
                                                 For Each i In Lists.FileTypes
                                                     .List.Add(i)
                                                 Next
-                                                If _ShowingInfoText Then InfoText.Visible = False
+                                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                                 .Show()
                                             End With
                                     End Select
@@ -1053,7 +1011,7 @@ Public Class Instance
                                             For Each i In Lists.ActionTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
@@ -1064,7 +1022,7 @@ Public Class Instance
                                             For Each i In Lists.RecordingTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
@@ -1075,7 +1033,7 @@ Public Class Instance
                                             For Each i In Lists.RoundTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
@@ -1086,7 +1044,7 @@ Public Class Instance
                                             For Each i In Lists.AngleTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
@@ -1097,39 +1055,32 @@ Public Class Instance
                                             For Each i In Lists.WhenceTypes
                                                 .List.Add(i)
                                             Next
-                                            If _ShowingInfoText Then InfoText.Visible = False
+                                            If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                             .Show()
                                         End With
                                     End If
                                 Case Else
-                                    With InfoText
-                                        If _ShowingInfoText Then
-                                            .Clear()
-                                            Dim istart As Integer, iend As Integer
+                                    With SyntaxHandle.CallTip
+                                        If .IsActive Then
+                                            .Cancel()
+                                            Dim istart As Integer, iend As Integer, tmp As String = vbNullString
                                             For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                                 If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
                                                     If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                        istart = .Text.Length
+                                                        istart = tmp.Length
                                                         iend = istart + Len(param + ", ")
                                                     End If
-                                                    .Text += param & ", "
+                                                    tmp += param & ", "
                                                 Else
                                                     If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                        istart = .Text.Length
+                                                        istart = tmp.Length
                                                         iend = istart + Len(param)
                                                     End If
-                                                    .Text += param
+                                                    tmp += param
                                                 End If
                                             Next
-                                            .SelectionStart = istart
-                                            .SelectionLength = iend - istart
-                                            .SelectionFont = New Font(.Font.FontFamily, 10)
-                                            .SelectionColor = Color.Blue
-                                            If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                                .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                            Else
-                                                .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                            End If
+                                            .HighlightTextColor = Color.Blue
+                                            .Show(tmp, SyntaxHandle.CurrentPos, istart, iend)
                                         Else
                                             Tim.Enabled = True
                                         End If
@@ -1139,52 +1090,42 @@ Public Class Instance
                     Else
                         index = UBound(func.Params)
                         If func.Params(index).IndexOf("...") > -1 Then
-                            With InfoText
-                                If _ShowingInfoText Then
-                                    .Clear()
-                                    Dim istart As Integer, iend As Integer
+                            With SyntaxHandle.CallTip
+                                If .IsActive Then
+                                    .Cancel()
+                                    Dim istart As Integer, iend As Integer, tmp As String = vbNullString
                                     For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                         If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
                                             If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                istart = .Text.Length
+                                                istart = tmp.Length
                                                 iend = istart + Len(param + ", ")
                                             End If
-                                            .Text += param & ", "
+                                            tmp += param & ", "
                                         Else
                                             If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                istart = .Text.Length
+                                                istart = tmp.Length
                                                 iend = istart + Len(param)
                                             End If
-                                            .Text += param
+                                            tmp += param
                                         End If
                                     Next
-                                    .SelectionStart = istart
-                                    .SelectionLength = iend - istart
-                                    .SelectionFont = New Font(.Font.FontFamily, 10)
-                                    .SelectionColor = Color.Blue
-                                    If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                        .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                    Else
-                                        .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                    End If
+                                    .HighlightTextColor = Color.Blue
+                                    .Show(tmp, SyntaxHandle.CurrentPos, istart, iend)
                                 End If
                             End With
                         Else
-                            With InfoText
-                                If _ShowingInfoText Then
-                                    .Clear()
+                            With SyntaxHandle.CallTip
+                                If .IsActive Then
+                                    .Cancel()
+                                    Dim tmp As String = vbNullString
                                     For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                         If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
-                                            .Text += param & ", "
+                                            tmp += param & ", "
                                         Else
-                                            .Text += param
+                                            tmp += param
                                         End If
                                     Next
-                                    If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                        .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                    Else
-                                        .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                    End If
+                                    .Show(tmp, SyntaxHandle.CurrentPos)
                                 End If
                             End With
                         End If
@@ -1219,36 +1160,30 @@ Public Class Instance
                 End If
                 If CommentedChar Then Exit Sub
                 Dim func As PawnFunction = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True), False, True))
-                If Trim(func.Name) = "" Then : ShowingInfoText = False
+                If Trim(func.Name) = "" AndAlso SyntaxHandle.CallTip.IsActive Then
+                    SyntaxHandle.CallTip.Cancel()
                 Else
-                    With InfoText
-                        If _ShowingInfoText Then
-                            .Clear()
-                            Dim istart As Integer, iend As Integer
+                    With SyntaxHandle.CallTip
+                        If .IsActive Then
+                            .Cancel()
+                            Dim istart As Integer, iend As Integer, tmp As String = vbNullString
                             For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                 If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
                                     If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = GetCurrentParamIndex() Then
-                                        istart = .Text.Length
+                                        istart = tmp.Length
                                         iend = istart + Len(param + ", ")
                                     End If
-                                    .Text += param & ", "
+                                    tmp += param & ", "
                                 Else
                                     If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = GetCurrentParamIndex() Then
-                                        istart = .Text.Length
+                                        istart = tmp.Length
                                         iend = istart + Len(param)
                                     End If
-                                    .Text += param
+                                    tmp += param
                                 End If
                             Next
-                            .SelectionStart = istart
-                            .SelectionLength = iend - istart
-                            .SelectionFont = New Font(.Font.FontFamily, 10)
-                            .SelectionColor = Color.Blue
-                            If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                            Else
-                                .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                            End If
+                            .HighlightTextColor = Color.Blue
+                            .Show(tmp, SyntaxHandle.CurrentPos, istart, iend)
                         End If
                     End With
                 End If
@@ -1280,7 +1215,7 @@ Public Class Instance
                                     .List.Add(col.Name)
                                 Next
                                 If ACLists.eColors.Count = 1 Then .List.Add("-")
-                                If _ShowingInfoText Then InfoText.Visible = False
+                                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                                 .Show()
                             End With
                         End If
@@ -1305,12 +1240,13 @@ Public Class Instance
                     End If
                 End If
             Case Keys.Delete, Keys.Back
-                If _ShowingInfoText Then
-                    If GetCurrentFunction(GetLineCursorPosition(True)) = "" Then : ShowingInfoText = False
+                If SyntaxHandle.CallTip.IsActive Then
+                    If GetCurrentFunction(GetLineCursorPosition(True)) = "" AndAlso SyntaxHandle.CallTip.IsActive Then
+                        SyntaxHandle.CallTip.Cancel()
                     Else
-                        With InfoText
-                            .Clear()
-                            Dim istart As Integer, iend As Integer, func As PawnFunction, index As Integer
+                        With SyntaxHandle.CallTip
+                            .Cancel()
+                            Dim istart As Integer, iend As Integer, tmp As String = vbNullString, func As PawnFunction, index As Integer
                             func = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True), True, True))
                             index = If(SyntaxHandle.Lines.Current.Text(GetLineCursorPosition(False) - 1) = ",", GetCurrentParamIndex(True, True), GetCurrentParamIndex(False, True))
                             If TrueContainsFunction(ACLists.Functions, func) Then
@@ -1318,81 +1254,63 @@ Public Class Instance
                                     For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                         If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
                                             If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                istart = .Text.Length
+                                                istart = tmp.Length
                                                 iend = istart + Len(param + ", ")
                                             End If
-                                            .Text += param & ", "
+                                            tmp += param & ", "
                                         Else
                                             If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                istart = .Text.Length
+                                                istart = tmp.Length
                                                 iend = istart + Len(param)
                                             End If
-                                            .Text += param
+                                            tmp += param
                                         End If
                                     Next
-                                    .SelectionStart = istart
-                                    .SelectionLength = iend - istart
-                                    .SelectionFont = New Font(.Font.FontFamily, 10)
-                                    .SelectionColor = Color.Blue
-                                    If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                        .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                    Else
-                                        .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                    End If
+                                    .HighlightTextColor = Color.Blue
+                                    .Show(tmp, SyntaxHandle.CurrentPos, istart, iend)
                                 Else
                                     index = UBound(func.Params)
                                     If func.Params(index).IndexOf("...") > -1 Then
-                                        With InfoText
-                                            If _ShowingInfoText Then
-                                                .Clear()
+                                        With SyntaxHandle.CallTip
+                                            If .IsActive Then
+                                                .Cancel()
                                                 For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                                     If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
                                                         If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                            istart = .Text.Length
+                                                            istart = tmp.Length
                                                             iend = istart + Len(param + ", ")
                                                         End If
-                                                        .Text += param & ", "
+                                                        tmp += param & ", "
                                                     Else
                                                         If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                            istart = .Text.Length
+                                                            istart = tmp.Length
                                                             iend = istart + Len(param)
                                                         End If
-                                                        .Text += param
+                                                        tmp += param
                                                     End If
                                                 Next
-                                                .SelectionStart = istart
-                                                .SelectionLength = iend - istart
-                                                .SelectionFont = New Font(.Font.FontFamily, 10)
-                                                .SelectionColor = Color.Blue
-                                                If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                                    .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                                Else
-                                                    .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                                End If
+                                                .HighlightTextColor = Color.Blue
+                                                .Show(tmp, SyntaxHandle.CurrentPos, istart, iend)
                                             End If
                                         End With
                                     Else
-                                        With InfoText
-                                            If _ShowingInfoText Then
-                                                .Clear()
+                                        With SyntaxHandle.CallTip
+                                            If .IsActive Then
+                                                .Cancel()
                                                 For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                                     If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
-                                                        .Text += param & ", "
+                                                        tmp += param & ", "
                                                     Else
-                                                        .Text += param
+                                                        tmp += param
                                                     End If
                                                 Next
-                                                If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                                    .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                                Else
-                                                    .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                                End If
+                                                .Show(tmp, SyntaxHandle.CurrentPos)
                                             End If
                                         End With
                                     End If
                                 End If
                             Else
-                                ShowingInfoText = False
+                                SyntaxHandle.CallTip.Cancel()
                             End If
                         End With
                     End If
@@ -1428,12 +1346,13 @@ Public Class Instance
                     SyntaxHandle.Invoke(DataUpdaterEx, New Object() {UpdateType.Other, If(SyntaxHandle.Lines.Current.Number > 2, SyntaxHandle.Lines.Current.Number - 2, SyntaxHandle.Lines.Current.Number), If(SyntaxHandle.Lines.Current.Number + 1 < SyntaxHandle.Lines.Count, If(SyntaxHandle.Lines.Current.Number + 2 < SyntaxHandle.Lines.Count, SyntaxHandle.Lines.Current.Number + 2, SyntaxHandle.Lines.Current.Number + 1), SyntaxHandle.Lines.Current.Number)})
                 End If
             Case Keys.Right, Keys.Left
-                If _ShowingInfoText Then
-                    If GetCurrentFunction(GetLineCursorPosition(True)) = "" Then : ShowingInfoText = False
+                If SyntaxHandle.CallTip.IsActive Then
+                    If GetCurrentFunction(GetLineCursorPosition(True)) = "" AndAlso SyntaxHandle.CallTip.IsActive Then
+                        SyntaxHandle.CallTip.Cancel()
                     Else
-                        With InfoText
-                            .Clear()
-                            Dim istart As Integer, iend As Integer, func As PawnFunction, index As Integer
+                        With SyntaxHandle.CallTip
+                            .Cancel()
+                            Dim istart As Integer, iend As Integer, tmp As String = vbNullString, func As PawnFunction, index As Integer
                             func = GetFunctionByName(ACLists.Functions, GetCurrentFunction(GetLineCursorPosition(True), True, True))
                             index = If(SyntaxHandle.Lines.Current.Text(GetLineCursorPosition() - 1) = ",", GetCurrentParamIndex(True, True), GetCurrentParamIndex(False, True))
                             If TrueContainsFunction(ACLists.Functions, func) Then
@@ -1441,81 +1360,64 @@ Public Class Instance
                                     For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                         If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
                                             If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                istart = .Text.Length
+                                                istart = tmp.Length
                                                 iend = istart + Len(param + ", ")
                                             End If
-                                            .Text += param & ", "
+                                            tmp += param & ", "
                                         Else
                                             If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                istart = .Text.Length
+                                                istart = tmp.Length
                                                 iend = istart + Len(param)
                                             End If
-                                            .Text += param
+                                            tmp += param
                                         End If
                                     Next
-                                    .SelectionStart = istart
-                                    .SelectionLength = iend - istart
-                                    .SelectionFont = New Font(.Font.FontFamily, 10)
-                                    .SelectionColor = Color.Blue
-                                    If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                        .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                    Else
-                                        .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                    End If
+                                    .HighlightTextColor = Color.Blue
+                                    .Show(tmp, SyntaxHandle.CurrentPos, istart, iend)
                                 Else
                                     index = UBound(func.Params)
                                     If func.Params(index).IndexOf("...") > -1 Then
-                                        With InfoText
-                                            If _ShowingInfoText Then
-                                                .Clear()
+                                        With SyntaxHandle.CallTip
+                                            If .IsActive Then
+                                                .Cancel()
                                                 For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                                     If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
                                                         If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                            istart = .Text.Length
+                                                            istart = tmp.Length
                                                             iend = istart + Len(param + ", ")
                                                         End If
-                                                        .Text += param & ", "
+                                                        tmp += param & ", "
                                                     Else
                                                         If Array.IndexOf(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params, param) = index Then
-                                                            istart = .Text.Length
+                                                            istart = tmp.Length
                                                             iend = istart + Len(param)
                                                         End If
-                                                        .Text += param
+                                                        tmp += param
                                                     End If
                                                 Next
-                                                .SelectionStart = istart
-                                                .SelectionLength = iend - istart
-                                                .SelectionFont = New Font(.Font.FontFamily, 10)
-                                                .SelectionColor = Color.Blue
-                                                If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                                    .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                                Else
-                                                    .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                                End If
+                                                .HighlightTextColor = Color.Blue
+                                                .Show(tmp, SyntaxHandle.CurrentPos, istart, iend)
                                             End If
                                         End With
                                     Else
-                                        With InfoText
-                                            If _ShowingInfoText Then
-                                                .Clear()
+                                        With SyntaxHandle.CallTip
+                                            If .IsActive Then
+                                                .Cancel()
                                                 For Each param As String In ACLists.Functions(ACLists.Functions.IndexOf(func)).Params
                                                     If Not ACLists.Functions(ACLists.Functions.IndexOf(func)).Params(UBound(ACLists.Functions(ACLists.Functions.IndexOf(func)).Params)) = param Then
-                                                        .Text += param & ", "
+                                                        tmp += param & ", "
                                                     Else
-                                                        .Text += param
+                                                        tmp += param
                                                     End If
                                                 Next
-                                                If SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos) + .Size.Width < SyntaxHandle.Width - 20 Then
-                                                    .Location = New Point(SyntaxHandle.PointXFromPosition(SyntaxHandle.CurrentPos), SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                                Else
-                                                    .Location = New Point(SyntaxHandle.Width - .Size.Width, SyntaxHandle.PointYFromPosition(SyntaxHandle.CurrentPos) + 20)
-                                                End If
+                                                .HighlightTextColor = Color.Blue
+                                                .Show(tmp, SyntaxHandle.CurrentPos)
                                             End If
                                         End With
                                     End If
                                 End If
                             Else
-                                ShowingInfoText = False
+                                SyntaxHandle.CallTip.Cancel()
                             End If
                         End With
                     End If
@@ -1530,7 +1432,7 @@ Public Class Instance
                     SyntaxHandle.Invoke(DataUpdaterEx, New Object() {UpdateType.Other, If(SyntaxHandle.Lines.Current.Number > 2, SyntaxHandle.Lines.Current.Number - 2, SyntaxHandle.Lines.Current.Number), If(SyntaxHandle.Lines.Current.Number + 1 < SyntaxHandle.Lines.Count, If(SyntaxHandle.Lines.Current.Number + 2 < SyntaxHandle.Lines.Count, SyntaxHandle.Lines.Current.Number + 2, SyntaxHandle.Lines.Current.Number + 1), SyntaxHandle.Lines.Current.Number)})
                 End If
             Case Keys.Escape
-                If _ShowingInfoText Then ShowingInfoText = False
+                If SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
         End Select
     End Sub
 
@@ -1566,7 +1468,7 @@ Public Class Instance
                     SyntaxHandle.Focus()
                 End If
             Else
-                If GetCurrentFunction(GetLineCursorPosition(True)) = "" AndAlso _ShowingInfoText Then ShowingInfoText = False
+                If GetCurrentFunction(GetLineCursorPosition(True)) = "" AndAlso SyntaxHandle.CallTip.IsActive Then SyntaxHandle.CallTip.Cancel()
                 Select Case Settings.Language
                     Case Languages.English
                         .Text = "Selection length: 0"
@@ -1594,7 +1496,8 @@ Public Class Instance
     End Sub
 
     Private Sub SyntaxHandle_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles SyntaxHandle.TextChanged
-        If SyntaxHandle.Lines.Count = 1 Then SyntaxHandle.Text = vbNullString
+        On Error Resume Next
+        If SyntaxHandle.Lines.Count = 1 AndAlso SyntaxHandle.Text.Length = 0 Then SyntaxHandle.Text = vbNullString
         With SyntaxHandle
             If wait AndAlso first Then
                 Saved = True
@@ -1641,6 +1544,7 @@ Public Class Instance
     End Sub
 
     Private Sub SaveMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
+        On Error Resume Next
         If Not _Path Is Nothing AndAlso _Path.Length > 0 Then
             Dim Writer As New StreamWriter(_Path)
             Writer.Write(SyntaxHandle.Text)
@@ -1677,6 +1581,7 @@ Public Class Instance
     End Sub
 
     Private Sub ReloadFileMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
+        On Error Resume Next
         If Not _Saved Then
             Dim Res As MsgBoxResult
             Select Case Settings.Language
@@ -1868,35 +1773,35 @@ Public Class Instance
     End Function
 
     Private Function GetCurrentParamIndex(Optional ByVal fix As Boolean = False, Optional ByVal remove As Boolean = False) As Integer
-        If GetCurrentFunction(GetLineCursorPosition(True), True) = "" Then Return -1
-        Static index As Integer, lastcall As Long
-        If lastcall = 0 OrElse (GetTickCount() - lastcall) > 500 Then
-            Try
-                Dim tmp(1) As String, pos(1) As Integer
-                tmp(1) = Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length)
-                pos(0) = GetLineCursorPosition()
-                tmp(1) = tmp(1).Remove(pos(0), tmp(1).Length - pos(0))
-                tmp(0) = StrReverse(Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length))
-                Dim Ms As MatchCollection = Regex.Matches(tmp(0), "\(.*\)")
-                For Each M As Match In Ms
-                    tmp(0) = tmp(0).Remove(M.Index, M.Length)
-                Next
-                If tmp(0).IndexOf(",") = -1 Then Return 0
-                If remove AndAlso tmp(0).StartsWith("(") Then tmp(0) = tmp(0).Remove(0, 1)
-                If tmp(0).IndexOf("(", tmp(0).IndexOf("(") + 1) > -1 Then
-                    pos(0) = tmp(0).IndexOf(",", tmp(0).IndexOf("("))
-                    tmp(0) = tmp(0).Remove(pos(0), tmp(0).Length - pos(0))
-                End If
-                tmp(0) = Trim(StrReverse(tmp(0)))
-                index = CountEqualCharsFromString(tmp(0), ",", tmp(0).IndexOf(tmp(1)))
-                lastcall = GetTickCount()
+            If GetCurrentFunction(GetLineCursorPosition(True), True) = "" Then Return -1
+            Static index As Integer, lastcall As Long
+            If lastcall = 0 OrElse (GetTickCount() - lastcall) > 500 Then
+                Try
+                    Dim tmp(1) As String, pos(1) As Integer
+                    tmp(1) = Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length)
+                    pos(0) = GetLineCursorPosition()
+                    tmp(1) = tmp(1).Remove(pos(0), tmp(1).Length - pos(0))
+                    tmp(0) = StrReverse(Mid(SyntaxHandle.Lines.Current.Text.Replace(vbCrLf, "").Replace(vbTab, ""), 1, SyntaxHandle.Lines.Current.Text.Length))
+                    Dim Ms As MatchCollection = Regex.Matches(tmp(0), "\(.*\)")
+                    For Each M As Match In Ms
+                        tmp(0) = tmp(0).Remove(M.Index, M.Length)
+                    Next
+                    If tmp(0).IndexOf(",") = -1 Then Return 0
+                    If remove AndAlso tmp(0).StartsWith("(") Then tmp(0) = tmp(0).Remove(0, 1)
+                    If tmp(0).IndexOf("(", tmp(0).IndexOf("(") + 1) > -1 Then
+                        pos(0) = tmp(0).IndexOf(",", tmp(0).IndexOf("("))
+                        tmp(0) = tmp(0).Remove(pos(0), tmp(0).Length - pos(0))
+                    End If
+                    tmp(0) = Trim(StrReverse(tmp(0)))
+                    index = CountEqualCharsFromString(tmp(0), ",", tmp(0).IndexOf(tmp(1)))
+                    lastcall = GetTickCount()
+                    Return If(fix, index - 1, index)
+                Catch ex As Exception
+                    Return -1
+                End Try
+            Else
                 Return If(fix, index - 1, index)
-            Catch ex As Exception
-                Return -1
-            End Try
-        Else
-            Return If(fix, index - 1, index)
-        End If
+            End If
     End Function
 
     Private Function GetLineCursorPosition(Optional ByVal fixed As Boolean = False) As Integer
@@ -2348,10 +2253,6 @@ Public Class Instance
         Return tControl.Lines
     End Function
 
-    Private Sub SetControlVisible(ByVal tControl As Control, ByVal value As Boolean)
-        tControl.Visible = value
-    End Sub
-
     Private Sub Colorize()
         With Settings
             Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
@@ -2513,6 +2414,7 @@ Public Class Instance
     End Sub
 
     Private Sub UpdateFileData()
+        On Error Resume Next
         Static lastcall As Long = -1
         If lastcall <> -1 AndAlso GetTickCount() - lastcall < 30000 Then Exit Sub
         Static TreeDelegate As New AddTreeNode(AddressOf AddNode), FirstTreeDelegate As New AddFirstTreeNode(AddressOf AddFirstNode), _
@@ -3738,6 +3640,7 @@ Public Class Instance
 #Region "Delegates Subs/Functions"
 
     Public Sub UpdateDataEx(ByVal Type As UpdateType, ByVal startline As Integer, ByVal endline As Integer)
+        On Error Resume Next
         Static LastUpdate As Long = -1
         If LastUpdate <> -1 AndAlso (GetTickCount() - LastUpdate) < 30000 Then Exit Sub
         If ACLists.Functions.Count = 0 Then
@@ -4547,6 +4450,7 @@ Public Class Instance
     End Sub
 
     Private Sub UpdateData()
+        On Error Resume Next
         Static lastcall As Long = -1
         If lastcall <> -1 AndAlso GetTickCount() - lastcall < 30000 Then Exit Sub
         Static TreeDelegate As New AddTreeNode(AddressOf AddNode), FirstTreeDelegate As New AddFirstTreeNode(AddressOf AddFirstNode), _

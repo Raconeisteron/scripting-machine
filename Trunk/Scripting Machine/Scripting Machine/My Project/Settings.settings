@@ -113,5 +113,8 @@
     <Setting Name="H_Preproc" Type="System.String" Scope="User">
       <Value Profile="(Default)">Default</Value>
     </Setting>
+    <Setting Name="DeleteXml" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

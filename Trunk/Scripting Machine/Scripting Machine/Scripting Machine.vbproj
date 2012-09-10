@@ -27,7 +27,7 @@
     <OutputType>WinExe</OutputType>
     <StartupObject>Scripting_Machine.My.MyApplication</StartupObject>
     <RootNamespace>Scripting_Machine</RootNamespace>
-    <AssemblyName>Scripting Machine</AssemblyName>
+    <AssemblyName>Scripting Machine Tracker</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>WindowsForms</MyType>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
@@ -48,23 +48,26 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>2.3.1.%2a</ApplicationVersion>
+    <ApplicationVersion>2.3.2.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
+    <DebugType>Full</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>false</DefineTrace>
     <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>Scripting Machine.xml</DocumentationFile>
+    <DocumentationFile>Scripting Machine Tracker.xml</DocumentationFile>
     <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42025,42032,42036</NoWarn>
-    <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <WarningLevel>1</WarningLevel>
     <WarningsAsErrors>
     </WarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Optimize>false</Optimize>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -73,13 +76,14 @@
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DocumentationFile>Scripting Machine.xml</DocumentationFile>
+    <DocumentationFile>Scripting Machine Tracker.xml</DocumentationFile>
     <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42025,42032,42036</NoWarn>
     <WarningLevel>1</WarningLevel>
     <WarningsAsErrors>
     </WarningsAsErrors>
     <DebugSymbols>true</DebugSymbols>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
     <OptionExplicit>On</OptionExplicit>
@@ -247,7 +251,9 @@
     <None Include="Resources\Map.png" />
     <None Include="Resources\N_A.png" />
     <None Include="Resources\refresh.png" />
-    <Content Include="GNU GPL.txt" />
+    <Content Include="GNU GPL.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="libpawnc.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -266,6 +272,9 @@
     <None Include="Resources\Question Mark %28Up%29.jpg" />
     <None Include="Resources\Question Mark %28Disabled%29.jpg" />
     <Content Include="SciLexer.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ScintillaNet License.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ScintillaNet.dll">

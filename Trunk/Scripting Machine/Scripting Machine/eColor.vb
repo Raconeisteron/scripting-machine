@@ -85,19 +85,19 @@ Public Class eColor
     End Sub
 
     Private Sub TrackBar1_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TrackBar1.ValueChanged
-        TextBox1.Text = TrackBar1.Value
+        TrackBar1_Scroll(sender, e)
     End Sub
 
     Private Sub TrackBar2_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TrackBar2.ValueChanged
-        TextBox2.Text = TrackBar2.Value
+        TrackBar2_Scroll(sender, e)
     End Sub
 
     Private Sub TrackBar3_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TrackBar3.ValueChanged
-        TextBox3.Text = TrackBar3.Value
+        TrackBar3_Scroll(sender, e)
     End Sub
 
     Private Sub TrackBar4_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles TrackBar4.ValueChanged
-        TextBox4.Text = TrackBar4.Value
+        TrackBar4_Scroll(sender, e)
     End Sub
 
 #End Region

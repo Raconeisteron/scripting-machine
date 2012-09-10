@@ -222,7 +222,8 @@ Module Functions
             G_Open_Color As PawnColor, _
             G_Close_Color As PawnColor, _
             Enc As System.Text.Encoding, _
-            All As Boolean
+            All As Boolean, _
+            DelXml As Boolean
     End Structure
 
     Public Structure Skin
@@ -508,12 +509,16 @@ Module Functions
 #Region "Other"
 
     Public Function GetFunctionByName(ByVal list As List(Of PawnFunction), ByVal func As String) As PawnFunction
-        For Each item As PawnFunction In list
-            If Trim(item.Name) = func Then
-                Return item
-            End If
-        Next
-        Return New PawnFunction("", "", -1, "")
+        Try
+            For Each item As PawnFunction In list
+                If Trim(item.Name) = func Then
+                    Return item
+                End If
+            Next
+            Return New PawnFunction("", "", -1, "")
+        Catch ex As Exception
+            Return New PawnFunction("", "", -1, "")
+        End Try
     End Function
 
     Public Function CountEqualCharsFromString(ByVal text As String, ByVal c As Char, Optional ByVal start As Integer = 0)
@@ -16583,381 +16588,374 @@ Module Functions
 #Region "Config"
 
     Private Sub LoadConfig()
-        Try
-            Splash.Label1.Invoke(sLabel, New Object() {"Loading config...", Splash})
-            Dim Path As String, tmp(3) As String, key As Microsoft.Win32.RegistryKey = Microsoft.Win32.Registry.ClassesRoot
-            Path = My.Application.Info.DirectoryPath & "\Scripting Machine.cfg"
-            With Settings
-                .C_Msg.Hex = My.Settings.MsgC
-                .C_Msg.Name = cColor(.C_Msg.Hex.A, .C_Msg.Hex.R, .C_Msg.Hex.G, .C_Msg.Hex.B)
-                .C_Help.Hex = My.Settings.HelpC
-                .C_Help.Name = cColor(.C_Help.Hex.A, .C_Help.Hex.R, .C_Help.Hex.G, .C_Help.Hex.B)
-                .C_Area.Hex = My.Settings.AreaC
-                If .C_Area.Hex = Color.LavenderBlush Then .C_Area.Hex = Color.FromArgb(166, 255, 0, 0)
-                .C_Area.Name = cColor(.C_Area.Hex.A, .C_Area.Hex.R, .C_Area.Hex.G, .C_Area.Hex.B)
-                .Language = LangFromInt(My.Settings.Lang)
-                .Images = ImgFromInt(My.Settings.dImg)
-                .URL_Skin = My.Settings.sURL
-                .URL_Veh = My.Settings.vURL
-                .URL_Weap = My.Settings.wURL
-                .URL_Map = My.Settings.mURL
-                .URL_Sprite = My.Settings.spURL
-                .AreaCreateOutput = My.Settings.zcrte
-                .AreaShowOutput = My.Settings.zshw
-                .BoundsOutput = My.Settings.Bounds
-                .A_Fill = My.Settings.aFill
-                .A_MSelect = My.Settings.aMSelect
-                .oPath = My.Settings.oPath
-                .Assoc = My.Settings.assoc
-                .iTabs = My.Settings.iTabs
-                .CompDefPath = My.Settings.CUDP
-                .CompPath = My.Settings.CP
-                .CompArgs = My.Settings.CA
-                .OETab = My.Settings.OETab
-                .ToolBar = My.Settings.tBar
-                .cFont = My.Settings.cFont
-                .aSelect = My.Settings.aSel
-                .G_Close_Color = New PawnColor("0xFFFFFFFF", Color.White, -1)
-                .G_Open_Color = New PawnColor("0xFFFFFFFF", Color.White, -1)
-                If .oPath.Length = 0 Then .oPath = My.Application.Info.DirectoryPath
-                If .CompPath.Length = 0 Then .CompPath = My.Application.Info.DirectoryPath & "\pawncc.exe"
-                If .cFont Is Nothing Then .cFont = New Font(New FontFamily("Courier New"), 12, FontStyle.Regular, GraphicsUnit.Pixel)
-                If My.Settings.FirstTime OrElse .Assoc Then
-                    My.Settings.FirstTime = False
-                    If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
-                    key.CreateSubKey(".pwn").SetValue("", ".pwn", Microsoft.Win32.RegistryValueKind.String)
-                    key.CreateSubKey(".pwn\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
-                    If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
-                    key.CreateSubKey(".inc").SetValue("", ".inc", Microsoft.Win32.RegistryValueKind.String)
-                    key.CreateSubKey(".inc\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
-                Else
-                    If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
-                    If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
-                End If
-                .Enc = EncFromInt(My.Settings.Encod)
-                If .Enc Is System.Text.Encoding.UTF8 Then
-                    Options.RadioButton8.Checked = True
-                ElseIf .Enc Is System.Text.Encoding.BigEndianUnicode Then
-                    Options.RadioButton9.Checked = True
-                ElseIf .Enc Is System.Text.Encoding.ASCII Then
-                    Options.RadioButton10.Checked = True
-                Else
-                    Options.RadioButton11.Checked = True
-                End If
-                Select Case .Language
-                    Case Languages.English
-                        Tools.RadioButton1.Checked = True
-                    Case Languages.Español
-                        Tools.RadioButton2.Checked = True
-                    Case Languages.Portuguêse
-                        Tools.RadioButton3.Checked = True
-                    Case Else
-                        Tools.RadioButton4.Checked = True
-                End Select
-                If My.Settings.H_Number = "Default" Then My.Settings.H_Number = Color.White.ToArgb() & "|" & Color.FromArgb(255, 27, 124, 143).ToArgb() & "|0|0"
-                tmp = Split(My.Settings.H_Number, "|")
-                .H_Numbers.BackColor = Color.FromArgb(tmp(0))
-                .H_Numbers.ForeColor = Color.FromArgb(tmp(1))
-                .H_Numbers.Bold = IntToBool(tmp(2))
-                .H_Numbers.Italic = IntToBool(tmp(3))
-                If My.Settings.H_String = "Default" Then My.Settings.H_String = Color.White.ToArgb() & "|" & Color.FromArgb(255, 92, 32, 153).ToArgb() & "|0|0"
-                tmp = Split(My.Settings.H_String, "|")
-                .H_String.BackColor = Color.FromArgb(tmp(0))
-                .H_String.ForeColor = Color.FromArgb(tmp(1))
-                .H_String.Bold = IntToBool(tmp(2))
-                .H_String.Italic = IntToBool(tmp(3))
-                If My.Settings.H_String2 = "Default" Then My.Settings.H_String2 = Color.FromArgb(255, 180, 240, 227).ToArgb() & "|" & Color.FromArgb(255, 237, 21, 180).ToArgb() & "|0|0"
-                tmp = Split(My.Settings.H_String2, "|")
-                .H_String2.BackColor = Color.FromArgb(tmp(0))
-                .H_String2.ForeColor = Color.FromArgb(tmp(1))
-                .H_String2.Bold = IntToBool(tmp(2))
-                .H_String2.Italic = IntToBool(tmp(3))
-                If My.Settings.H_Operator = "Default" Then My.Settings.H_Operator = Color.White.ToArgb() & "|" & Color.FromArgb(255, 17, 112, 72).ToArgb() & "|0|0"
-                tmp = Split(My.Settings.H_Operator, "|")
-                .H_Operator.BackColor = Color.FromArgb(tmp(0))
-                .H_Operator.ForeColor = Color.FromArgb(tmp(1))
-                .H_Operator.Bold = IntToBool(tmp(2))
-                .H_Operator.Italic = IntToBool(tmp(3))
-                If My.Settings.H_Chars = "Default" Then My.Settings.H_Chars = Color.White.ToArgb() & "|" & Color.FromArgb(255, 17, 95, 112).ToArgb() & "|0|0"
-                tmp = Split(My.Settings.H_Chars, "|")
-                .H_Chars.BackColor = Color.FromArgb(tmp(0))
-                .H_Chars.ForeColor = Color.FromArgb(tmp(1))
-                .H_Chars.Bold = IntToBool(tmp(2))
-                .H_Chars.Italic = IntToBool(tmp(3))
-                If My.Settings.H_Class = "Default" Then My.Settings.H_Class = Color.White.ToArgb() & "|" & Color.FromArgb(255, 232, 19, 204).ToArgb() & "|0|0"
-                tmp = Split(My.Settings.H_Class, "|")
-                .H_Class.BackColor = Color.FromArgb(tmp(0))
-                .H_Class.ForeColor = Color.FromArgb(tmp(1))
-                .H_Class.Bold = IntToBool(tmp(2))
-                .H_Class.Italic = IntToBool(tmp(3))
-                If My.Settings.H_Comment = "Default" Then My.Settings.H_Comment = Color.White.ToArgb() & "|" & Color.FromArgb(255, 0, 160, 0).ToArgb() & "|0|0"
-                tmp = Split(My.Settings.H_Comment, "|")
-                .H_Comment.BackColor = Color.FromArgb(tmp(0))
-                .H_Comment.ForeColor = Color.FromArgb(tmp(1))
-                .H_Comment.Bold = IntToBool(tmp(2))
-                .H_Comment.Italic = IntToBool(tmp(3))
-                If My.Settings.H_Preproc = "Default" Then My.Settings.H_Preproc = Color.White.ToArgb() & "|" & Color.Blue.ToArgb & "|0|0"
-                tmp = Split(My.Settings.H_Preproc, "|")
-                .H_Preproc.BackColor = Color.FromArgb(tmp(0))
-                .H_Preproc.ForeColor = Color.FromArgb(tmp(1))
-                .H_Preproc.Bold = IntToBool(tmp(2))
-                .H_Preproc.Italic = IntToBool(tmp(3))
-                If My.Settings.BackColor.A = 0 Then My.Settings.BackColor = Color.White
-                .BackColor = My.Settings.BackColor
-                .All = My.Settings.ApplyAll
-                ChangeLang(.Language)
-                Options.ComboBox1.SelectedIndex = Options.ComboBox1.FindString(.cFont.FontFamily.Name)
-                Options.ComboBox2.SelectedIndex = Options.ComboBox2.FindString(.cFont.Size)
-                Options.CheckBox1.Checked = .cFont.Bold
-                Options.CheckBox2.Checked = .cFont.Italic
-                Select Case .Images
-                    Case Imgs.iDefault
-                        Options.RadioButton5.Checked = True
-                    Case Imgs.iFolder
-                        Options.RadioButton6.Checked = True
-                    Case Else
-                        Options.RadioButton7.Checked = True
-                End Select
-                Options.CheckBox4.Checked = .Assoc
-                Options.CheckBox5.Checked = .iTabs
-                Options.CheckBox6.Checked = .CompDefPath
-                Options.CheckBox7.Checked = .ToolBar
-                Options.CheckBox8.Checked = .aSelect
-                Options.CheckBox9.Checked = .OETab
-                Options.TextBox1.Text = .AreaCreateOutput
-                Options.TextBox2.Text = .AreaShowOutput
-                Options.TextBox3.Text = .BoundsOutput
-                Options.TextBox4.Text = .URL_Skin
-                Options.TextBox5.Text = .URL_Veh
-                Options.TextBox6.Text = .URL_Weap
-                Options.TextBox7.Text = .URL_Map
-                Options.TextBox8.Text = .URL_Sprite
-                Options.Panel15.BackColor = .BackColor
-                Options.CheckBox23.Checked = .All
-                With .H_Numbers
-                    Options.Panel2.BackColor = .BackColor
-                    Options.Panel1.BackColor = .ForeColor
-                    Options.CheckBox10.Checked = .Bold
-                    Options.CheckBox11.Checked = .Italic
-                End With
-                With .H_String
-                    Options.Panel3.BackColor = .BackColor
-                    Options.Panel4.BackColor = .ForeColor
-                    Options.CheckBox13.Checked = .Bold
-                    Options.CheckBox12.Checked = .Italic
-                End With
-                With .H_String2
-                    Options.Panel5.BackColor = .BackColor
-                    Options.Panel6.BackColor = .ForeColor
-                    Options.CheckBox15.Checked = .Bold
-                    Options.CheckBox14.Checked = .Italic
-                End With
-                With .H_Operator
-                    Options.Panel7.BackColor = .BackColor
-                    Options.Panel8.BackColor = .ForeColor
-                    Options.CheckBox17.Checked = .Bold
-                    Options.CheckBox16.Checked = .Italic
-                End With
-                With .H_Chars
-                    Options.Panel9.BackColor = .BackColor
-                    Options.Panel10.BackColor = .ForeColor
-                    Options.CheckBox19.Checked = .Bold
-                    Options.CheckBox18.Checked = .Italic
-                End With
-                With .H_Class
-                    Options.Panel11.BackColor = .BackColor
-                    Options.Panel12.BackColor = .ForeColor
-                    Options.CheckBox21.Checked = .Bold
-                    Options.CheckBox20.Checked = .Italic
-                End With
-                With .H_Preproc
-                    Options.Panel17.BackColor = .BackColor
-                    Options.Panel16.BackColor = .ForeColor
-                    Options.CheckBox25.Checked = .Bold
-                    Options.CheckBox24.Checked = .Italic
-                End With
-                With .H_Comment
-                    Options.Panel13.BackColor = .ForeColor
-                    Options.Panel14.BackColor = .BackColor
-                    Options.CheckBox22.Checked = .Bold
-                    Options.CheckBox3.Checked = .Italic
-                End With
-                Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
-                If .All Then
-                    For Each inst In Instances
-                        inst.Font = .cFont
-                        inst.SyntaxHandle.Encoding = .Enc
-                        inst.SyntaxHandle.BackColor = .BackColor
-                        inst.SyntaxHandle.Caret.Color = inverted
-                        For i = 0 To 19
-                            Select Case i
-                                Case 1 To 7, 9, 10, 12, 15, 17 To 19
-                                Case Else
-                                    inst.SyntaxHandle.Styles(i).ForeColor = inverted
-                            End Select
-                            inst.SyntaxHandle.Styles(i).BackColor = .BackColor
-                        Next
-                        With .H_Numbers
-                            inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("NUMBER").Bold = .Bold
-                            inst.SyntaxHandle.Styles("NUMBER").Italic = .Italic
-                        End With
-                        With .H_String
-                            inst.SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("STRING").Bold = .Bold
-                            inst.SyntaxHandle.Styles("STRING").Italic = .Italic
-                        End With
-                        With .H_String2
-                            inst.SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
-                            inst.SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
-                        End With
-                        With .H_Operator
-                            inst.SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("OPERATOR").Bold = .Bold
-                            inst.SyntaxHandle.Styles("OPERATOR").Italic = .Italic
-                        End With
-                        With .H_Chars
-                            inst.SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("CHARACTER").Bold = .Bold
-                            inst.SyntaxHandle.Styles("CHARACTER").Italic = .Italic
-                        End With
-                        With .H_Class
-                            inst.SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
-                            inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
-                            inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
-                        End With
-                        With .H_Preproc
-                            inst.SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("PREPROCESSOR").Font = inst.Font
-                            inst.SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
-                            inst.SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
-                        End With
-                        With .H_Comment
-                            inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
-                        End With
-                        inst.SyntaxHandle.Lexing.Colorize()
-                    Next
-                Else
-                    For Each inst In Instances
-                        inst.Font = .cFont
-                        inst.SyntaxHandle.Encoding = .Enc
-                        inst.SyntaxHandle.BackColor = .BackColor
-                        inst.SyntaxHandle.Caret.Color = inverted
-                        For i = 0 To 19
-                            Select Case i
-                                Case 1 To 7, 9, 10, 12, 15, 17 To 19
-                                Case Else
-                                    inst.SyntaxHandle.Styles(i).ForeColor = inverted
-                            End Select
-                            inst.SyntaxHandle.Styles(i).BackColor = .BackColor
-                        Next
-                        With .H_Numbers
-                            inst.SyntaxHandle.Styles("NUMBER").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("NUMBER").Bold = .Bold
-                            inst.SyntaxHandle.Styles("NUMBER").Italic = .Italic
-                        End With
-                        With .H_String
-                            inst.SyntaxHandle.Styles("STRING").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("STRING").Bold = .Bold
-                            inst.SyntaxHandle.Styles("STRING").Italic = .Italic
-                        End With
-                        With .H_String2
-                            inst.SyntaxHandle.Styles("STRINGEOL").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
-                            inst.SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
-                        End With
-                        With .H_Operator
-                            inst.SyntaxHandle.Styles("OPERATOR").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("OPERATOR").Bold = .Bold
-                            inst.SyntaxHandle.Styles("OPERATOR").Italic = .Italic
-                        End With
-                        With .H_Chars
-                            inst.SyntaxHandle.Styles("CHARACTER").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("CHARACTER").Bold = .Bold
-                            inst.SyntaxHandle.Styles("CHARACTER").Italic = .Italic
-                        End With
-                        With .H_Class
-                            inst.SyntaxHandle.Styles("GLOBALCLASS").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
-                            inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
-                            inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
-                        End With
-                        With .H_Preproc
-                            inst.SyntaxHandle.Styles("PREPROCESSOR").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("PREPROCESSOR").Font = inst.Font
-                            inst.SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
-                            inst.SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
-                        End With
-                        With .H_Comment
-                            inst.SyntaxHandle.Styles("COMMENT").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTLINE").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTDOC").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").BackColor = .BackColor
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
-                            inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
-                        End With
-                        inst.SyntaxHandle.Lexing.Colorize()
-                    Next
-                End If
-            End With
-            Splash.ProgressBar1.Invoke(sProgress, New Object() {10, Splash})
-        Catch ex As Exception
-            Select Case Settings.Language
+        On Error Resume Next
+        Splash.Label1.Invoke(sLabel, New Object() {"Loading config...", Splash})
+        Dim Path As String, tmp(3) As String, key As Microsoft.Win32.RegistryKey = Microsoft.Win32.Registry.ClassesRoot
+        Path = My.Application.Info.DirectoryPath & "\Scripting Machine.cfg"
+        With Settings
+            .C_Msg.Hex = My.Settings.MsgC
+            .C_Msg.Name = cColor(.C_Msg.Hex.A, .C_Msg.Hex.R, .C_Msg.Hex.G, .C_Msg.Hex.B)
+            .C_Help.Hex = My.Settings.HelpC
+            .C_Help.Name = cColor(.C_Help.Hex.A, .C_Help.Hex.R, .C_Help.Hex.G, .C_Help.Hex.B)
+            .C_Area.Hex = My.Settings.AreaC
+            If .C_Area.Hex = Color.LavenderBlush Then .C_Area.Hex = Color.FromArgb(166, 255, 0, 0)
+            .C_Area.Name = cColor(.C_Area.Hex.A, .C_Area.Hex.R, .C_Area.Hex.G, .C_Area.Hex.B)
+            .Language = LangFromInt(My.Settings.Lang)
+            .Images = ImgFromInt(My.Settings.dImg)
+            .URL_Skin = My.Settings.sURL
+            .URL_Veh = My.Settings.vURL
+            .URL_Weap = My.Settings.wURL
+            .URL_Map = My.Settings.mURL
+            .URL_Sprite = My.Settings.spURL
+            .AreaCreateOutput = My.Settings.zcrte
+            .AreaShowOutput = My.Settings.zshw
+            .BoundsOutput = My.Settings.Bounds
+            .A_Fill = My.Settings.aFill
+            .A_MSelect = My.Settings.aMSelect
+            .oPath = My.Settings.oPath
+            .Assoc = My.Settings.assoc
+            .iTabs = My.Settings.iTabs
+            .CompDefPath = My.Settings.CUDP
+            .CompPath = My.Settings.CP
+            .CompArgs = My.Settings.CA
+            .OETab = My.Settings.OETab
+            .ToolBar = My.Settings.tBar
+            .cFont = My.Settings.cFont
+            .aSelect = My.Settings.aSel
+            .DelXml = My.Settings.DeleteXml
+            .G_Close_Color = New PawnColor("0xFFFFFFFF", Color.White, -1)
+            .G_Open_Color = New PawnColor("0xFFFFFFFF", Color.White, -1)
+            If .oPath.Length = 0 Then .oPath = My.Application.Info.DirectoryPath
+            If .CompPath.Length = 0 Then .CompPath = My.Application.Info.DirectoryPath & "\pawncc.exe"
+            If .cFont Is Nothing Then .cFont = New Font(New FontFamily("Courier New"), 12, FontStyle.Regular, GraphicsUnit.Pixel)
+            If My.Settings.FirstTime OrElse .Assoc Then
+                My.Settings.FirstTime = False
+                If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
+                key.CreateSubKey(".pwn").SetValue("", ".pwn", Microsoft.Win32.RegistryValueKind.String)
+                key.CreateSubKey(".pwn\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
+                If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
+                key.CreateSubKey(".inc").SetValue("", ".inc", Microsoft.Win32.RegistryValueKind.String)
+                key.CreateSubKey(".inc\shell\open\command").SetValue("", Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
+            Else
+                If Not key.OpenSubKey(".pwn") Is Nothing Then key.DeleteSubKeyTree(".pwn")
+                If Not key.OpenSubKey(".inc") Is Nothing Then key.DeleteSubKeyTree(".inc")
+            End If
+            .Enc = EncFromInt(My.Settings.Encod)
+            If .Enc Is System.Text.Encoding.UTF8 Then
+                Options.RadioButton8.Checked = True
+            ElseIf .Enc Is System.Text.Encoding.BigEndianUnicode Then
+                Options.RadioButton9.Checked = True
+            ElseIf .Enc Is System.Text.Encoding.ASCII Then
+                Options.RadioButton10.Checked = True
+            Else
+                Options.RadioButton11.Checked = True
+            End If
+            Select Case .Language
                 Case Languages.English
-                    MsgBox("The configuration was not fully loaded due an error, you should reset it (Options->Default)", MsgBoxStyle.Information, "Warning")
+                    Tools.RadioButton1.Checked = True
                 Case Languages.Español
-                    MsgBox("La configuración no se ha cargado por completo debido a un error, usted debería restablecer la misma (Opciones-> Default)", MsgBoxStyle.Information, "Advertencia")
+                    Tools.RadioButton2.Checked = True
                 Case Languages.Portuguêse
-                    MsgBox("A configuração não foi totalmente carregado por causa de um erro, você deve reiniciar (Options-> Padrão)", MsgBoxStyle.Information, "Aviso")
+                    Tools.RadioButton3.Checked = True
                 Case Else
-                    MsgBox("Die Konfiguration wurde nicht vollständig geladen werden, weil ein Fehler auftritt, sollten Sie es zurücksetzen (Optionen-> Standard)", MsgBoxStyle.Information, "Warnung")
+                    Tools.RadioButton4.Checked = True
             End Select
-            Exit Sub
-        End Try
+            If My.Settings.H_Number = "Default" Then My.Settings.H_Number = Color.White.ToArgb() & "|" & Color.FromArgb(255, 27, 124, 143).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_Number, "|")
+            .H_Numbers.BackColor = Color.FromArgb(tmp(0))
+            .H_Numbers.ForeColor = Color.FromArgb(tmp(1))
+            .H_Numbers.Bold = IntToBool(tmp(2))
+            .H_Numbers.Italic = IntToBool(tmp(3))
+            If My.Settings.H_String = "Default" Then My.Settings.H_String = Color.White.ToArgb() & "|" & Color.FromArgb(255, 92, 32, 153).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_String, "|")
+            .H_String.BackColor = Color.FromArgb(tmp(0))
+            .H_String.ForeColor = Color.FromArgb(tmp(1))
+            .H_String.Bold = IntToBool(tmp(2))
+            .H_String.Italic = IntToBool(tmp(3))
+            If My.Settings.H_String2 = "Default" Then My.Settings.H_String2 = Color.FromArgb(255, 180, 240, 227).ToArgb() & "|" & Color.FromArgb(255, 237, 21, 180).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_String2, "|")
+            .H_String2.BackColor = Color.FromArgb(tmp(0))
+            .H_String2.ForeColor = Color.FromArgb(tmp(1))
+            .H_String2.Bold = IntToBool(tmp(2))
+            .H_String2.Italic = IntToBool(tmp(3))
+            If My.Settings.H_Operator = "Default" Then My.Settings.H_Operator = Color.White.ToArgb() & "|" & Color.FromArgb(255, 17, 112, 72).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_Operator, "|")
+            .H_Operator.BackColor = Color.FromArgb(tmp(0))
+            .H_Operator.ForeColor = Color.FromArgb(tmp(1))
+            .H_Operator.Bold = IntToBool(tmp(2))
+            .H_Operator.Italic = IntToBool(tmp(3))
+            If My.Settings.H_Chars = "Default" Then My.Settings.H_Chars = Color.White.ToArgb() & "|" & Color.FromArgb(255, 17, 95, 112).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_Chars, "|")
+            .H_Chars.BackColor = Color.FromArgb(tmp(0))
+            .H_Chars.ForeColor = Color.FromArgb(tmp(1))
+            .H_Chars.Bold = IntToBool(tmp(2))
+            .H_Chars.Italic = IntToBool(tmp(3))
+            If My.Settings.H_Class = "Default" Then My.Settings.H_Class = Color.White.ToArgb() & "|" & Color.FromArgb(255, 232, 19, 204).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_Class, "|")
+            .H_Class.BackColor = Color.FromArgb(tmp(0))
+            .H_Class.ForeColor = Color.FromArgb(tmp(1))
+            .H_Class.Bold = IntToBool(tmp(2))
+            .H_Class.Italic = IntToBool(tmp(3))
+            If My.Settings.H_Comment = "Default" Then My.Settings.H_Comment = Color.White.ToArgb() & "|" & Color.FromArgb(255, 0, 160, 0).ToArgb() & "|0|0"
+            tmp = Split(My.Settings.H_Comment, "|")
+            .H_Comment.BackColor = Color.FromArgb(tmp(0))
+            .H_Comment.ForeColor = Color.FromArgb(tmp(1))
+            .H_Comment.Bold = IntToBool(tmp(2))
+            .H_Comment.Italic = IntToBool(tmp(3))
+            If My.Settings.H_Preproc = "Default" Then My.Settings.H_Preproc = Color.White.ToArgb() & "|" & Color.Blue.ToArgb & "|0|0"
+            tmp = Split(My.Settings.H_Preproc, "|")
+            .H_Preproc.BackColor = Color.FromArgb(tmp(0))
+            .H_Preproc.ForeColor = Color.FromArgb(tmp(1))
+            .H_Preproc.Bold = IntToBool(tmp(2))
+            .H_Preproc.Italic = IntToBool(tmp(3))
+            If My.Settings.BackColor.A = 0 Then My.Settings.BackColor = Color.White
+            .BackColor = My.Settings.BackColor
+            .All = My.Settings.ApplyAll
+            ChangeLang(.Language)
+            Options.ComboBox1.SelectedIndex = Options.ComboBox1.FindString(.cFont.FontFamily.Name)
+            Options.ComboBox2.SelectedIndex = Options.ComboBox2.FindString(.cFont.Size)
+            Options.CheckBox1.Checked = .cFont.Bold
+            Options.CheckBox2.Checked = .cFont.Italic
+            Select Case .Images
+                Case Imgs.iDefault
+                    Options.RadioButton5.Checked = True
+                Case Imgs.iFolder
+                    Options.RadioButton6.Checked = True
+                Case Else
+                    Options.RadioButton7.Checked = True
+            End Select
+            Options.CheckBox4.Checked = .Assoc
+            Options.CheckBox5.Checked = .iTabs
+            Options.CheckBox6.Checked = .CompDefPath
+            Options.CheckBox7.Checked = .ToolBar
+            Options.CheckBox8.Checked = .aSelect
+            Options.CheckBox9.Checked = .OETab
+            Options.TextBox1.Text = .AreaCreateOutput
+            Options.TextBox2.Text = .AreaShowOutput
+            Options.TextBox3.Text = .BoundsOutput
+            Options.TextBox4.Text = .URL_Skin
+            Options.TextBox5.Text = .URL_Veh
+            Options.TextBox6.Text = .URL_Weap
+            Options.TextBox7.Text = .URL_Map
+            Options.TextBox8.Text = .URL_Sprite
+            Options.Panel15.BackColor = .BackColor
+            Options.CheckBox23.Checked = .All
+            Options.CheckBox26.Checked = .DelXml
+            Tools.Panel4.BackColor = .C_Msg.Hex
+            Tools.Panel3.BackColor = .C_Help.Hex
+            Tools.Panel10.BackColor = .G_Open_Color.Hex
+            Tools.Panel9.BackColor = .G_Close_Color.Hex
+            With .H_Numbers
+                Options.Panel2.BackColor = .BackColor
+                Options.Panel1.BackColor = .ForeColor
+                Options.CheckBox10.Checked = .Bold
+                Options.CheckBox11.Checked = .Italic
+            End With
+            With .H_String
+                Options.Panel3.BackColor = .BackColor
+                Options.Panel4.BackColor = .ForeColor
+                Options.CheckBox13.Checked = .Bold
+                Options.CheckBox12.Checked = .Italic
+            End With
+            With .H_String2
+                Options.Panel5.BackColor = .BackColor
+                Options.Panel6.BackColor = .ForeColor
+                Options.CheckBox15.Checked = .Bold
+                Options.CheckBox14.Checked = .Italic
+            End With
+            With .H_Operator
+                Options.Panel7.BackColor = .BackColor
+                Options.Panel8.BackColor = .ForeColor
+                Options.CheckBox17.Checked = .Bold
+                Options.CheckBox16.Checked = .Italic
+            End With
+            With .H_Chars
+                Options.Panel9.BackColor = .BackColor
+                Options.Panel10.BackColor = .ForeColor
+                Options.CheckBox19.Checked = .Bold
+                Options.CheckBox18.Checked = .Italic
+            End With
+            With .H_Class
+                Options.Panel11.BackColor = .BackColor
+                Options.Panel12.BackColor = .ForeColor
+                Options.CheckBox21.Checked = .Bold
+                Options.CheckBox20.Checked = .Italic
+            End With
+            With .H_Preproc
+                Options.Panel17.BackColor = .BackColor
+                Options.Panel16.BackColor = .ForeColor
+                Options.CheckBox25.Checked = .Bold
+                Options.CheckBox24.Checked = .Italic
+            End With
+            With .H_Comment
+                Options.Panel13.BackColor = .ForeColor
+                Options.Panel14.BackColor = .BackColor
+                Options.CheckBox22.Checked = .Bold
+                Options.CheckBox3.Checked = .Italic
+            End With
+            Dim inverted As Color = Color.FromArgb(255 - .BackColor.A, 255 - .BackColor.R, 255 - .BackColor.G, 255 - .BackColor.B)
+            If .All Then
+                For Each inst In Instances
+                    inst.Font = .cFont
+                    inst.SyntaxHandle.Encoding = .Enc
+                    inst.SyntaxHandle.BackColor = .BackColor
+                    inst.SyntaxHandle.Caret.Color = inverted
+                    For i = 0 To 19
+                        Select Case i
+                            Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                            Case Else
+                                inst.SyntaxHandle.Styles(i).ForeColor = inverted
+                        End Select
+                        inst.SyntaxHandle.Styles(i).BackColor = .BackColor
+                    Next
+                    With .H_Numbers
+                        inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                        inst.SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                    End With
+                    With .H_String
+                        inst.SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("STRING").Bold = .Bold
+                        inst.SyntaxHandle.Styles("STRING").Italic = .Italic
+                    End With
+                    With .H_String2
+                        inst.SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                        inst.SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                    End With
+                    With .H_Operator
+                        inst.SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                    End With
+                    With .H_Chars
+                        inst.SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                        inst.SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                    End With
+                    With .H_Class
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                    End With
+                    With .H_Preproc
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Font = inst.Font
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                    End With
+                    With .H_Comment
+                        inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                    End With
+                    inst.SyntaxHandle.Lexing.Colorize()
+                Next
+            Else
+                For Each inst In Instances
+                    inst.Font = .cFont
+                    inst.SyntaxHandle.Encoding = .Enc
+                    inst.SyntaxHandle.BackColor = .BackColor
+                    inst.SyntaxHandle.Caret.Color = inverted
+                    For i = 0 To 19
+                        Select Case i
+                            Case 1 To 7, 9, 10, 12, 15, 17 To 19
+                            Case Else
+                                inst.SyntaxHandle.Styles(i).ForeColor = inverted
+                        End Select
+                        inst.SyntaxHandle.Styles(i).BackColor = .BackColor
+                    Next
+                    With .H_Numbers
+                        inst.SyntaxHandle.Styles("NUMBER").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("NUMBER").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("NUMBER").Bold = .Bold
+                        inst.SyntaxHandle.Styles("NUMBER").Italic = .Italic
+                    End With
+                    With .H_String
+                        inst.SyntaxHandle.Styles("STRING").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("STRING").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("STRING").Bold = .Bold
+                        inst.SyntaxHandle.Styles("STRING").Italic = .Italic
+                    End With
+                    With .H_String2
+                        inst.SyntaxHandle.Styles("STRINGEOL").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("STRINGEOL").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("STRINGEOL").Bold = .Bold
+                        inst.SyntaxHandle.Styles("STRINGEOL").Italic = .Italic
+                    End With
+                    With .H_Operator
+                        inst.SyntaxHandle.Styles("OPERATOR").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("OPERATOR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("OPERATOR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("OPERATOR").Italic = .Italic
+                    End With
+                    With .H_Chars
+                        inst.SyntaxHandle.Styles("CHARACTER").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("CHARACTER").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("CHARACTER").Bold = .Bold
+                        inst.SyntaxHandle.Styles("CHARACTER").Italic = .Italic
+                    End With
+                    With .H_Class
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Font = inst.Font
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Bold = .Bold
+                        inst.SyntaxHandle.Styles("GLOBALCLASS").Italic = .Italic
+                    End With
+                    With .H_Preproc
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Font = inst.Font
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("PREPROCESSOR").Italic = .Italic
+                    End With
+                    With .H_Comment
+                        inst.SyntaxHandle.Styles("COMMENT").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENT").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENT").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENT").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTLINE").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTLINE").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTLINE").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTLINE").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOC").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTDOC").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOC").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOC").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTLINEDOC").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORD").Italic = .Italic
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").BackColor = .BackColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").ForeColor = .ForeColor
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Bold = .Bold
+                        inst.SyntaxHandle.Styles("COMMENTDOCKEYWORDERROR").Italic = .Italic
+                    End With
+                    inst.SyntaxHandle.Lexing.Colorize()
+                Next
+            End If
+        End With
+        Splash.ProgressBar1.Invoke(sProgress, New Object() {10, Splash})
     End Sub
 
     Public Sub SaveConfig()
@@ -16998,6 +16996,7 @@ Module Functions
             My.Settings.Encod = EncToint(.Enc)
             My.Settings.BackColor = .BackColor
             My.Settings.ApplyAll = .All
+            My.Settings.DeleteXml = .DelXml
         End With
         My.Settings.Save()
     End Sub
@@ -17285,6 +17284,7 @@ Module Functions
                     .CheckBox3.Text = "Italic"
                     .CheckBox25.Text = "Bold"
                     .CheckBox24.Text = "Italic"
+                    .CheckBox26.Text = "Delete .xml file"
                 End With
                 With Srch
                     .Text = "Search"
@@ -17595,6 +17595,7 @@ Module Functions
                     .CheckBox3.Text = "Cursiva"
                     .CheckBox25.Text = "Negrita"
                     .CheckBox24.Text = "Cursiva"
+                    .CheckBox26.Text = "Borrar el archivo .xml"
                 End With
                 With Srch
                     .Text = "Buscar"
@@ -17905,6 +17906,7 @@ Module Functions
                     .CheckBox3.Text = "Itálico"
                     .CheckBox25.Text = "Negrito"
                     .CheckBox24.Text = "Itálico"
+                    .CheckBox26.Text = "Excluir o arquivo. XML"
                 End With
                 With Srch
                     .Text = "Localizar"
@@ -18217,6 +18219,7 @@ Module Functions
                     .CheckBox3.Text = "Kursiv"
                     .CheckBox25.Text = "Fett"
                     .CheckBox24.Text = "Kursiv"
+                    .CheckBox26.Text = "Löschen. Xml-Datei"
                 End With
                 With Srch
                     .Text = "Suchen"

@@ -222,20 +222,26 @@ Public Class Tools
 
     Private Sub Button8_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button8.Click
         gSender = CC.Msg
-        eColor.Show()
-        eColor.TrackBar1.Value = Settings.C_Msg.Hex.R
-        eColor.TrackBar2.Value = Settings.C_Msg.Hex.G
-        eColor.TrackBar3.Value = Settings.C_Msg.Hex.B
-        eColor.TrackBar4.Value = Settings.C_Msg.Hex.A
+        With eColor
+            .TrackBar1.Value = Settings.C_Msg.Hex.R
+            .TrackBar2.Value = Settings.C_Msg.Hex.G
+            .TrackBar3.Value = Settings.C_Msg.Hex.B
+            .TrackBar4.Value = Settings.C_Msg.Hex.A
+            .Owner = Me
+            .Show()
+        End With
     End Sub
 
     Private Sub Button7_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button7.Click
         gSender = CC.Help
-        eColor.Show()
-        eColor.TrackBar1.Value = Settings.C_Help.Hex.R
-        eColor.TrackBar2.Value = Settings.C_Help.Hex.G
-        eColor.TrackBar3.Value = Settings.C_Help.Hex.B
-        eColor.TrackBar4.Value = Settings.C_Help.Hex.A
+        With eColor
+            .TrackBar1.Value = Settings.C_Help.Hex.R
+            .TrackBar2.Value = Settings.C_Help.Hex.G
+            .TrackBar3.Value = Settings.C_Help.Hex.B
+            .TrackBar4.Value = Settings.C_Help.Hex.A
+            .Owner = Me
+            .Show()
+        End With
     End Sub
 
 #End Region
@@ -245,15 +251,15 @@ Public Class Tools
     Private Sub CheckBox1_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox1.CheckedChanged
         If CheckBox1.Checked = True Then
             Panel4.BackColor = Settings.C_Msg.Hex
-            Panel4.Visible = True
-            Button2.Visible = True
-            Label3.Visible = True
-            TextBox33.Visible = True
+            Panel4.Enabled = True
+            Button8.Enabled = True
+            Label25.Enabled = True
+            TextBox33.Enabled = True
         Else
-            Panel4.Visible = False
-            Button2.Visible = False
-            Label3.Visible = False
-            TextBox33.Visible = False
+            Panel4.Enabled = False
+            Button8.Enabled = False
+            Label25.Enabled = False
+            TextBox33.Enabled = False
         End If
     End Sub
 
@@ -1033,20 +1039,26 @@ Public Class Tools
 
     Private Sub Button22_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button22.Click
         gSender = CC.G_Open
-        eColor.Show()
-        eColor.TrackBar1.Value = Settings.G_Open_Color.Hex.R
-        eColor.TrackBar2.Value = Settings.G_Open_Color.Hex.G
-        eColor.TrackBar3.Value = Settings.G_Open_Color.Hex.B
-        eColor.TrackBar4.Value = Settings.G_Open_Color.Hex.A
+        With eColor
+            .TrackBar1.Value = Settings.G_Open_Color.Hex.R
+            .TrackBar2.Value = Settings.G_Open_Color.Hex.G
+            .TrackBar3.Value = Settings.G_Open_Color.Hex.B
+            .TrackBar4.Value = Settings.G_Open_Color.Hex.A
+            .Owner = Me
+            .Show()
+        End With
     End Sub
 
     Private Sub Button21_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button21.Click
         gSender = CC.G_Close
-        eColor.Show()
-        eColor.TrackBar1.Value = Settings.G_Close_Color.Hex.R
-        eColor.TrackBar2.Value = Settings.G_Close_Color.Hex.G
-        eColor.TrackBar3.Value = Settings.G_Close_Color.Hex.B
-        eColor.TrackBar4.Value = Settings.G_Close_Color.Hex.A
+        With eColor
+            .TrackBar1.Value = Settings.G_Close_Color.Hex.R
+            .TrackBar2.Value = Settings.G_Close_Color.Hex.G
+            .TrackBar3.Value = Settings.G_Close_Color.Hex.B
+            .TrackBar4.Value = Settings.G_Close_Color.Hex.A
+            .Owner = Me
+            .Show()
+        End With
     End Sub
 
 #End Region
@@ -1055,8 +1067,8 @@ Public Class Tools
 
     Private Sub CheckBox11_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox11.CheckedChanged
         If CheckBox11.Checked Then
-            Panel10.Enabled = True
             Panel10.BackColor = Settings.G_Open_Color.Hex
+            Panel10.Enabled = True
             Button22.Enabled = True
             Label43.Enabled = True
             TextBox51.Enabled = True
@@ -1659,7 +1671,7 @@ Public Class Tools
                 If CheckBox7.Checked Then TextBox75.Text += vbTab & "SendClientMessage(playerid, " & Settings.G_Close_Color.Name & ", " & TextBox50.Text & ");" & vbNewLine
                 TextBox75.Text += "}"
             End If
-        Else
+        Else 'Full Automatic
             If TextBox48.Text.Length = 0 Then
                 Select Case Settings.Language
                     Case Languages.English
@@ -1681,8 +1693,8 @@ Public Class Tools
                     TextBox75.Text += "public OnGameModeInit()" & vbNewLine
                 End If
                 TextBox75.Text += """{" & vbNewLine & _
-                    vbTab & "Gate = CreateObject(" & TextBox24.Text & ", " & TextBox21.Text & ", " & TextBox20.Text & ", " & TextBox19.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox17.Text & ", 100.0);" & vbNewLine & _
-                    vbTab & "SetTimer(""GateCheck"", " & TextBox28.Text & ", true);" & vbNewLine & _
+                    vbTab & "Gate = CreateObject(" & TextBox58.Text & ", " & TextBox85.Text & ", " & TextBox84.Text & ", " & TextBox83.Text & ", " & TextBox81.Text & ", " & TextBox80.Text & ", " & TextBox76.Text & ", 300.0);" & vbNewLine & _
+                    vbTab & "SetTimer(""GateCheck"", " & TextBox48.Text & ", true);" & vbNewLine & _
                     vbTab & "return 1;" & vbNewLine & _
                     "}" & vbNewLine & vbNewLine & _
                     "forward GateCheck();" & vbNewLine & _
@@ -2176,8 +2188,10 @@ Public Class Tools
 
     Private Sub Button2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button2.Click
         gSender = CC.Dialog
-        eColor.Owner = Me
-        eColor.Show()
+        With eColor
+            .Owner = Me
+            .Show()
+        End With
     End Sub
 
 #End Region
@@ -3695,16 +3709,19 @@ Public Class Tools
 
     Private Sub Button18_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button18.Click
         gSender = CC.Area
-        eColor.Show()
-        eColor.Panel1.BackColor = Settings.C_Area.Hex
-        eColor.TextBox1.Text = Settings.C_Area.Hex.R
-        eColor.TrackBar1.Value = Settings.C_Area.Hex.R
-        eColor.TextBox2.Text = Settings.C_Area.Hex.G
-        eColor.TrackBar2.Value = Settings.C_Area.Hex.G
-        eColor.TextBox3.Text = Settings.C_Area.Hex.B
-        eColor.TrackBar3.Value = Settings.C_Area.Hex.B
-        eColor.TextBox4.Text = Settings.C_Area.Hex.A
-        eColor.TrackBar4.Value = Settings.C_Area.Hex.A
+        With eColor
+            .Panel1.BackColor = Settings.C_Area.Hex
+            .TextBox1.Text = Settings.C_Area.Hex.R
+            .TrackBar1.Value = Settings.C_Area.Hex.R
+            .TextBox2.Text = Settings.C_Area.Hex.G
+            .TrackBar2.Value = Settings.C_Area.Hex.G
+            .TextBox3.Text = Settings.C_Area.Hex.B
+            .TrackBar3.Value = Settings.C_Area.Hex.B
+            .TextBox4.Text = Settings.C_Area.Hex.A
+            .TrackBar4.Value = Settings.C_Area.Hex.A
+            .Owner = Me
+            .Show()
+        End With
     End Sub
 
 #End Region
@@ -3927,9 +3944,9 @@ Public Class Tools
                         Dim i As Integer = UBound(pos)
                         pos(i) = Mid(pos(i), 1, pos(i).IndexOf(")"))
                         If ObjArray Then
-                            ConvertedString += String.Format(ObjOutput, oCount, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                            ConvertedString += String.Format(ObjOutput, oCount, pos(0), pos(1), pos(2), pos(3), pos(4), pos(5), pos(6))
                         Else
-                            ConvertedString += String.Format(ObjOutput, pos(0), Convert.ToDecimal(pos(1)), Convert.ToDecimal(pos(2)), Convert.ToDecimal(pos(3)), Convert.ToDecimal(pos(4)), Convert.ToDecimal(pos(5)), Convert.ToDecimal(pos(6)))
+                            ConvertedString += String.Format(ObjOutput, pos(0), pos(1), pos(2), pos(3), pos(4), pos(5), pos(6))
                         End If
                         oCount += 1
                     ElseIf line.IndexOf("AddStaticVehicle(") > -1 AndAlso Not CheckBox4.Checked Then
@@ -5298,7 +5315,12 @@ Public Class Tools
                 Try
                     Select Case Settings.Images
                         Case Imgs.iDefault
-                            PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID)
+                            Select Case weapon.ID
+                                Case 0 To 18
+                                    PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID)
+                                Case Else
+                                    PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID - 3)
+                            End Select
                         Case Imgs.iFolder
                             Dim path As String = String.Format(Settings.URL_Weap, weapon.ID)
                             If File.Exists(path) Then
@@ -5314,7 +5336,12 @@ Public Class Tools
                         PictureBox9.Image = My.Resources.N_A
                     Else
                         Try
-                            PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID)
+                            Select Case weapon.ID
+                                Case 0 To 18
+                                    PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID)
+                                Case Else
+                                    PictureBox9.Image = GetImageFromResource(ImageTypes.Weapon, weapon.ID - 3)
+                            End Select
                         Catch exx As Exception
                             PictureBox9.Image = My.Resources.N_A
                         End Try
